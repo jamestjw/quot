@@ -1,0 +1,418 @@
+\documentclass[11pt]{article}
+
+\usepackage{hyperref}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{mathpartir,mdframed,empheq}
+\usepackage{mathtools}
+\usepackage{ebproof}
+\usepackage{braket} % Easy angle-bracket notation
+\usepackage{parskip} %% Skips new paragraph indentation
+\usepackage{bbm}
+\usepackage{listings} % To typeset code
+\lstset{
+  basicstyle=\ttfamily,
+  mathescape,
+  breaklines=true
+}
+
+%% Macro to facilitate the definition of variadic macros
+%% from https://saswat.padhi.me/blog/2019-09_variadic-macros-in-latex/index.html
+%% USAGE :: \VARIADIC {name} {start_sym} {mid_sym} {stop_sym}
+\newcommand{\VARIADIC}[4]{%
+  \expandafter\newcommand\csname Gobble#1Arg\endcsname[1]{%
+    #3##1\csname Check#1Arg\endcsname%
+  }%
+  \expandafter\newcommand\csname Check#1Arg\endcsname{%
+    \csname @ifnextchar\endcsname\bgroup{\csname Gobble#1Arg\endcsname}{#4}%
+  }%
+  \expandafter\newcommand\csname #1\endcsname[1]{%
+    #2##1\csname Check#1Arg\endcsname%
+  }%
+}
+
+\VARIADIC{Funapp} {} { \ } {} %% Function application by juxtaposition
+
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
+\newcommand \kw[1] {\textsf{#1}}
+\newcommand \id[1] {\textsl{#1}}
+
+\NewDocumentCommand{\bI}{}{\mathbb{I}} %% Bold Interval I
+\NewDocumentCommand{\ileft}{}{\id{i}_0} %% Interval i0
+\NewDocumentCommand{\iright}{}{\id{i}_1} %% Interval i1
+\NewDocumentCommand{\refl}{mg}{\IfValueTF{#2}{\kw{refl}_{#1} (#2)}{\kw{refl} (#1)}}
+
+\NewDocumentCommand{\oftype}{mmg}{\IfValueTF{#3}{#1\vdash#2:#3}{#1:#2}}
+\NewDocumentCommand{\eqterm}{mmmg}{\IfValueTF{#4}{#1\vdash#2\equiv#3:#4}{#1\equiv#2:#3}}
+\NewDocumentCommand{\eqtype}{mmg}{\IfValueTF{#3}{#1\vdash#2\equiv#3}{#1\equiv#2}}
+\NewDocumentCommand{\ctx}{}{\Gamma}
+\NewDocumentCommand{\earg}{mg}{\IfValueTF{#2}{#1:=#2}{\_:=#1}} %% Erasable argument
+
+
+\title{Quotient Types in Typer}
+\author{James Tan \\ Université de Montréal \\ \href{mailto:james.juan.whei.tan@umontreal.ca}{james.juan.whei.tan@umontreal.ca}}
+
+\date{September 11, 2023}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  TODO:Insert abstract
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+\section{Cubical Equality}
+\subsection{Interval type}
+First, we provide the typical definition of the \id{Interval} type, subsequently we present our alternative formulation of the \id{Interval} type and show that it is equivalent to the traditional definition.
+
+\begin{prooftree*}
+   \infer0{\oftype{\ctx}{\bI}{Type}}
+\end{prooftree*}
+
+\begin{prooftree*}
+   \infer0{\oftype{\ctx}{i_{0}}{\bI}}
+\end{prooftree*}
+
+\begin{prooftree*}
+   \infer0{\oftype{\ctx}{i_{1}}{\bI}}
+\end{prooftree*}
+
+\begin{prooftree*}
+   \infer0{\oftype{\ctx}{seg}{\eqtype{i_0}{i_1}}}
+\end{prooftree*}
+
+We postulate the existence of the unit interval, along with the ends of the interval \id{$i_0$} and \id{$i_1$}. We also have \id{seg} which is a witness of a continuous path between \id{$i_0$} and \id{$i_1$}.
+
+Elimination of $\bI$ is similar to that of \id{Booleans}; the only difference is that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected. The recursion principle of $\bI$ can thus be stated as follows:
+
+\begin{prooftree*}
+   \hypo{\oftype{\ctx}{A}{Type}}
+   \hypo{\oftype{\ctx}{M}{A}}
+   \hypo{\oftype{\ctx}{N}{A}}
+   \hypo{\oftype{\ctx}{P}{\eqtype{M}{N}}}
+   \infer4{\oftype{\ctx, \oftype{i}{\bI}}{rec_{\bI} (\_.\ A, M, N, P, i)}{A}}
+\end{prooftree*}
+
+The recursion principle computes as follows:
+
+\begin{align*}
+  & rec_{\bI}(\_ . A, M, N, P, \ileft) = M \\
+  & rec_{\bI}(\_ . A, M, N, P, \iright) = N \\
+  & \kw{cong}_{rec_{\bI}(\_ . A, M, N, P)}(\id{seg}) = P
+\end{align*}
+
+We can expect the first two equations to hold definitionally. If we imagine that the first two computation rules were defined via pattern-matching, it would make sense for the equations to hold definitionally. However, more often than not, the third equation only holds propositionally, as is the case when such a type is defined in other type systems, e.g. Agda. (TODO:\ Might have to improve the phrasing, the entire thing might not be relevant at all, idk we'll see)
+
+TODO:\ The proof below requires depelim of Interval?
+
+\subsection{Motivation}
+We show that a function out of the interval into some type \id{A} is equivalent to a path between two terms of type \id{A}, in other words, we show the following
+
+\begin{align*}
+  & \bI \rightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}
+\end{align*}
+
+We take equivalence to mean what it means in the HoTT book (TODO:\ rephrase this). To prove the above, we define a function \id{f} and its inverse \id{g} as such:
+
+\begin{align*}
+  & f : (\bI \rightarrow A) \rightarrow \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y} \\
+  & f(h) := \braket{\id{h}(\ileft), \braket{\id{h}(\iright), \kw{cong}_{\id{h}}(\id{seg})}} \\ \\
+  & g : \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . (\eqtype{x}{y}) \rightarrow  (\bI \rightarrow A) \\
+  & g \braket{x, \braket{y, p}} := \lambda \id{i} . rec_{\bI}(\_ . \id{A}, \id{x}, \id{y}, \id{p}, \id{i})
+\end{align*}
+
+Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
+
+TODO:\ Add proof of $\kw{cong}_2$ and $\Sigma$ path characterisation in the appendix or something (sketch is in Interval.lagda.md)
+
+\begin{align*}
+  & \id{$\alpha$-helper} : (\oftype{h}{\bI \rightarrow A}) \rightarrow (\oftype{i}{Interval}) \rightarrow \eqtype{(g (f \ h)) \ i}{h \ i} \\
+  & \id{$\alpha$-helper} (h , i) = rec_{\bI}(i . \ \eqtype{(g (f \ h)) \ i}{h \ i}, \ \refl{h(\ileft)}, \ \refl{h(\iright)}, \ \kw{cong}_{\lambda i . \refl{h(i)}}(\id{seg}), \ i) \\
+  & \alpha : (\oftype{h}{\bI \rightarrow A}) \rightarrow \eqtype{g(f(h))}{h} \\
+  & \alpha(h) =  \kw{funExt} (\id{$\alpha$-helper} (h)) \\ \\
+  & \beta :  (\oftype{e}{\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}}) \rightarrow f(g(e)) = e \\
+  & \beta(e) =  \refl{\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}}{e}
+\end{align*}
+
+For the sake of simplifying the proof of $\beta$, we assume the $\eta$-rule for dependent pairs. And with that, the proof is complete.
+
+\subsection{Justification}
+We have established that the equality type (also known as the identity type) is equivalent to a function out of the interval. We have also illustrated that such a function is expected to be constant on the unit interval. This `condition' is enforced by virtue of the fact that $\id{Interval}$ is defined as a higher inductive type with an identification of its two `points' (TODO:\ wording?). An alternate way of enforcing this is to use erasable functions out of a $\mathbbm{2}$-type. In other words, we can first define the $\id{Interval}$ type as a normal algebraic data type.
+
+TODO:\ Define/explain erasable functions
+
+\begin{lstlisting}
+type $\bI$
+  | $i_0$
+  | $i_1$;
+\end{lstlisting}
+
+And then define a function with the following type:
+
+%% TODO: This looks weird because of the inconsistent height
+\begin{lstlisting}
+h : $\bI$ $\Rrightarrow$ A
+\end{lstlisting}
+
+Then, it is vacuously true that $\eqtype{h(i_0)}{h(i_1)}$. With that, we are able to postulate that 
+
+\begin{align*}
+  & \bI \Rrightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}
+\end{align*}
+
+The above shall be the basis of our new definition of identity types.
+
+\subsection{Elimination of the Interval type}
+TODO:\ Mention transp
+
+\subsection{Manipulation of the Interval type}
+TODO:\ Mention operators like $\!$, $\wedge$ and $\vee$.
+
+\subsection{Identity type}
+
+\subsubsection{Heterogenous equality}
+With the above definition of $\bI$, we are now ready to introduce the notion of heterogenous equality. Such an equality type allows us to identify two terms that are not necessarily of the same type. The heterogenous equality type has the following type signature\footnote{Although not mentioned explicitly, functions involving the identity type are universe polymorphic in their arguments and return type.} and is implemented axiomatically.
+
+\begin{lstlisting}
+$\oftype{\id{Heq}}{\ ?\id{x} \rightarrow ?\id{y} \rightarrow \kw{Type}}$
+\end{lstlisting}
+
+The introduction rule of the above type leverages the fact that erasable functions out of the interval are equivalent to identity types.
+
+%% Heq_eq : (l : TypeLevel) ≡> (t : I ≡> Type_ l) ≡> (f : (i : I) ≡> t (_ := i))
+%%           ≡> Heq (f (_ := i0)) (f (_ := i1));
+
+%% TODO: Use align*, I think it will eventually be more convenient
+\begin{lstlisting}
+$\oftype{\id{Heq\_eq}}{(\oftype{\id{t}}{\bI \Rrightarrow \kw{Type}})
+		               \Rrightarrow (\oftype{\id{f}}{(\oftype{\id{i}}{\bI}) \Rrightarrow \id{t} \ \id{i} })
+		               \Rrightarrow \Funapp{\id{Heq}}{(\Funapp{\id{f}}{\ileft})}{(\Funapp{\id{f}}{\iright})}}$
+\end{lstlisting}
+
+The elimination of equality types is trivial, it merely returns a function out of the interval that represents the underlying equality.
+
+%% Heq_uneq : (l : TypeLevel) ≡> (t : I ≡> Type_ l)
+%%                     ≡> (x : t (_ := i0)) => (y : t (_ := i1))
+%%                     => (p : Heq x y) ≡> (i : I) ≡> t (_ := i);
+\begin{align*}
+\id{Heq\_uneq} & : (\oftype{\id{t}}{\bI \Rrightarrow \kw{Type}})
+			       \Rrightarrow (\oftype{\id{x}}{\Funapp{\id{t}}{\ileft}})
+			       \Rightarrow (\oftype{\id{y}}{\Funapp{\id{t}}{\iright}})
+			       \Rightarrow (\oftype{p}{\Funapp{\id{Heq}}{\id{x}}{\id{y}}})
+			       \Rrightarrow (\oftype{\id{i}}{\bI}) \Rrightarrow \Funapp{\id{t}}{\id{i}}
+\end{align*}
+
+The composition of $\id{Heq\_uneq}$ and  $\id{Heq\_eq}$ (modulo the implicit arguments) is equal to the identity function.
+
+\subsubsection{Homogenous equality}
+Homogenous equality is by far the more typical notion of equality. We are able to define it as a special case of heterogenous equality where the two terms $\id{x}$ and $\id{y}$ in $\Funapp{\id{Heq}}{\id{x}}{\id{y}}$ are of the same type.
+
+%% TODO: Fix the alignment
+%% Eq_uneq : (l : TypeLevel) ≡> (t : Type_ l)
+%%           ≡> (x : t) => (y : t)
+%%           => (p : Eq x y) ≡> (i : I) ≡> t;
+%% Eq_uneq = lambda _ ≡> lambda t ≡>
+%%             lambda _ => lambda _ =>
+%%               lambda p ≡> lambda i ≡>
+%%                 Heq_uneq (t := lambda _ ≡> t) (p := p) (i := i);
+\begin{flalign*}
+& \id{Eq} : (\oftype{\id{t}}{\kw{Type}}) \Rrightarrow \id{t} \rightarrow \id{t} \rightarrow \kw{Type} &&\\
+& \id{Eq} \ \id{x} \ \id{y} = \Funapp{\id{Heq}}{\id{x}}{\id{y}} &&\\\\
+& \id{Eq\_eq} : (\oftype{\id{t}}{\kw{Type}}) \Rrightarrow  (\oftype{\id{f}}{\bI \Rrightarrow \id{t}})
+                                             \Rrightarrow \Funapp{\id{Eq}}{(\Funapp{\id{f}}{\ileft})}
+                                                                          {(\Funapp{\id{f}}{\iright})} &&\\
+& \id{Eq\_eq} \ \id{t} \ \id{f} = \Funapp{\id{Heq\_eq}}{(\id{t} := \lambda \ \_ \Rrightarrow \id{t})}{(\id{f} := \id{f})} &&\\\\
+& \id{Eq\_uneq} : (\oftype{\id{t}}{\kw{Type}}) \Rrightarrow (\oftype{\id{x}}{\id{t}})
+                                               \Rightarrow (\oftype{\id{y}}{\id{t}})
+                                               \Rightarrow (\oftype{\id{p}}{\Funapp{\id{Eq}}{\id{x}}{\id{y}}})
+                                               \Rrightarrow \bI \Rrightarrow \id{t} &&\\
+%% TODO: Find a clean way to display the args in a reasonable manner
+& \id{Eq\_uneq} \ \id{p} \ \id{i} = \Funapp{\id{Heq\_uneq}}{(\earg{\id{t}}{\lambda \_ \Rrightarrow \id{t}})}
+                                                           {(\earg{\id{p}}{\id{p}})}
+                                                           {(\earg{\id{i}}{\id{i}})}
+\end{flalign*}
+
+\subsection{Examples}
+Common properties of the equality type remain true, some of them are easier to prove than with a traditional equality type.
+
+\subsubsection{Reflexivity}
+A reflexive equality is the most trivial equality that we are able to construct, and indeed, it is the one that we are able to construct with an erasable function out of $\bI$ given that such a function is necessarily a constant function.
+
+%% Eq_refl : (l : TypeLevel) ≡> (t : Type_ l)
+%%            ≡> (x : t) ≡> Eq x x;
+%% Eq_refl = lambda _ ≡> lambda _ ≡> lambda x ≡>
+%%             Eq_eq (f := lambda _ ≡> x);
+\begin{flalign*}
+& \id{Eq\_refl} : (\oftype{\id{x}}{\ ?\id{t}}) \Rrightarrow \Funapp{\id{Eq}}{\id{x}}{\id{x}} &&\\
+& \id{Eq\_refl} \ \id{x} = \Funapp{\id{Eq\_eq}}{(\earg{\id{f}}{\lambda \_ \Rrightarrow \id{x}})} &&\\\\
+\end{flalign*}
+
+\subsubsection{Commutativity}
+This is the first of many properties that can be proved in an elegant manner by virtue of defining the equality type based on functions out of the interval. This property has many names, such as the commutativity of equality, the symmetry of equality, or the inversion of a path. Consider an equality between $\id{x}$ and $\id{y}$, we can think of the two terms as points, the equality itself can then be thought of as a continuous path between the two points. We think of the path as a directed path from $\id{x}$ to $\id{y}$. The commutativity of equality basically means that we are able to construct a path that goes in the opposite direction, in other words, we are able to invert the path. This is the intuition behind the following proof.
+
+%% Eq_comm : (x : ?t) ≡> (y : ?t) ≡> Eq x y -> Eq y x;
+%% Eq_comm p = Eq_eq (f := lambda i ≡> Eq_uneq (p := p) (i := I_not i));
+\begin{flalign*}
+& \id{Eq\_comm} : (\oftype{\id{x} \ \id{y}}{\ ?\id{t}}) \Rrightarrow \Funapp{\id{Eq}}{\id{x}}{\id{y}} \rightarrow \Funapp{\id{Eq}}{\id{y}}{\id{x}} &&\\
+& \id{Eq\_comm} \ \id{x} = \Funapp{\id{Eq\_eq}}{(\earg{\id{f}}
+                                               {\lambda \id{i} \Rrightarrow
+                                                 \Funapp{\id{Eq\_uneq}}{(\earg{\id{p}}{\id{p}})}
+                                                        {(\earg{\id{i}}{\ !\id{i}})}})} &&\\\\
+\end{flalign*}
+
+\subsubsection{Functional extensionality}
+The notion of functional extensionality implies that pointwise-equal functions are indeed equal. By postulating the existence of the $\id{Interval}$ type along with an equality type that's based on it, functional extensionality can be derived trivially as is illustrated by the below proof.
+
+\begin{flalign*}
+& \id{Eq\_funExt} : (\oftype{\id{f}}{(? \ \rightarrow \ ?)})
+                    \Rightarrow (\oftype{\id{g}}{(? \ \rightarrow \ ?)})
+                    \Rightarrow (\oftype{\id{p}}{(\oftype{\id{x}}{\ ?})
+                                 \rightarrow \Funapp{\id{Eq}}{(\Funapp{\id{f}}{\id{x}})}
+                                                             {(\Funapp{\id{g}}{\id{x}})}})
+                    \rightarrow \Funapp{\id{Eq}}{\id{f}}{\id{g}} &&\\
+& \id{Eq\_funExt} \ \id{p} = \Funapp{\id{Eq\_eq}}
+                                    {(\earg{\id{f}}
+                                    {\lambda \id{i} \Rrightarrow \lambda \id{x} \rightarrow
+                                      \Funapp{\id{Eq\_uneq}}
+                                                 {(\earg{\id{p}}{\Funapp{\id{p}}{\id{x}}})}
+                                                 {(\earg{\id{i}}{\id{i}})}})} &&\\\\
+\end{flalign*}
+
+We note that the above proof makes use of the $\eta$-equivalence of functions, i.e. $\lambda \id{x} \rightarrow \Funapp{\id{f}}{\id{x}} \equiv \id{f}$. Another thing that is worth noting is that we interpret erasable functions out of $\bI$ themselves as an equality type, i.e.\ if we do without the $\id{Eq\_eq}$ constructor, and if we we think of $\id{Eq\_uneq}$ as the direct application of an expression of type $\bI$  to such a function, we obtain the following interpretation of $\id{Eq\_funExt}$.
+
+\begin{flalign*}
+& \id{Eq\_funExt} : (\oftype{\id{f}}{(? \ \rightarrow \ ?)})
+                    \Rightarrow (\oftype{\id{g}}{(? \ \rightarrow \ ?)})
+                    \Rightarrow (\oftype{\id{p}}{(\oftype{\id{x}}{\ ?})
+                                 \rightarrow \Funapp{\id{Eq}}{(\Funapp{\id{f}}{\id{x}})}
+                                                             {(\Funapp{\id{g}}{\id{x}})}})
+                    \rightarrow \Funapp{\id{Eq}}{\id{f}}{\id{g}} &&\\
+& \id{Eq\_funExt} \ \id{p} \ \id{i} \ \id{x} = \Funapp{\id{p}}{\id{x}}{\id{i}} &&\\\\
+\end{flalign*}
+
+In this case, it becomes clear that $\id{Eq\_funExt}$ is a trivial function that does no more than swap the order of its two arguments. This is observed in several recent proof assistants that implement cubical type theory, such as Cubical Agda, coolTT and redTT.\@
+
+TODO:\ Decide if the below is worth mentioning in some way \\
+Note: funExt is required to prove quotient effectiveness, though we will see that the existence of $\id{Quotient}$ implies $\id{funExt}$.
+
+%% FIXME: Should this come before the section on funext? probably
+\subsubsection{Congruence of equality}
+This is a another typical property of equality that is proven with a `cubical' equality.
+
+%% Eq_cong : (x : ?A) => (y : ?A) =>
+%%           (f : ?A -> ?) -> (p : Eq x y)
+%%           -> Eq (f x) (f y);
+%% Eq_cong = lambda f -> lambda p ->
+%%             Eq_eq (f := lambda i ≡> f (Eq_uneq (p := p) (i := i)));
+\begin{flalign*}
+& \id{Eq\_cong} : (\oftype{\id{x} \ \id{y}}{\ ?\id{A}})
+                    \Rightarrow (\oftype{\id{f}}{(?\id{A} \ \rightarrow \ ?)})
+                    \rightarrow (\oftype{\id{p}}{(\oftype{\id{x}}{\ ?})})
+                    \rightarrow \Funapp{\id{Eq}}{(\Funapp{\id{f}}{\id{x}})}{(\Funapp{\id{f}}{\id{y}})} &&\\
+& \id{Eq\_cong} \ \id{f} \ \id{p} =
+    \Funapp{\id{Eq\_eq}}
+           {(\earg{\id{f}}
+           {\lambda \id{i} \Rrightarrow \Funapp{\id{f}}
+                                               {(\Funapp{\id{Eq\_uneq}}
+                                                        {(\earg{\id{p}}{\id{p}})}
+                                                        {(\earg{\id{i}}{\id{i}})})}})} &&\\\\
+\end{flalign*}
+
+Like before, with a slight change of perspective, we see that the congruence of equality merely involves applying the function $\id{f}$ `inside' the equality.
+
+\begin{flalign*}
+& \id{Eq\_cong} : (\oftype{\id{x} \ \id{y}}{\ ?\id{A}})
+                    \Rightarrow (\oftype{\id{f}}{(?\id{A} \ \rightarrow \ ?)})
+                    \rightarrow (\oftype{\id{p}}{(\oftype{\id{x}}{\ ?})})
+                    \rightarrow \Funapp{\id{Eq}}{(\Funapp{\id{f}}{\id{x}})}{(\Funapp{\id{f}}{\id{y}})} &&\\
+& \id{Eq\_cong} \ \id{f} \ \id{p} \ \id{i} =
+    \Funapp{\id{f}}
+           {(\Funapp{\id{p}}{\id{i}})} &&\\\\
+\end{flalign*}
+
+\subsubsection{Transport}
+The transport operation (also known as {\id{cast}}) allows us to transport properties that are true for some type $\id{A}$ to another type $\id{B}$ if we have a proof that $\eqtype{\id{A}}{\id{B}}$.
+
+\subsection{Limitations}
+We don't have primitives such as $hcomp$, what does this imply? Is there a certain class of proofs we are unable to construct? Or do we just suffer from some amount of inconvenience?
+
+
+\section{Rules}
+\subsection{Typing}
+\subsection{Reductions}
+
+\section{Implementation}
+\subsection{Axioms}
+\subsection{Syntaxique sugar}
+
+\section{Quotient Effectiveness}
+This only works for relations that are propositions and equivalence relations (i.e.\ reflexive, symmetric and transitive).
+\subsection{Propositional Extensionality}
+We provide a `weaker' (or alternative? which is it?) version of propositional extensionality. With this, we prove (a weaker version) quotient effectiveness.
+
+\subsubsection{Representation of propositions}
+Describe the $Erased$ type and a proof that $\id{isProp (Erased A)}$.
+
+\subsection{The Proof}
+
+\section{Examples}
+\subsection{Rational numbers}
+We get good runtime efficiency from this definition as we do not renormalise after each computation, contrary to other possible definitions.
+
+\subsubsection{Axioms on integers}
+
+We took this opportunity to add some axioms regarding the behaviour of the built-in integer types. 
+
+Examples include $\ldots$
+
+Mention examples that were given in the HoTT book (two alternative definitions were given).
+
+\subsection{Multiset}
+\subsection{Propositional Truncation}
+
+We can encode propositional truncation as a quotient type. The required properties are:
+
+\begin{itemize}
+	\item $A \ true \rightarrow \norm{A} \ true$, $\norm{A}$ is a subsingleton (exists unique)
+	\item $A  \ $subsingleton$ \rightarrow (\norm{A} \ $true$ \rightarrow A \ $true$)$
+	\item For some P that is a subsingleton and some $f :  A \rightarrow P$, there exists a function $g : \norm{A} \rightarrow P$ s.t. $ \forall a : A \ . \ g(a*) = f(a)$, where $ a* \in ||A||$.
+\end{itemize}
+
+\section{Holy Trinity?}
+Harper's triangle, check this https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/.
+
+\subsection{Relationship to Logic/Set Theory}
+Mention the typical definition of a quotient set, and what it is usually used for.
+
+\subsection{Relationship to Category Theory}
+Say that lots of constructs in type theory have equivalents in cat theory. Mention how a quotient type is a coequaliser of two `parallel' functions and compare this to actual code.
+
+
+\subsubsection{Coequaliser}
+
+\subsubsection{Initial object of quotient set algebras}
+
+\section{Alternatives that were considered}
+\subsection{QITs}
+Requires significantly more work to accomplish, but approximately the same expressive power as quotient types (how true is this!?)? Or do we draw the line at ``in practice, it has comparable expressivity''?
+The implementation of QITs would negatively impact the modularity of inductive types.
+
+\subsection{Quotient by normalisation}
+Explain what this is.
+
+Implementation is rather simple, but it seemed to be less expressive and less convenient.
+
+Further investigation led to proof that such quotients can be represented in the type system as it is (refer to Lemma 6.10.8 in HoTT book). Describe proof that the universal property of quotients is respected by such a construction.
+
+\section{Comparison to QITs}
+Quotient inductive types are essentially Higher Inductive Types (HITs) that are set-truncated. This essentially provides us with the full range of expressiveness of HITs without higher-dimensional paths (make sure to define paths in the equality section). Such paths are not typically used in day-to-day programming tasks.
+
+Compare to Quotient Haskell and cite examples of types that are convenient to define with QITs but are `tedious' to express as Quotient types.
+
+
+\end{document}
