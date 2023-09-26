@@ -338,6 +338,61 @@ Like before, with a slight change of perspective, we see that the congruence of 
 \subsubsection{Transport}
 The transport operation (also known as {\id{cast}}) allows us to transport properties that are true for some type $\id{A}$ to another type $\id{B}$ if we have a proof that $\eqtype{\id{A}}{\id{B}}$.
 
+%% Eq_cast : (x : ?) ≡> (y : ?) ≡> (p : Eq x y) ≡> (f : ? -> ?)
+%%             ≡> f x -> f y;
+%% Eq_cast = lambda _ ≡> lambda _ ≡> %% Two level variables
+%%            lambda A ≡> %% Type of x and y
+%%            lambda x ≡> lambda y ≡>
+%%            lambda p ≡> lambda f ≡>
+%%              lambda fx ->
+%%                 I_transp (A := lambda i ≡> f (Heq_uneq
+%%                                               (t := lambda _ ≡> A)
+%%                                               (p := p) (i := i)))
+%%                          (r := i0) fx
+%%
+%% TODO: Improve the alignment :(
+\begin{flalign*}
+& \id{Eq\_cast} : (\oftype{\id{x} \ \id{y}}{\ ?\id{A}})
+                    \Rrightarrow (\oftype{\id{p}}{\eqtype{\id{x}}{\id{y}}})
+                    \Rrightarrow (\oftype{\id{f}}{(? \ \rightarrow \ ?)})
+                    \Rrightarrow \Funapp{\id{f}}{\id{x}}
+                    \rightarrow \Funapp{\id{f}}{\id{y}} &&\\
+& \id{Eq\_cast} \ \id{A} \ \id{x} \ \id{y} \ \id{p} \ \id{f} \ \id{fx} =
+    \Funapp{\id{I\_transp}}
+           {(\earg{\id{A}}{\lambda \id{t}
+                            \Rrightarrow \Funapp{\id{f}}
+                                                {(\Funapp{\id{Eq\_uneq}}
+                                                         {(\earg{\id{t}}{\id{t}})}
+                                                         {(\earg{\id{p}}{\id{p}})}
+                                                         {(\earg{\id{i}}{\id{i}})})}})}
+           {(\earg{\id{r}}{\ileft})}
+           {\id{fx}} &&\\\\
+\end{flalign*}
+
+Here, we make use of the built-in function $\id{I\_transp}$ by passing it the argument $\earg{\id{r}}{\ileft}$, intending it to behave as a transport function. In other words, by passing it something of type $\Funapp{\id{f}}{\id{x}}$, it returns something of type $\Funapp{\id{f}}{\id{y}}$, which is precisely what the transport/cast function is meant to do.
+
+The $\id{I\_transp}$ function that looks slightly strange at first sight allows us to prove a certain property of the transport operation. Transporting across a reflexive path should be equivalent to a no-op, as is illustrated in the following proof.
+
+\begin{flalign*}
+& \id{Eq\_cast\_refl} : (\oftype{\id{A}}{\kw{Type}})
+                        \Rrightarrow (\oftype{\id{x}}{\id{A}})
+                        \rightarrow \Funapp{\id{Eq}}
+                                           {(\Funapp{Eq\_cast}
+                                                    {(\earg{\id{p}}
+                                                           {\Funapp{\id{Eq\_refl}}
+                                                                   {(\earg{\id{x}}{\id{x}})}})}
+                                                    {(\earg{\id{f}}{\lambda \_ \rightarrow \id{A}})}
+                                                    {\id{x}})}
+                                           {\id{x}} &&\\
+& \id{Eq\_cast\_refl} \ \id{A} \ \id{x} =
+    \Funapp{\id{Eq\_eq}}
+           {(\earg{\id{f}}{\lambda \id{i} \Rrightarrow
+                             \Funapp{\id{I\_transp}}
+                                      {(\earg{\id{A}}{\lambda \_ \Rrightarrow \id{A}})}
+                                        {(\earg{\id{r}}{\id{i}})}
+                                        {\id{x}}})} &&\\\\
+\end{flalign*}
+
 \subsection{Limitations}
 We don't have primitives such as $hcomp$, what does this imply? Is there a certain class of proofs we are unable to construct? Or do we just suffer from some amount of inconvenience?
 
