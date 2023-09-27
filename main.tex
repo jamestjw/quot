@@ -34,8 +34,8 @@
 
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
 
-\newcommand \kw[1] {\textsf{#1}}
-\newcommand \id[1] {\textsl{#1}}
+\newcommand\kw[1] {\textsf{#1}}
+\newcommand\id[1] {\textsl{#1}}
 
 \NewDocumentCommand{\bI}{}{\mathbb{I}} %% Bold Interval I
 \NewDocumentCommand{\ileft}{}{\id{i}_0} %% Interval i0
@@ -237,10 +237,22 @@ Homogenous equality is by far the more typical notion of equality. We are able t
                                                            {(\earg{\id{i}}{\id{i}})}
 \end{flalign*}
 
+\subsection{Reduction rules}
+
+\begin{prooftree*}
+   \infer0[UNEQ-LEFT]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\ileft}
+                     \rightsquigarrow \id{x}}
+\end{prooftree*}
+
+\begin{prooftree*}
+   \infer0[UNEQ-RIGHT]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\iright}
+                       \rightsquigarrow \id{y}}
+\end{prooftree*}
+
 \subsection{Examples}
 Common properties of the equality type remain true, some of them are easier to prove than with a traditional equality type.
 
-\subsubsection{Reflexivity}
+\subsubsection*{Reflexivity}
 A reflexive equality is the most trivial equality that we are able to construct, and indeed, it is the one that we are able to construct with an erasable function out of $\bI$ given that such a function is necessarily a constant function.
 
 %% Eq_refl : (l : TypeLevel) ≡> (t : Type_ l)
@@ -252,7 +264,7 @@ A reflexive equality is the most trivial equality that we are able to construct,
 & \id{Eq\_refl} \ \id{x} = \Funapp{\id{Eq\_eq}}{(\earg{\id{f}}{\lambda \_ \Rrightarrow \id{x}})} &&\\\\
 \end{flalign*}
 
-\subsubsection{Commutativity}
+\subsubsection*{Commutativity}
 This is the first of many properties that can be proved in an elegant manner by virtue of defining the equality type based on functions out of the interval. This property has many names, such as the commutativity of equality, the symmetry of equality, or the inversion of a path. Consider an equality between $\id{x}$ and $\id{y}$, we can think of the two terms as points, the equality itself can then be thought of as a continuous path between the two points. We think of the path as a directed path from $\id{x}$ to $\id{y}$. The commutativity of equality basically means that we are able to construct a path that goes in the opposite direction, in other words, we are able to invert the path. This is the intuition behind the following proof.
 
 %% Eq_comm : (x : ?t) ≡> (y : ?t) ≡> Eq x y -> Eq y x;
@@ -265,7 +277,7 @@ This is the first of many properties that can be proved in an elegant manner by 
                                                         {(\earg{\id{i}}{\ !\id{i}})}})} &&\\\\
 \end{flalign*}
 
-\subsubsection{Functional extensionality}
+\subsubsection*{Functional extensionality}
 The notion of functional extensionality implies that pointwise-equal functions are indeed equal. By postulating the existence of the $\id{Interval}$ type along with an equality type that's based on it, functional extensionality can be derived trivially as is illustrated by the below proof.
 
 \begin{flalign*}
@@ -301,7 +313,7 @@ TODO:\ Decide if the below is worth mentioning in some way \\
 Note: funExt is required to prove quotient effectiveness, though we will see that the existence of $\id{Quotient}$ implies $\id{funExt}$.
 
 %% FIXME: Should this come before the section on funext? probably
-\subsubsection{Congruence of equality}
+\subsubsection*{Congruence of equality}
 This is a another typical property of equality that is proven with a `cubical' equality.
 
 %% Eq_cong : (x : ?A) => (y : ?A) =>
@@ -335,7 +347,7 @@ Like before, with a slight change of perspective, we see that the congruence of 
            {(\Funapp{\id{p}}{\id{i}})} &&\\\\
 \end{flalign*}
 
-\subsubsection{Transport}
+\subsubsection*{Transport}
 The transport operation (also known as {\id{cast}}) allows us to transport properties that are true for some type $\id{A}$ to another type $\id{B}$ if we have a proof that $\eqtype{\id{A}}{\id{B}}$.
 
 %% Eq_cast : (x : ?) ≡> (y : ?) ≡> (p : Eq x y) ≡> (f : ? -> ?)
@@ -397,12 +409,107 @@ The $\id{I\_transp}$ function that looks slightly strange at first sight allows 
 We don't have primitives such as $hcomp$, what does this imply? Is there a certain class of proofs we are unable to construct? Or do we just suffer from some amount of inconvenience?
 
 
-\section{Rules}
+\section{Quotient Rules}
 \subsection{Typing}
+We present the $\id{Quotient}$ primitives along with their typing rules.
+
+\begin{prooftree*}
+   \hypo{\oftype{\ctx}{\id{A}}{\kw{Type}}}
+   \hypo{\oftype{\ctx}{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}}}
+   \infer2[\kw{QUOT-FORMATION}]{\oftype{\ctx}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}
+                                             {\kw{Type}}}
+\end{prooftree*}
+
+\begin{prooftree*}
+   \hypo{\oftype{\ctx}{\id{a}}{\id{A}}}
+   \hypo{\oftype{\ctx}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}
+                      {\kw{Type}}}
+   \infer2[\kw{QUOT-INTRO-IN}]{\oftype{\ctx}{\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}}}
+                                         {\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}}
+\end{prooftree*}
+
+\begin{prooftree*}
+   \hypo{\oftype{\ctx}{\id{a}_1}{\id{A}}}
+   \hypo{\oftype{\ctx}{\id{a}_2}{\id{A}}}
+   \hypo{\oftype{\ctx}{\id{r}}{\Funapp{\id{R}}{\id{a}_1}}{\id{a}_2}}
+   \infer3[\kw{QUOT-INTRO-EQ}]{\oftype{\ctx}{\Funapp{\id{Quotient\_eq}}{\id{A}}{\id{R}}{\id{a}_1}{\id{a}_2}{\id{r}}}
+                                      {\Funapp{\id{Eq}}{(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}_1})}
+                                                       {(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}_2})}}}
+\end{prooftree*}
+
+\begin{prooftree*}
+   \hypo{\oftype{\ctx}{\id{P}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}} \rightarrow \kw{Type}}}
+   \hypo{\oftype{\ctx}{\id{q}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}}
+   \infer[no rule]2{\oftype{\ctx}{\id{f}}{(\oftype{\id{a}}{\id{A}})
+                                    \rightarrow \Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}}})}}
+   \infer[no rule]1{\oftype{\ctx}{\id{h}}{(\oftype{\id{a}_1 \ \id{a}_2}{\id{A}})
+                                          \rightarrow \Funapp{\id{R}}{\id{a}_1}{\id{a}_2}}
+                                          \rightarrow \Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}_1})}
+                                                                       {(\Funapp{\id{f}}{\id{a}_2})}}
+   \infer1[\kw{QUOT-ELIM}]{\oftype{\ctx}{\Funapp{\id{Quotient\_elim}}{\id{A}}{\id{R}}{\id{f}}{\id{h}}{\id{q}}}
+                                        {\Funapp{\id{P}}{\id{q}}}}
+\end{prooftree*}
+
+
 \subsection{Reductions}
+We present the computation rule for the elimination of quotients.
+
+\begin{prooftree*}
+   \hypo{\id{q} \rightsquigarrow \Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}}}
+   \infer1[]{\Funapp{\id{Quotient\_elim}}{\id{A}}{\id{R}}{\id{f}}{\id{h}}{\id{q}}
+             \rightsquigarrow \Funapp{\id{f}}{\id{a}}}
+\end{prooftree*}
+
+We see that during $\id{Quotient}$ elimination, the proof that the eliminator function respects the $\id{Quotient}$ is ignored. Instead, the function is applied directly to the underlying element of the base type.
 
 \section{Implementation}
+In this chapter, we describe how we added quotient types to Typer. Next, we describe the library that we provide to facilitate the usage of quotient types in the development of Typer programs and proofs.
+
 \subsection{Axioms}
+Quotient types are introduced in Typer in axiomatic manner, in other words, we postulate the existence of quotient types and define their behaviour axiomatically.
+
+\subsubsection*{Formation}
+The existence of the $\id{Quotient}$ type is postulated as follows
+
+\begin{flalign*}
+& \id{Quotient} : (\oftype{\id{A}}{\kw{Type}})
+                  \rightarrow (\oftype{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}})
+                  \rightarrow \kw{Type} &&\\
+\end{flalign*}
+
+\subsubsection*{Introduction}
+Two axioms are added, corresponding to the two introduction rules of $\id{Quotient}$.
+
+\begin{flalign*}
+& \id{Quotient\_in} : (\oftype{\id{A}}{\kw{Type}})
+                      \Rrightarrow (\oftype{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}})
+                      \Rrightarrow {\id{A}}
+                      \rightarrow \Funapp{\id{Quotient}}{\id{A}}{\id{R}} &&\\\\
+& \id{Quotient\_eq} : (\oftype{\id{A}}{\kw{Type}})
+                      \Rrightarrow (\oftype{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}})
+                      \Rrightarrow (\oftype{\id{a} \ \id{a}'}{\id{A}})
+                      \Rrightarrow \Funapp{\id{R}}{\id{a}}{\id{a}'} &&\\
+&                     \rightarrow \Funapp{\id{Eq}}{(\Funapp{\id{Quotient\_in}}{(\earg{\id{R}}{\id{R}})}{\id{a}})}
+                                                  {(\Funapp{\id{Quotient\_in}}{(\earg{\id{R}}{\id{R}})}{\id{a}'})} &&\\
+\end{flalign*}
+
+\subsubsection*{Elimination}
+
+\begin{flalign*}
+& \id{Quotient\_elim} : (\oftype{\id{A}}{\kw{Type}})
+                        \Rrightarrow (\oftype{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}})
+                        \Rrightarrow (\oftype{\id{P}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}
+                                                      \rightarrow \kw{Type}}) &&\\
+&                        \Rrightarrow ((\oftype{\id{a}}{\id{A}})
+                                       \rightarrow \Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{a}})})
+                        \rightarrow (\oftype{\id{a} \ \id{a}'}
+                                     \rightarrow \Funapp{\id{R}}{\id{a}}{\id{a}'}
+                                     \rightarrow \Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}})}
+                                                                  {(\Funapp{\id{f}}{\id{a}'})})
+                        \Rrightarrow (\oftype{\id{q}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}})
+                        \rightarrow \Funapp{\id{P}}{\id{q}} &&\\\\
+\end{flalign*}
+
 \subsection{Syntaxique sugar}
 
 \section{Quotient Effectiveness}
