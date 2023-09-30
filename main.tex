@@ -14,6 +14,8 @@
   mathescape,
   breaklines=true
 }
+\usepackage{minted} %% Typeset code
+\usepackage{bbold} %% For blackboard font
 
 %% Macro to facilitate the definition of variadic macros
 %% from https://saswat.padhi.me/blog/2019-09_variadic-macros-in-latex/index.html
@@ -511,6 +513,7 @@ Two axioms are added, corresponding to the two introduction rules of $\id{Quotie
 \end{flalign*}
 
 \subsection{Syntaxique sugar}
+TODO: Add after things get figured out
 
 \section{Quotient Effectiveness}
 This only works for relations that are propositions and equivalence relations (i.e.\ reflexive, symmetric and transitive).
@@ -518,9 +521,83 @@ This only works for relations that are propositions and equivalence relations (i
 We provide a `weaker' (or alternative? which is it?) version of propositional extensionality. With this, we prove (a weaker version) quotient effectiveness.
 
 \subsubsection{Representation of propositions}
-Describe the $Erased$ type and a proof that $\id{isProp (Erased A)}$.
+TODO: Describe the $Erased$ type and a proof that $\id{isProp (Erased A)}$.
 
-\subsection{The Proof}
+Intuitively speaking, propositions are a type that contain no intrinsic data, it is their mere existence that counts. This is precisely the notion of proof irrelevance. In Typer, this notion is represented via erasability. We introduce a built-in data type that captures this idea.
+
+\begin{minted}{haskell}
+type Erased (T : Type)
+  | erased (t ::: T);
+\end{minted}
+
+By ensuring that the witness $\id{t}$ of the type $\id{T}$ is erasable, this provides us with a guarantee that during elimination, the witness $\id{t}$ can only be used in an erasable, i.e.\ proof irrelevant manner.
+
+To convince ourselves that this type does indeed capture the essence of a proposition, we provide a proof of $\Funapp{\id{isProp}}{(\Funapp{\id{Erased}}{?\id{T}})}$. We state the definition of $\id{isProp}$:
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+isProp : (T : Type) |$\rightarrow$| Type
+isProp T = (x y : T) |$\rightarrow$| Eq x y
+\end{minted}
+
+We now the present the proof in the form of Typer code.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+erasedIsProp : (T : Type) @$\Rrightarrow$@ isProp (Erased T)
+erasedIsProp t1 t2 =
+  case t1
+    | erased (_ := e1) @$\Rightarrow$@
+        let
+          p1 = ##DeBruijn 0 : Eq (erased (t := e1)) t1;
+        in
+          case t2
+            | erased (_ := e2) @$\Rightarrow$@
+                let
+                  p2 = ##DeBruijn 0 : Eq (erased (t := e2)) t2;
+                in
+                  Eq_trans (Eq_comm p1) p2;
+\end{minted}
+
+Typer does not offer the direct specialisation of $\kw{case}$ targets in branches. In other words, in the first case branch, we do not have a definitional equality between $\id{t1}$ and $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$. Instead, an equality proof between them is injected into the context, which can be accessed as the variable at deBruijn index 0. Now that we have the two equality proofs, in order to concatenate them \footnote{By considering equalities as path, the application of the transitivity property of equality is conceptually similar to concatenating two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and $\Funapp{\id{erased}}{(\earg{\_}{\id{e2}})}$ to be equal. A priori, the two terms are not equal as $\id{e1}$ and $\id{e2}$ are completely arbitrary. However, Typer ignores erasable terms when checking the convertibility of terms, this is a property that was proven to be sound in ??? (TODO: Cite ICC paper). This allows the concatenation to succeed and thus concludes the proof.
+
+\subsubsection{Axiom}
+Propositional extensionality essentially means that if two propositions that are logically equivalent, i.e.\ each proposition implies the other, then we can say that they are equal. And precisely because we are postulating a new equality constructor, we have to be very careful that the resulting equality proof is indeed proof irrelevant. In other words, we need this equality proof to not have any runtime relevance. This is principally because we insist that the transport operation to be a no-op during runtime. This is the motivation behind our choice to use the $\id{Erased}$ type to represent propositions, as it is a guarantee that such a type carries no useful runtime information. This implies that a transport operation from one $\id{Erased}$ type to another is simply a no-op.
+
+In a setting with univalence, propositional extensionality is simply a theorem that may be proven (TODO:\ Maybe cite something here). This is a result that is immediate as an equivalence between logically equivalent propositions is trivial. In the setting of Typer however, propositional extensionality is implemented as an axiom with the following type signature:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+propExt : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (Erased A @$\rightarrow$@ Erased B)
+           @$\rightarrow$@ (Erased B @$\rightarrow$@ Erased A) @$\rightarrow$@ Eq (Erased A) (Erased B)
+\end{minted}
+
+The above is a weaker notion of propositional extensionality compared to what is proposed in Cubical Agda, which has the following type signature:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{Agda}
+propExt : {A B : Type} @$\rightarrow$@ isProp A @$\rightarrow$@ isProp B @$\rightarrow$@ (A @$\rightarrow$@ B)
+          @$\rightarrow$@ (B @$\rightarrow$@ A) @$\rightarrow$@ A @$\equiv$@ B
+\end{minted}
+
+However, this produces an equality proof that is not proof irrelevant, which we illustrate with a simple example. We define two instances of the unit type which are trivially `logically equivalent'.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{Agda}
+data Unit1 : Type where
+  unit1 : Unit1
+
+data Unit2 : Type where
+  unit2 : Unit2
+\end{minted}
+
+$\Funapp{\kw{isProp}}{\id{Unit1}}$ and $\Funapp{\kw{isProp}}{\id{Unit2}}$ are trivially true, as is the case for all $\mathbb{1}$ types. $\id{Unit1} \rightarrow \id{Unit2}$ and $\id{Unit2} \rightarrow \id{Unit1}$ are also inhabited. Propositional extensionality thus gives us a proof of $\id{Unit1} \equiv \id{Unit2}$. This implies that we should be able to use said proof to transport $\id{unit1}$ to $\id{unit2}$, but since the two terms do not have the same runtime value, this simply cannot be a no-op.
+
+Another worthy comparison to make is with Lean, which has a $\kw{Prop}$ sort. Terms of this sort are not autorised to be used in a proof relevant manner. Its version of propositional extensionality has the following form:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{lean}
+axiom propext {a b : Prop} : (a @$\leftrightarrow$@ b) @$\rightarrow$@ a = b
+\end{minted}
+
+
+\subsection{Equivalence relation}
+
+\subsection{Proof}
 
 \section{Examples}
 \subsection{Rational numbers}
