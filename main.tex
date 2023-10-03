@@ -148,20 +148,19 @@ We have established that the equality type (also known as the identity type) is 
 
 TODO:\ Define/explain erasable functions
 
-\begin{lstlisting}
-type $\bI$
-  | $i_0$
-  | $i_1$;
-\end{lstlisting}
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+type I
+  | @$i_0$@
+  | @$i_1$@;
+\end{minted}
 
 And then define a function with the following type:
 
-%% TODO: This looks weird because of the inconsistent height
-\begin{lstlisting}
-h : $\bI$ $\Rrightarrow$ A
-\end{lstlisting}
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+h : I @$\Rrightarrow$@ A
+\end{minted}
 
-Then, it is vacuously true that $\eqtype{h(i_0)}{h(i_1)}$. With that, we are able to postulate that 
+Then, it is vacuously true that $\eqtype{h(i_0)}{h(i_1)}$. With that, we are able to postulate that
 
 \begin{align*}
   & \bI \Rrightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}
@@ -180,34 +179,31 @@ TODO:\ Mention operators like $\!$, $\wedge$ and $\vee$.
 \subsubsection{Heterogenous equality}
 With the above definition of $\bI$, we are now ready to introduce the notion of heterogenous equality. Such an equality type allows us to identify two terms that are not necessarily of the same type. The heterogenous equality type has the following type signature\footnote{Although not mentioned explicitly, functions involving the identity type are universe polymorphic in their arguments and return type.} and is implemented axiomatically.
 
-\begin{lstlisting}
-$\oftype{\id{Heq}}{\ ?\id{x} \rightarrow ?\id{y} \rightarrow \kw{Type}}$
-\end{lstlisting}
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Heq : ?x @$\rightarrow$@ ?y @$\rightarrow$@ Type
+\end{minted}
 
 The introduction rule of the above type leverages the fact that erasable functions out of the interval are equivalent to identity types.
 
 %% Heq_eq : (l : TypeLevel) ≡> (t : I ≡> Type_ l) ≡> (f : (i : I) ≡> t (_ := i))
 %%           ≡> Heq (f (_ := i0)) (f (_ := i1));
 
-%% TODO: Use align*, I think it will eventually be more convenient
-\begin{lstlisting}
-$\oftype{\id{Heq\_eq}}{(\oftype{\id{t}}{\bI \Rrightarrow \kw{Type}})
-		               \Rrightarrow (\oftype{\id{f}}{(\oftype{\id{i}}{\bI}) \Rrightarrow \id{t} \ \id{i} })
-		               \Rrightarrow \Funapp{\id{Heq}}{(\Funapp{\id{f}}{\ileft})}{(\Funapp{\id{f}}{\iright})}}$
-\end{lstlisting}
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Heq_eq : (t : I @$\Rrightarrow$@ Type)
+         @$\Rrightarrow$@ (f : (i : I) @$\Rrightarrow$@ t (_ := i))
+         @$\Rrightarrow$@ Heq (f (_ := i0)) (f (_ := i1));
+\end{minted}
 
 The elimination of equality types is trivial, it merely returns a function out of the interval that represents the underlying equality.
 
 %% Heq_uneq : (l : TypeLevel) ≡> (t : I ≡> Type_ l)
 %%                     ≡> (x : t (_ := i0)) => (y : t (_ := i1))
 %%                     => (p : Heq x y) ≡> (i : I) ≡> t (_ := i);
-\begin{align*}
-\id{Heq\_uneq} & : (\oftype{\id{t}}{\bI \Rrightarrow \kw{Type}})
-			       \Rrightarrow (\oftype{\id{x}}{\Funapp{\id{t}}{\ileft}})
-			       \Rightarrow (\oftype{\id{y}}{\Funapp{\id{t}}{\iright}})
-			       \Rightarrow (\oftype{p}{\Funapp{\id{Heq}}{\id{x}}{\id{y}}})
-			       \Rrightarrow (\oftype{\id{i}}{\bI}) \Rrightarrow \Funapp{\id{t}}{\id{i}}
-\end{align*}
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Heq_uneq : (t : I @$\Rrightarrow$@ Type)
+           @$\Rrightarrow$@ (x : t (_ := i0)) @$\Rightarrow$@ (y : t (_ := i1))
+           @$\Rightarrow$@ (p : Heq x y) @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t (_ := i);
+\end{minted}
 
 The composition of $\id{Heq\_uneq}$ and  $\id{Heq\_eq}$ (modulo the implicit arguments) is equal to the identity function.
 
@@ -222,22 +218,18 @@ Homogenous equality is by far the more typical notion of equality. We are able t
 %%             lambda _ => lambda _ =>
 %%               lambda p ≡> lambda i ≡>
 %%                 Heq_uneq (t := lambda _ ≡> t) (p := p) (i := i);
-\begin{flalign*}
-& \id{Eq} : (\oftype{\id{t}}{\kw{Type}}) \Rrightarrow \id{t} \rightarrow \id{t} \rightarrow \kw{Type} &&\\
-& \id{Eq} \ \id{x} \ \id{y} = \Funapp{\id{Heq}}{\id{x}}{\id{y}} &&\\\\
-& \id{Eq\_eq} : (\oftype{\id{t}}{\kw{Type}}) \Rrightarrow  (\oftype{\id{f}}{\bI \Rrightarrow \id{t}})
-                                             \Rrightarrow \Funapp{\id{Eq}}{(\Funapp{\id{f}}{\ileft})}
-                                                                          {(\Funapp{\id{f}}{\iright})} &&\\
-& \id{Eq\_eq} \ \id{t} \ \id{f} = \Funapp{\id{Heq\_eq}}{(\id{t} := \lambda \ \_ \Rrightarrow \id{t})}{(\id{f} := \id{f})} &&\\\\
-& \id{Eq\_uneq} : (\oftype{\id{t}}{\kw{Type}}) \Rrightarrow (\oftype{\id{x}}{\id{t}})
-                                               \Rightarrow (\oftype{\id{y}}{\id{t}})
-                                               \Rightarrow (\oftype{\id{p}}{\Funapp{\id{Eq}}{\id{x}}{\id{y}}})
-                                               \Rrightarrow \bI \Rrightarrow \id{t} &&\\
-%% TODO: Find a clean way to display the args in a reasonable manner
-& \id{Eq\_uneq} \ \id{p} \ \id{i} = \Funapp{\id{Heq\_uneq}}{(\earg{\id{t}}{\lambda \_ \Rrightarrow \id{t}})}
-                                                           {(\earg{\id{p}}{\id{p}})}
-                                                           {(\earg{\id{i}}{\id{i}})}
-\end{flalign*}
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Eq : (t : Type) @$\Rrightarrow$@ t @$\rightarrow$@ t @$\rightarrow$@ Type
+Eq x y = Heq x y
+
+Eq_eq : (t : Type) @$\Rrightarrow$@ (f : I @$\Rrightarrow$@ t)
+        @$\Rrightarrow$@ Eq (t := t) (f (_ := @$\ileft$@)) (f (_ := @$\iright$@));
+Eq_eq t f = Heq_eq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (f := f);
+
+Eq_uneq : (t : Type) @$\Rrightarrow$@ (x : t) @$\Rightarrow$@ (y : t) @$\Rightarrow$@ (p : Eq x y)
+          @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t;
+Eq_uneq p i = Heq_uneq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (p := p) (i := i);
+\end{minted}
 
 \subsection{Reduction rules}
 
@@ -261,53 +253,38 @@ A reflexive equality is the most trivial equality that we are able to construct,
 %%            ≡> (x : t) ≡> Eq x x;
 %% Eq_refl = lambda _ ≡> lambda _ ≡> lambda x ≡>
 %%             Eq_eq (f := lambda _ ≡> x);
-\begin{flalign*}
-& \id{Eq\_refl} : (\oftype{\id{x}}{\ ?\id{t}}) \Rrightarrow \Funapp{\id{Eq}}{\id{x}}{\id{x}} &&\\
-& \id{Eq\_refl} \ \id{x} = \Funapp{\id{Eq\_eq}}{(\earg{\id{f}}{\lambda \_ \Rrightarrow \id{x}})} &&\\\\
-\end{flalign*}
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Eq_refl : (x : ?t) |$\Rrightarrow$| Eq x x;
+Eq_refl x = Eq_eq (f := |$\lambda$| _ |$\Rrightarrow$| x);
+\end{minted}
 
 \subsubsection*{Commutativity}
 This is the first of many properties that can be proved in an elegant manner by virtue of defining the equality type based on functions out of the interval. This property has many names, such as the commutativity of equality, the symmetry of equality, or the inversion of a path. Consider an equality between $\id{x}$ and $\id{y}$, we can think of the two terms as points, the equality itself can then be thought of as a continuous path between the two points. We think of the path as a directed path from $\id{x}$ to $\id{y}$. The commutativity of equality basically means that we are able to construct a path that goes in the opposite direction, in other words, we are able to invert the path. This is the intuition behind the following proof.
 
 %% Eq_comm : (x : ?t) ≡> (y : ?t) ≡> Eq x y -> Eq y x;
 %% Eq_comm p = Eq_eq (f := lambda i ≡> Eq_uneq (p := p) (i := I_not i));
-\begin{flalign*}
-& \id{Eq\_comm} : (\oftype{\id{x} \ \id{y}}{\ ?\id{t}}) \Rrightarrow \Funapp{\id{Eq}}{\id{x}}{\id{y}} \rightarrow \Funapp{\id{Eq}}{\id{y}}{\id{x}} &&\\
-& \id{Eq\_comm} \ \id{x} = \Funapp{\id{Eq\_eq}}{(\earg{\id{f}}
-                                               {\lambda \id{i} \Rrightarrow
-                                                 \Funapp{\id{Eq\_uneq}}{(\earg{\id{p}}{\id{p}})}
-                                                        {(\earg{\id{i}}{\ !\id{i}})}})} &&\\\\
-\end{flalign*}
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Eq_comm : (x y : ?t) |$\Rrightarrow$| Eq x y |$\rightarrow$| Eq y x
+Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := !i))
+\end{minted}
 
 \subsubsection*{Functional extensionality}
 The notion of functional extensionality implies that pointwise-equal functions are indeed equal. By postulating the existence of the $\id{Interval}$ type along with an equality type that's based on it, functional extensionality can be derived trivially as is illustrated by the below proof.
 
-\begin{flalign*}
-& \id{Eq\_funExt} : (\oftype{\id{f}}{(? \ \rightarrow \ ?)})
-                    \Rightarrow (\oftype{\id{g}}{(? \ \rightarrow \ ?)})
-                    \Rightarrow (\oftype{\id{p}}{(\oftype{\id{x}}{\ ?})
-                                 \rightarrow \Funapp{\id{Eq}}{(\Funapp{\id{f}}{\id{x}})}
-                                                             {(\Funapp{\id{g}}{\id{x}})}})
-                    \rightarrow \Funapp{\id{Eq}}{\id{f}}{\id{g}} &&\\
-& \id{Eq\_funExt} \ \id{p} = \Funapp{\id{Eq\_eq}}
-                                    {(\earg{\id{f}}
-                                    {\lambda \id{i} \Rrightarrow \lambda \id{x} \rightarrow
-                                      \Funapp{\id{Eq\_uneq}}
-                                                 {(\earg{\id{p}}{\Funapp{\id{p}}{\id{x}}})}
-                                                 {(\earg{\id{i}}{\id{i}})}})} &&\\\\
-\end{flalign*}
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Eq_funExt : (f : (? |$\rightarrow$| ?)) |$\Rightarrow$| (g : (? |$\rightarrow$| ?))
+            |$\Rightarrow$| (p : (x : ?) |$\rightarrow$| Eq (f x) (g x)) |$\rightarrow$| Eq f g
+Eq_funExt p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| |$\lambda$| x |$\rightarrow$|
+                                   Eq_uneq (p := p x) (i := i))
+\end{minted}
 
 We note that the above proof makes use of the $\eta$-equivalence of functions, i.e. $\lambda \id{x} \rightarrow \Funapp{\id{f}}{\id{x}} \equiv \id{f}$. Another thing that is worth noting is that we interpret erasable functions out of $\bI$ themselves as an equality type, i.e.\ if we do without the $\id{Eq\_eq}$ constructor, and if we we think of $\id{Eq\_uneq}$ as the direct application of an expression of type $\bI$  to such a function, we obtain the following interpretation of $\id{Eq\_funExt}$.
 
-\begin{flalign*}
-& \id{Eq\_funExt} : (\oftype{\id{f}}{(? \ \rightarrow \ ?)})
-                    \Rightarrow (\oftype{\id{g}}{(? \ \rightarrow \ ?)})
-                    \Rightarrow (\oftype{\id{p}}{(\oftype{\id{x}}{\ ?})
-                                 \rightarrow \Funapp{\id{Eq}}{(\Funapp{\id{f}}{\id{x}})}
-                                                             {(\Funapp{\id{g}}{\id{x}})}})
-                    \rightarrow \Funapp{\id{Eq}}{\id{f}}{\id{g}} &&\\
-& \id{Eq\_funExt} \ \id{p} \ \id{i} \ \id{x} = \Funapp{\id{p}}{\id{x}}{\id{i}} &&\\\\
-\end{flalign*}
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Eq_funExt : (f : (? |$\rightarrow$| ?)) |$\Rightarrow$| (g : (? |$\rightarrow$| ?))
+            |$\Rightarrow$| (p : (x : ?) |$\rightarrow$| Eq (f x) (g x)) |$\rightarrow$| Eq f g
+Eq_funExt p i x = p x i
+\end{minted}
 
 In this case, it becomes clear that $\id{Eq\_funExt}$ is a trivial function that does no more than swap the order of its two arguments. This is observed in several recent proof assistants that implement cubical type theory, such as Cubical Agda, coolTT and redTT.\@
 
@@ -323,31 +300,20 @@ This is a another typical property of equality that is proven with a `cubical' e
 %%           -> Eq (f x) (f y);
 %% Eq_cong = lambda f -> lambda p ->
 %%             Eq_eq (f := lambda i ≡> f (Eq_uneq (p := p) (i := i)));
-\begin{flalign*}
-& \id{Eq\_cong} : (\oftype{\id{x} \ \id{y}}{\ ?\id{A}})
-                    \Rightarrow (\oftype{\id{f}}{(?\id{A} \ \rightarrow \ ?)})
-                    \rightarrow (\oftype{\id{p}}{(\oftype{\id{x}}{\ ?})})
-                    \rightarrow \Funapp{\id{Eq}}{(\Funapp{\id{f}}{\id{x}})}{(\Funapp{\id{f}}{\id{y}})} &&\\
-& \id{Eq\_cong} \ \id{f} \ \id{p} =
-    \Funapp{\id{Eq\_eq}}
-           {(\earg{\id{f}}
-           {\lambda \id{i} \Rrightarrow \Funapp{\id{f}}
-                                               {(\Funapp{\id{Eq\_uneq}}
-                                                        {(\earg{\id{p}}{\id{p}})}
-                                                        {(\earg{\id{i}}{\id{i}})})}})} &&\\\\
-\end{flalign*}
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Eq_cong : (x y : ?A) |$\Rightarrow$| (f : (?A |$\rightarrow$| ?)) |$\rightarrow$| (p : Eq x y)
+          |$\rightarrow$| Eq (f x) (f y)
+Eq_cong f p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| f (Eq_uneq (p := p) (i := i)))
+\end{minted}
+
 
 Like before, with a slight change of perspective, we see that the congruence of equality merely involves applying the function $\id{f}$ `inside' the equality.
 
-\begin{flalign*}
-& \id{Eq\_cong} : (\oftype{\id{x} \ \id{y}}{\ ?\id{A}})
-                    \Rightarrow (\oftype{\id{f}}{(?\id{A} \ \rightarrow \ ?)})
-                    \rightarrow (\oftype{\id{p}}{(\oftype{\id{x}}{\ ?})})
-                    \rightarrow \Funapp{\id{Eq}}{(\Funapp{\id{f}}{\id{x}})}{(\Funapp{\id{f}}{\id{y}})} &&\\
-& \id{Eq\_cong} \ \id{f} \ \id{p} \ \id{i} =
-    \Funapp{\id{f}}
-           {(\Funapp{\id{p}}{\id{i}})} &&\\\\
-\end{flalign*}
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Eq_cong : (x y : ?A) |$\Rightarrow$| (f : (?A |$\rightarrow$| ?)) |$\rightarrow$| (p : Eq x y)
+          |$\rightarrow$| Eq (f x) (f y)
+Eq_cong f p i = f (p i)
+\end{minted}
 
 \subsubsection*{Transport}
 The transport operation (also known as {\id{cast}}) allows us to transport properties that are true for some type $\id{A}$ to another type $\id{B}$ if we have a proof that $\eqtype{\id{A}}{\id{B}}$.
@@ -364,48 +330,37 @@ The transport operation (also known as {\id{cast}}) allows us to transport prope
 %%                                               (p := p) (i := i)))
 %%                          (r := i0) fx
 %%
-%% TODO: Improve the alignment :(
-\begin{flalign*}
-& \id{Eq\_cast} : (\oftype{\id{x} \ \id{y}}{\ ?\id{A}})
-                    \Rrightarrow (\oftype{\id{p}}{\eqtype{\id{x}}{\id{y}}})
-                    \Rrightarrow (\oftype{\id{f}}{(? \ \rightarrow \ ?)})
-                    \Rrightarrow \Funapp{\id{f}}{\id{x}}
-                    \rightarrow \Funapp{\id{f}}{\id{y}} &&\\
-& \id{Eq\_cast} \ \id{A} \ \id{x} \ \id{y} \ \id{p} \ \id{f} \ \id{fx} =
-    \Funapp{\id{I\_transp}}
-           {(\earg{\id{A}}{\lambda \id{t}
-                            \Rrightarrow \Funapp{\id{f}}
-                                                {(\Funapp{\id{Eq\_uneq}}
-                                                         {(\earg{\id{t}}{\id{t}})}
-                                                         {(\earg{\id{p}}{\id{p}})}
-                                                         {(\earg{\id{i}}{\id{i}})})}})}
-           {(\earg{\id{r}}{\ileft})}
-           {\id{fx}} &&\\\\
-\end{flalign*}
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Eq_cast : (x y : ?A) |$\Rrightarrow$| (p : Eq x y) |$\Rrightarrow$| (f : (? |$\rightarrow$| ?)) |$\Rrightarrow$| f x
+          |$\rightarrow$| f y
+Eq_cast A x y p f fx =
+  I_transp (A := |$\lambda$| t |$\Rrightarrow$| f (Eq_uneq (t := t) (p := p) (i := i)))
+           (r := |$\ileft$|) fx
+\end{minted}
 
 Here, we make use of the built-in function $\id{I\_transp}$ by passing it the argument $\earg{\id{r}}{\ileft}$, intending it to behave as a transport function. In other words, by passing it something of type $\Funapp{\id{f}}{\id{x}}$, it returns something of type $\Funapp{\id{f}}{\id{y}}$, which is precisely what the transport/cast function is meant to do.
 
 The $\id{I\_transp}$ function that looks slightly strange at first sight allows us to prove a certain property of the transport operation. Transporting across a reflexive path should be equivalent to a no-op, as is illustrated in the following proof.
 
-\begin{flalign*}
-& \id{Eq\_cast\_refl} : (\oftype{\id{A}}{\kw{Type}})
-                        \Rrightarrow (\oftype{\id{x}}{\id{A}})
-                        \rightarrow \Funapp{\id{Eq}}
-                                           {(\Funapp{Eq\_cast}
-                                                    {(\earg{\id{p}}
-                                                           {\Funapp{\id{Eq\_refl}}
-                                                                   {(\earg{\id{x}}{\id{x}})}})}
-                                                    {(\earg{\id{f}}{\lambda \_ \rightarrow \id{A}})}
-                                                    {\id{x}})}
-                                           {\id{x}} &&\\
-& \id{Eq\_cast\_refl} \ \id{A} \ \id{x} =
-    \Funapp{\id{Eq\_eq}}
-           {(\earg{\id{f}}{\lambda \id{i} \Rrightarrow
-                             \Funapp{\id{I\_transp}}
-                                      {(\earg{\id{A}}{\lambda \_ \Rrightarrow \id{A}})}
-                                        {(\earg{\id{r}}{\id{i}})}
-                                        {\id{x}}})} &&\\\\
-\end{flalign*}
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Eq_cast_refl : (A : Type) |$\Rrightarrow$| (x : A)
+               |$\rightarrow$| Eq (Eq_cast (p := Eq_refl (x := x))
+                              (f := |$\lambda$| _ |$\rightarrow$| A) x)
+                     x
+Eq_cast_refl A x = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$|
+                            I_transp (A := |$\lambda$| _ |$\Rrightarrow$| A) (r := i) x)
+\end{minted}
+
+\subsubsection*{Transitivity}
+Continuing our analogy of equality proofs as paths, the transitivity property allows us to concatenate two paths. We join the right endpoint of the first path with the left endpoint of the second path, producing a new path. The proof of this theorem is as follows:
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Eq_trans : (x y z: ?t) |$\Rrightarrow$| Eq x y |$\rightarrow$| Eq y z |$\rightarrow$| Eq x z;
+Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
+                                 (f := |$\lambda$| x' |$\rightarrow$| Eq x x')
+                                 x=y;
+\end{minted}
 
 \subsection{Limitations}
 We don't have primitives such as $hcomp$, what does this imply? Is there a certain class of proofs we are unable to construct? Or do we just suffer from some amount of inconvenience?
@@ -473,44 +428,28 @@ Quotient types are introduced in Typer in axiomatic manner, in other words, we p
 \subsubsection*{Formation}
 The existence of the $\id{Quotient}$ type is postulated as follows
 
-\begin{flalign*}
-& \id{Quotient} : (\oftype{\id{A}}{\kw{Type}})
-                  \rightarrow (\oftype{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}})
-                  \rightarrow \kw{Type} &&\\
-\end{flalign*}
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Quotient : (A : Type) |$\rightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| Type
+\end{minted}
 
 \subsubsection*{Introduction}
 Two axioms are added, corresponding to the two introduction rules of $\id{Quotient}$.
 
-\begin{flalign*}
-& \id{Quotient\_in} : (\oftype{\id{A}}{\kw{Type}})
-                      \Rrightarrow (\oftype{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}})
-                      \Rrightarrow {\id{A}}
-                      \rightarrow \Funapp{\id{Quotient}}{\id{A}}{\id{R}} &&\\\\
-& \id{Quotient\_eq} : (\oftype{\id{A}}{\kw{Type}})
-                      \Rrightarrow (\oftype{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}})
-                      \Rrightarrow (\oftype{\id{a} \ \id{a}'}{\id{A}})
-                      \Rrightarrow \Funapp{\id{R}}{\id{a}}{\id{a}'} &&\\
-&                     \rightarrow \Funapp{\id{Eq}}{(\Funapp{\id{Quotient\_in}}{(\earg{\id{R}}{\id{R}})}{\id{a}})}
-                                                  {(\Funapp{\id{Quotient\_in}}{(\earg{\id{R}}{\id{R}})}{\id{a}'})} &&\\
-\end{flalign*}
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Quotient_in : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\Rrightarrow$| A |$\rightarrow$| Quotient A R
+Quotient_eq : (A : Type) |$\Rrightarrow$| (R A |$\rightarrow$| A |$\rightarrow$| Type)  |$\Rrightarrow$| (a a' : A) |$\Rrightarrow$| R a a'
+              |$\rightarrow$| Eq (Quotient_in (R := R) a) (Quotient_in (R := R) a')
+\end{minted}
 
 \subsubsection*{Elimination}
 
-\begin{flalign*}
-& \id{Quotient\_elim} : (\oftype{\id{A}}{\kw{Type}})
-                        \Rrightarrow (\oftype{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}})
-                        \Rrightarrow (\oftype{\id{P}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}
-                                                      \rightarrow \kw{Type}}) &&\\
-&                        \Rrightarrow ((\oftype{\id{a}}{\id{A}})
-                                       \rightarrow \Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{a}})})
-                        \rightarrow (\oftype{\id{a} \ \id{a}'}
-                                     \rightarrow \Funapp{\id{R}}{\id{a}}{\id{a}'}
-                                     \rightarrow \Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}})}
-                                                                  {(\Funapp{\id{f}}{\id{a}'})})
-                        \Rrightarrow (\oftype{\id{q}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}})
-                        \rightarrow \Funapp{\id{P}}{\id{q}} &&\\\\
-\end{flalign*}
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Quotient_elim : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type)
+                |$\Rrightarrow$| (P : Quotient A R |$\rightarrow$| Type})
+                |$\Rrightarrow$| ((a : A) |$\rightarrow$| P (Quotient_in a))
+                |$\rightarrow$| ((a a' : A) |$\rightarrow$| R a a' |$\rightarrow$| Heq (f a) (f a')
+                |$\Rrightarrow$| (q : Quotient A R) |$\rightarrow$| P q
+\end{minted}
 
 \subsection{Syntaxique sugar}
 TODO: Add after things get figured out
