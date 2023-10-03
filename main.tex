@@ -594,10 +594,76 @@ Another worthy comparison to make is with Lean, which has a $\kw{Prop}$ sort. Te
 axiom propext {a b : Prop} : (a @$\leftrightarrow$@ b) @$\rightarrow$@ a = b
 \end{minted}
 
+This is similar to what we have in Typer, except that proof irrelevance is enforced in a different manner.
 
 \subsection{Equivalence relation}
+TODO: Explanation of relations should probably go elsewhere
+
+First, we state what we mean when we say `relation' to set the stage for the subsequent discussion. For our purposes, we conider binary relations, which are type formers that take two arguments of some type $\kw{A}$. Assuming that we call the relation $\kw{R}$ and its two arguments $\id{a}$ and $\id{a}'$ respectively, inhabitants of the type $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ are witnesses of this binary relation. The type signature of a binary relation has the below form:
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+R : (A : Type) |$\Rrightarrow$| (a : A) |$\rightarrow$| (a' : A) |$\rightarrow$| Type
+\end{minted}
+
+For a quotient to be effective, its underlying relation has to be an equivalence relation, we shall use this property in the proof in the subsequent section. Recall that an equivalence relation implies that the relation is reflexive, symmetric and transitive. For it to be reflexive, it needs to be the case that given an arbitrary $\oftype{\id{a}}{\kw{A}}$, $\Funapp{\kw{R}}{\id{a}}{\id{a}}$ must be trivially inhabited. The symmetry of the relation implies that if we are given an arbitrary witness of $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$, we need to be able to transform that into an inhabitant of $\Funapp{\kw{R}}{\id{a}'}{\id{a}}$. The relation is transitive if we are able to transform witnesses of $\Funapp{\kw{R}}{\id{a}}{\id{b}}$ and $\Funapp{\kw{R}}{\id{b}}{\id{c}}$ into witnesses of $\Funapp{\kw{R}}{\id{a}}{\id{c}}$. \footnote{The equality type fulfills these criteria and is an equivalence relation.}
+
+In the built-in library, we define the following type as a witness that a certain relation is indeed an equivalence relation.
+
+\begin{minted}{haskell}
+type isEquivRel (A : Type) (R : A -> A -> Type) : Type
+  | equivRel (isRefl : (a : A) -> R a a)
+             (isSym : (a : A) -> (b : A) -> R a b -> R b a)
+             (isTrans : (a : A) -> (b : A) -> (c : A)
+                         -> R a b -> R b c -> R a c);
+\end{minted}
 
 \subsection{Proof}
+Given two arbitrary elements $\id{a}$ and $\id{a}'$ of a base type $\kw{A}$, a quotient is said to be effective if given a proof that the injection of $\id{a}$ and $\id{a}'$ into the quotient are equal, then it must be the case that $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ is true, i.e.\ we are able to find an inhabitant of it. A sufficient condition for a quotient to be effective is that the underlying relation must be both a proposition and an equivalence relation.
+
+
+For an arbitrary binary relation $\kw{R}$, we can define the following:
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+ErasedR : (A : Type) |$\Rrightarrow$| (A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| A |$\rightarrow$| A |$\rightarrow$| Type;
+ErasedR R a b = Erased (R a b);
+\end{minted}
+
+Now, we state the proof of the effectiveness of quotients in the form of Typer code
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+effective : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type)
+            |$\rightarrow$| isEquivRel A (ErasedR R) |$\rightarrow$| (a : A) |$\rightarrow$| (b : A)
+            |$\rightarrow$| Eq (Quotient_in (R := ErasedR R) a)
+                  (Quotient_in (R := ErasedR R) b)
+            |$\rightarrow$| ErasedR R a b;
+effective = lambda A |$\Rrightarrow$| lambda R equiv a b eq |$\rightarrow$|
+  let
+    helper : Quotient A (ErasedR R) -> Type;
+    helper x =
+      Quotient_rec
+        (R := ErasedR R)
+        (lambda c |$\rightarrow$| ErasedR R a c)
+        (p := lambda c d cd |$\rightarrow$|
+          let
+            ac->ad : Erased (R a c) |$\rightarrow$| Erased (R a d);
+            ac->ad ac = equiv.isTrans a c d ac cd;
+            ad->ac : Erased (R a d) |$\rightarrow$| Erased (R a c);
+            ad->ac ad = equiv.isTrans a d c ad
+                                      (equiv.isSym c d cd);
+          in
+            propExt ac->ad ad->ac)
+        x;
+    aa=ab : Eq (Erased (R a a)) (Erased (R a b));
+    aa=ab = Eq_cong helper eq;
+  in
+    Eq_cast (p := aa=ab) (f := id) (equiv.isRefl a);
+\end{minted}
+
+Compared to the more general version of the theorem we state before, here we insist that the quotient we consider be based on the erased version of some binary relation $\kw{R}$. And instead of proving that the base relation itself holds for some $\id{a}$ and $\id{b}$, we can only show that the erased version of this relation holds.
+
+In this proof, we can see that all aspects of the sufficient condition are at play. It is mainly used to prove that for arbitrary terms $\id{a}$, $\id{b}$ and $\id{c}$ of type $\kw{A}$, if it is the case that if $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{b}}{\id{c}})}$ is inhabited, then $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ $\iff$ $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$. Intuitively speaking this makes a lot of sense, $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{b}}{\id{c}})}$ implies that $\id{b}$ and $\id{c}$ are in the same equivalence class of the quotient. Hence, if we know that $\id{a}$ is in the same equivalence class as $\id{b}$, we should naturally be able to infer that $\id{a}$ and $\id{c}$ are also in the same equivalence class, and vice versa. Propositional extensionality takes us even further, by allowing us to prove that $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ and $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$ are in fact equal since they are both mere propositions.
+
+Examples of usage of the above theorem are in Chapter XXX (TODO: Link to other section).
 
 \section{Examples}
 \subsection{Rational numbers}
