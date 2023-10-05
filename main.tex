@@ -90,7 +90,7 @@ First, we provide the typical definition of the \id{Interval} type, subsequently
 
 We postulate the existence of the unit interval, along with the ends of the interval \id{$i_0$} and \id{$i_1$}. We also have \id{seg} which is a witness of a continuous path between \id{$i_0$} and \id{$i_1$}.
 
-Elimination of $\bI$ is similar to that of \id{Booleans}; the only difference is that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected. The recursion principle of $\bI$ can thus be stated as follows:
+Elimination of $\bI$ is similar to that of \id{Booleans} the only difference is that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected. The recursion principle of $\bI$ can thus be stated as follows:
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{A}{Type}}
@@ -151,7 +151,7 @@ TODO:\ Define/explain erasable functions
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 type I
   | @$i_0$@
-  | @$i_1$@;
+  | @$i_1$@
 \end{minted}
 
 And then define a function with the following type:
@@ -186,23 +186,23 @@ Heq : ?x @$\rightarrow$@ ?y @$\rightarrow$@ Type
 The introduction rule of the above type leverages the fact that erasable functions out of the interval are equivalent to identity types.
 
 %% Heq_eq : (l : TypeLevel) ≡> (t : I ≡> Type_ l) ≡> (f : (i : I) ≡> t (_ := i))
-%%           ≡> Heq (f (_ := i0)) (f (_ := i1));
+%%           ≡> Heq (f (_ := i0)) (f (_ := i1))
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Heq_eq : (t : I @$\Rrightarrow$@ Type)
          @$\Rrightarrow$@ (f : (i : I) @$\Rrightarrow$@ t (_ := i))
-         @$\Rrightarrow$@ Heq (f (_ := i0)) (f (_ := i1));
+         @$\Rrightarrow$@ Heq (f (_ := i0)) (f (_ := i1))
 \end{minted}
 
 The elimination of equality types is trivial, it merely returns a function out of the interval that represents the underlying equality.
 
 %% Heq_uneq : (l : TypeLevel) ≡> (t : I ≡> Type_ l)
 %%                     ≡> (x : t (_ := i0)) => (y : t (_ := i1))
-%%                     => (p : Heq x y) ≡> (i : I) ≡> t (_ := i);
+%%                     => (p : Heq x y) ≡> (i : I) ≡> t (_ := i)
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Heq_uneq : (t : I @$\Rrightarrow$@ Type)
            @$\Rrightarrow$@ (x : t (_ := i0)) @$\Rightarrow$@ (y : t (_ := i1))
-           @$\Rightarrow$@ (p : Heq x y) @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t (_ := i);
+           @$\Rightarrow$@ (p : Heq x y) @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t (_ := i)
 \end{minted}
 
 The composition of $\id{Heq\_uneq}$ and  $\id{Heq\_eq}$ (modulo the implicit arguments) is equal to the identity function.
@@ -213,22 +213,22 @@ Homogenous equality is by far the more typical notion of equality. We are able t
 %% TODO: Fix the alignment
 %% Eq_uneq : (l : TypeLevel) ≡> (t : Type_ l)
 %%           ≡> (x : t) => (y : t)
-%%           => (p : Eq x y) ≡> (i : I) ≡> t;
+%%           => (p : Eq x y) ≡> (i : I) ≡> t
 %% Eq_uneq = lambda _ ≡> lambda t ≡>
 %%             lambda _ => lambda _ =>
 %%               lambda p ≡> lambda i ≡>
-%%                 Heq_uneq (t := lambda _ ≡> t) (p := p) (i := i);
+%%                 Heq_uneq (t := lambda _ ≡> t) (p := p) (i := i)
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Eq : (t : Type) @$\Rrightarrow$@ t @$\rightarrow$@ t @$\rightarrow$@ Type
 Eq x y = Heq x y
 
 Eq_eq : (t : Type) @$\Rrightarrow$@ (f : I @$\Rrightarrow$@ t)
-        @$\Rrightarrow$@ Eq (t := t) (f (_ := @$\ileft$@)) (f (_ := @$\iright$@));
-Eq_eq t f = Heq_eq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (f := f);
+        @$\Rrightarrow$@ Eq (t := t) (f (_ := @$\ileft$@)) (f (_ := @$\iright$@))
+Eq_eq t f = Heq_eq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (f := f)
 
 Eq_uneq : (t : Type) @$\Rrightarrow$@ (x : t) @$\Rightarrow$@ (y : t) @$\Rightarrow$@ (p : Eq x y)
-          @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t;
-Eq_uneq p i = Heq_uneq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (p := p) (i := i);
+          @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t
+Eq_uneq p i = Heq_uneq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (p := p) (i := i)
 \end{minted}
 
 \subsection{Reduction rules}
@@ -250,19 +250,19 @@ Common properties of the equality type remain true, some of them are easier to p
 A reflexive equality is the most trivial equality that we are able to construct, and indeed, it is the one that we are able to construct with an erasable function out of $\bI$ given that such a function is necessarily a constant function.
 
 %% Eq_refl : (l : TypeLevel) ≡> (t : Type_ l)
-%%            ≡> (x : t) ≡> Eq x x;
+%%            ≡> (x : t) ≡> Eq x x
 %% Eq_refl = lambda _ ≡> lambda _ ≡> lambda x ≡>
-%%             Eq_eq (f := lambda _ ≡> x);
+%%             Eq_eq (f := lambda _ ≡> x)
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_refl : (x : ?t) |$\Rrightarrow$| Eq x x;
-Eq_refl x = Eq_eq (f := |$\lambda$| _ |$\Rrightarrow$| x);
+Eq_refl : (x : ?t) |$\Rrightarrow$| Eq x x
+Eq_refl x = Eq_eq (f := |$\lambda$| _ |$\Rrightarrow$| x)
 \end{minted}
 
 \subsubsection*{Commutativity}
 This is the first of many properties that can be proved in an elegant manner by virtue of defining the equality type based on functions out of the interval. This property has many names, such as the commutativity of equality, the symmetry of equality, or the inversion of a path. Consider an equality between $\id{x}$ and $\id{y}$, we can think of the two terms as points, the equality itself can then be thought of as a continuous path between the two points. We think of the path as a directed path from $\id{x}$ to $\id{y}$. The commutativity of equality basically means that we are able to construct a path that goes in the opposite direction, in other words, we are able to invert the path. This is the intuition behind the following proof.
 
-%% Eq_comm : (x : ?t) ≡> (y : ?t) ≡> Eq x y -> Eq y x;
-%% Eq_comm p = Eq_eq (f := lambda i ≡> Eq_uneq (p := p) (i := I_not i));
+%% Eq_comm : (x : ?t) ≡> (y : ?t) ≡> Eq x y -> Eq y x
+%% Eq_comm p = Eq_eq (f := lambda i ≡> Eq_uneq (p := p) (i := I_not i))
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Eq_comm : (x y : ?t) |$\Rrightarrow$| Eq x y |$\rightarrow$| Eq y x
 Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := !i))
@@ -297,9 +297,9 @@ This is a another typical property of equality that is proven with a `cubical' e
 
 %% Eq_cong : (x : ?A) => (y : ?A) =>
 %%           (f : ?A -> ?) -> (p : Eq x y)
-%%           -> Eq (f x) (f y);
+%%           -> Eq (f x) (f y)
 %% Eq_cong = lambda f -> lambda p ->
-%%             Eq_eq (f := lambda i ≡> f (Eq_uneq (p := p) (i := i)));
+%%             Eq_eq (f := lambda i ≡> f (Eq_uneq (p := p) (i := i)))
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Eq_cong : (x y : ?A) |$\Rightarrow$| (f : (?A |$\rightarrow$| ?)) |$\rightarrow$| (p : Eq x y)
           |$\rightarrow$| Eq (f x) (f y)
@@ -319,7 +319,7 @@ Eq_cong f p i = f (p i)
 The transport operation (also known as {\id{cast}}) allows us to transport properties that are true for some type $\id{A}$ to another type $\id{B}$ if we have a proof that $\eqtype{\id{A}}{\id{B}}$.
 
 %% Eq_cast : (x : ?) ≡> (y : ?) ≡> (p : Eq x y) ≡> (f : ? -> ?)
-%%             ≡> f x -> f y;
+%%             ≡> f x -> f y
 %% Eq_cast = lambda _ ≡> lambda _ ≡> %% Two level variables
 %%            lambda A ≡> %% Type of x and y
 %%            lambda x ≡> lambda y ≡>
@@ -356,10 +356,10 @@ Eq_cast_refl A x = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$|
 Continuing our analogy of equality proofs as paths, the transitivity property allows us to concatenate two paths. We join the right endpoint of the first path with the left endpoint of the second path, producing a new path. The proof of this theorem is as follows:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_trans : (x y z: ?t) |$\Rrightarrow$| Eq x y |$\rightarrow$| Eq y z |$\rightarrow$| Eq x z;
+Eq_trans : (x y z: ?t) |$\Rrightarrow$| Eq x y |$\rightarrow$| Eq y z |$\rightarrow$| Eq x z
 Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
                                  (f := |$\lambda$| x' |$\rightarrow$| Eq x x')
-                                 x=y;
+                                 x=y
 \end{minted}
 
 \subsection{Limitations}
@@ -466,7 +466,7 @@ Intuitively speaking, propositions are a type that contain no intrinsic data, it
 
 \begin{minted}{haskell}
 type Erased (T : Type)
-  | erased (t ::: T);
+  | erased (t ::: T)
 \end{minted}
 
 By ensuring that the witness $\id{t}$ of the type $\id{T}$ is erasable, this provides us with a guarantee that during elimination, the witness $\id{t}$ can only be used in an erasable, i.e.\ proof irrelevant manner.
@@ -486,14 +486,14 @@ erasedIsProp t1 t2 =
   case t1
     | erased (_ := e1) @$\Rightarrow$@
         let
-          p1 = ##DeBruijn 0 : Eq (erased (t := e1)) t1;
+          p1 = ##DeBruijn 0 : Eq (erased (t := e1)) t1
         in
           case t2
             | erased (_ := e2) @$\Rightarrow$@
                 let
-                  p2 = ##DeBruijn 0 : Eq (erased (t := e2)) t2;
+                  p2 = ##DeBruijn 0 : Eq (erased (t := e2)) t2
                 in
-                  Eq_trans (Eq_comm p1) p2;
+                  Eq_trans (Eq_comm p1) p2
 \end{minted}
 
 Typer does not offer the direct specialisation of $\kw{case}$ targets in branches. In other words, in the first case branch, we do not have a definitional equality between $\id{t1}$ and $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$. Instead, an equality proof between them is injected into the context, which can be accessed as the variable at deBruijn index 0. Now that we have the two equality proofs, in order to concatenate them \footnote{By considering equalities as path, the application of the transitivity property of equality is conceptually similar to concatenating two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and $\Funapp{\id{erased}}{(\earg{\_}{\id{e2}})}$ to be equal. A priori, the two terms are not equal as $\id{e1}$ and $\id{e2}$ are completely arbitrary. However, Typer ignores erasable terms when checking the convertibility of terms, this is a property that was proven to be sound in ??? (TODO: Cite ICC paper). This allows the concatenation to succeed and thus concludes the proof.
@@ -553,7 +553,7 @@ type isEquivRel (A : Type) (R : A -> A -> Type) : Type
   | equivRel (isRefl : (a : A) -> R a a)
              (isSym : (a : A) -> (b : A) -> R a b -> R b a)
              (isTrans : (a : A) -> (b : A) -> (c : A)
-                         -> R a b -> R b c -> R a c);
+                         -> R a b -> R b c -> R a c)
 \end{minted}
 
 \subsection{Proof}
@@ -563,8 +563,8 @@ Given two arbitrary elements $\id{a}$ and $\id{a}'$ of a base type $\kw{A}$, a q
 For an arbitrary binary relation $\kw{R}$, we can define the following:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
-ErasedR : (A : Type) |$\Rrightarrow$| (A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| A |$\rightarrow$| A |$\rightarrow$| Type;
-ErasedR R a b = Erased (R a b);
+ErasedR : (A : Type) |$\Rrightarrow$| (A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| A |$\rightarrow$| A |$\rightarrow$| Type
+ErasedR R a b = Erased (R a b)
 \end{minted}
 
 Now, we state the proof of the effectiveness of quotients in the form of Typer code
@@ -574,28 +574,28 @@ effective : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$|
             |$\rightarrow$| isEquivRel A (ErasedR R) |$\rightarrow$| (a : A) |$\rightarrow$| (b : A)
             |$\rightarrow$| Eq (Quotient_in (R := ErasedR R) a)
                   (Quotient_in (R := ErasedR R) b)
-            |$\rightarrow$| ErasedR R a b;
+            |$\rightarrow$| ErasedR R a b
 effective = lambda A |$\Rrightarrow$| lambda R equiv a b eq |$\rightarrow$|
   let
-    helper : Quotient A (ErasedR R) -> Type;
+    helper : Quotient A (ErasedR R) -> Type
     helper x =
       Quotient_rec
         (R := ErasedR R)
         (lambda c |$\rightarrow$| ErasedR R a c)
         (p := lambda c d cd |$\rightarrow$|
           let
-            ac->ad : Erased (R a c) |$\rightarrow$| Erased (R a d);
-            ac->ad ac = equiv.isTrans a c d ac cd;
-            ad->ac : Erased (R a d) |$\rightarrow$| Erased (R a c);
+            ac->ad : Erased (R a c) |$\rightarrow$| Erased (R a d)
+            ac->ad ac = equiv.isTrans a c d ac cd
+            ad->ac : Erased (R a d) |$\rightarrow$| Erased (R a c)
             ad->ac ad = equiv.isTrans a d c ad
-                                      (equiv.isSym c d cd);
+                                      (equiv.isSym c d cd)
           in
             propExt ac->ad ad->ac)
-        x;
-    aa=ab : Eq (Erased (R a a)) (Erased (R a b));
-    aa=ab = Eq_cong helper eq;
+        x
+    aa=ab : Eq (Erased (R a a)) (Erased (R a b))
+    aa=ab = Eq_cong helper eq
   in
-    Eq_cast (p := aa=ab) (f := id) (equiv.isRefl a);
+    Eq_cast (p := aa=ab) (f := id) (equiv.isRefl a)
 \end{minted}
 
 Compared to the more general version of the theorem we state before, here we insist that the quotient we consider be based on the erased version of some binary relation $\kw{R}$. And instead of proving that the base relation itself holds for some $\id{a}$ and $\id{b}$, we can only show that the erased version of this relation holds.
@@ -605,16 +605,95 @@ In this proof, we can see that all aspects of the sufficient condition are at pl
 Examples of usage of the above theorem are in Chapter XXX (TODO: Link to other section).
 
 \section{Examples}
+The addition of quotient types to Typer allows to define certain constructs that are typically defined in set theory as quotient sets. In this chapter, we discuss some types that are now natively definable by taking the quotient of existing types in the system.
+
 \subsection{Rational numbers}
-We get good runtime efficiency from this definition as we do not renormalise after each computation, contrary to other possible definitions.
+To define the rational numbers as a quotient type, we have two obvious options for the base type.
 
-\subsubsection{Axioms on integers}
+The first option is as follows:
 
-We took this opportunity to add some axioms regarding the behaviour of the built-in integer types. 
+\begin{align*}
+  & \mathbb{Q} \ \coloneqq \mathbb{Z} \times \mathbb{N} / \sim_{\mathbb{Q}} \\
+  & (z_1 , n_1) \sim_{\mathbb{Q}} (z_2 , n_2) \ \coloneqq Eq \ (z_1 * (n_2 + 1)) \ (z_2 * (n_1 + 1))
+\end{align*}
 
-Examples include $\ldots$
+A pair $(z , n)$ represents the rational number $z / (n + 1)$, this trick allows us to ensure that the denominator is non-zero.
 
-Mention examples that were given in the HoTT book (two alternative definitions were given).
+The second option is similar to the first:
+
+\begin{align*}
+  & \mathbb{Q} \ \coloneqq \Sigma_{\oftype{(x, y)}{\mathbb{Z} \times \mathbb{Z}}} . y \ne 0 / \sim_{\mathbb{Q}} \\
+  & (x_1 , y_1, \_) \sim_{\mathbb{Q}} (x_2 , y_2, \_) \ \coloneqq Eq \ (x_1 * y_2) \ (y_1 * x_2)
+\end{align*}
+
+In this definition, the base type of a quotient is a pair of integers, along with a proof that the denominator is non-zero. We chose to use this as the basis of our definition of the rationals, as it is more convenient to work with a pair of elements of the same type.
+
+Given that the equivalence of rational numbers is captured by a relation, we do not need to normalise our rational numbers after each computation, instead we prove that all of our operations respect the equivalence of rational numbers. This gives us good runtime efficiency, as opposed to more naive implementations.
+
+Typer has a built-in $\kw{Integer}$ type. Behind the scenes, this is based on big integers in OCaml (TODO: Maybe some more elaboration here). Operations on the $\kw{Integer}$ type such as addition, multiplication etc are implemented as axioms. At runtime, the corresponding OCaml operations are invoked to carry out the necessary computations. So far, we are unable to reason about these operations in Typer as they are merely primitives that are implemented in the host language. In the following section, we propose the addition of several axioms that will allow us to prove certain properties of the built-in $\kw{Integer}$ type, this will be necessary when we start reasoning about operations on Rational numbers.
+
+\subsubsection*{Integer axioms}
+We start off by axiomatising the associativity and commutativity of the addition and multiplication operations.
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Integer_+-comm : (x : Integer) |$\rightarrow$| (y : Integer)
+                 |$\rightarrow$| Eq (Integer_+ x y) (Integer_+ y x)
+
+Integer_+-assoc : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z : Integer)
+                  |$\rightarrow$| Eq (Integer_+ x (Integer_+ y z))
+                        (Integer_+ (Integer_+ x y) z)
+
+Integer_*-comm : (x : Integer) |$\rightarrow$| (y : Integer)
+                 |$\rightarrow$| Eq (Integer_* x y) (Integer_* y x)
+
+Integer_*-assoc : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z : Integer)
+                  |$\rightarrow$| Eq (Integer_* x (Integer_* y z))
+                        (Integer_* (Integer_* x y) z)
+\end{minted}
+
+We also want to be able to show that multipication is distributive with respect to addition. We only add left distributivity as an axiom, as right distributivity can be easily proven as a theorem, this is also the case for the other axioms that we will describe below.
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Integer_*DistL+ : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z : Integer)
+                  |$\rightarrow$| Eq (Integer_* (Integer_+ x y) z)
+                        (Integer_+ (Integer_* x z) (Integer_* y z))
+\end{minted}
+
+We also want to be able to say that we have additive inverses for all integers and that 0 is the additive identity.
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Integer_+Linv : (x : Integer) |$\rightarrow$| Eq (Integer_+ (Integer_- 0 x) x) 0
+
+Integer_+Lid : (x : Integer) |$\rightarrow$| Eq (Integer_+ 0 x) x
+\end{minted}
+
+Of course, we should also be able to say that 1 is the multiplicative identity.
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Integer_*Lid : (x : Integer) |$\rightarrow$| Eq (Integer_* 1 x) x
+\end{minted}
+
+Now that we have all these axioms, we can say that $\kw{Integer}$ fulfills the properties of a commutative ring. Aside from these axioms, there are some other properties that we require in order to be able to construct some useful operations on the resulting $\kw{Rational}$ type. Notably, we need to be able to say that if the product of two integers is zero, then at least one of them is zero. We formulate this in the following manner:
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Integer_isIntegral : (x : Integer) |$\rightarrow$| (y : Integer)
+                     |$\rightarrow$| Eq (Integer_* x y) 0 |$\rightarrow$| (Eq x 0 |$\rightarrow$| Void)
+                     |$\rightarrow$| Eq y 0
+\end{minted}
+
+Here, $\kw{Void}$ is the $\mathbb{0}$ type (also known as the empty type or bottom). This axiom essentially states that if a product $x \cdot y = 0$, then $x \ne 0 \rightarrow y = 0$.
+
+Another useful axiom to have is one that asserts that 0 is an absorbing element with respect to multiplication. In other words, multiplying by 0 always yields 0 as a result.
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Integer_*Lzero : (x : Integer) |$\rightarrow$| Eq (Integer_* 0 x) 0
+\end{minted}
+
+\subsubsection*{Integer theorems}
+TODO\: List theorems that can be derived from the axioms
+
+\subsection{Real numbers}
+TODO:\ Explore the definition of Dedekind reals in Typer (by leveraging the definition of $\mathbb{R}$). At first sight, I'm not sure if we can do Cauchy reals, TBD
 
 \subsection{Multiset}
 \subsection{Propositional Truncation}
