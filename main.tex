@@ -15,6 +15,7 @@
   breaklines=true
 }
 \usepackage{minted} %% Typeset code
+\setminted{fontsize=\small}
 \usepackage{bbold} %% For blackboard font
 
 %% Macro to facilitate the definition of variadic macros
@@ -38,11 +39,14 @@
 
 \newcommand\kw[1] {\textsf{#1}}
 \newcommand\id[1] {\textsl{#1}}
+\newcommand\latinphrase{\textit}
 
 \NewDocumentCommand{\bI}{}{\mathbb{I}} %% Bold Interval I
 \NewDocumentCommand{\ileft}{}{\id{i}_0} %% Interval i0
 \NewDocumentCommand{\iright}{}{\id{i}_1} %% Interval i1
 \NewDocumentCommand{\refl}{mg}{\IfValueTF{#2}{\kw{refl}_{#1} (#2)}{\kw{refl} (#1)}}
+\NewDocumentCommand{\zpair}{}{\mathbb{Z}{\times}\mathbb{Z}{\ne}0}
+\NewDocumentCommand{\equalq}{}{equal\mathbb{Q}}
 
 \NewDocumentCommand{\oftype}{mmg}{\IfValueTF{#3}{#1\vdash#2:#3}{#1:#2}}
 \NewDocumentCommand{\eqterm}{mmmg}{\IfValueTF{#4}{#1\vdash#2\equiv#3:#4}{#1\equiv#2:#3}}
@@ -50,6 +54,7 @@
 \NewDocumentCommand{\ctx}{}{\Gamma}
 \NewDocumentCommand{\earg}{mg}{\IfValueTF{#2}{#1:=#2}{\_:=#1}} %% Erasable argument
 
+\newcommand\qed {\square}
 
 \title{Quotient Types in Typer}
 \author{James Tan \\ Université de Montréal \\ \href{mailto:james.juan.whei.tan@umontreal.ca}{james.juan.whei.tan@umontreal.ca}}
@@ -352,7 +357,7 @@ Eq_cast_refl A x = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$|
                             I_transp (A := |$\lambda$| _ |$\Rrightarrow$| A) (r := i) x)
 \end{minted}
 
-\subsubsection*{Transitivity}
+\subsubsection*{Transitivity}\label{subsubsection:eqtransitivity}
 Continuing our analogy of equality proofs as paths, the transitivity property allows us to concatenate two paths. We join the right endpoint of the first path with the left endpoint of the second path, producing a new path. The proof of this theorem is as follows:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
@@ -689,8 +694,115 @@ Another useful axiom to have is one that asserts that 0 is an absorbing element 
 Integer_*Lzero : (x : Integer) |$\rightarrow$| Eq (Integer_* 0 x) 0
 \end{minted}
 
-\subsubsection*{Integer theorems}
-TODO\: List theorems that can be derived from the axioms
+\subsubsection*{Integer theorems}\label{subsubsection:int-theorems}
+As stated in the subsequent section, we only added the `left' version of some axioms, as their `right' counterparts may be trivially proven as theorems based on the commutativity property of addition and multiplication.
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Integer_+Rid : (x : Integer) |$\rightarrow$| Eq (Integer_+ x 0) x
+Integer_+Rid x = Eq_trans (Integer_+-comm x 0) (Integer_+Lid x)
+
+Integer_+Rinv : (x : Integer) |$\rightarrow$| Eq (Integer_+ x (Integer_- 0 x)) 0
+Integer_+Rinv x = Eq_trans (Integer_+-comm x (Integer_- 0 x))
+                           (Integer_+Linv x)
+
+Integer_*Rid : (x : Integer) |$\rightarrow$| Eq (Integer_* x 1) x
+Integer_*Rid x = Eq_trans (Integer_*-comm x 1) (Integer_*Lid x)
+
+Integer_*Rzero : (x : Integer) |$\rightarrow$| Eq (Integer_* x 0) 0
+Integer_*Rzero x = Eq_trans (Integer_*-comm x 0) (Integer_*Lzero x)
+
+Integer_*DistR+ : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z : Integer)
+                  |$\rightarrow$| Eq (Integer_* x (Integer_+ y z))
+                        (Integer_+ (Integer_* x y) (Integer_* x z))
+Integer_*DistR+ x y z =
+  Eq_trans (Integer_*-comm x (Integer_+ y z))
+           (Eq_trans (Integer_*DistL+ y z x)
+                     (Eq_trans (Eq_cong (lambda e |$\rightarrow$|
+                                           Integer_+ e (Integer_* z x))
+                                        (Integer_*-comm y x))
+                               (Eq_cong (lambda e |$\rightarrow$|
+                                           Integer_+ (Integer_* x y) e)
+                                        (Integer_*-comm z x))))
+\end{minted}
+
+Another useful theorem that we can prove states that the product of two non-zero integers is necessarily non-zero.
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Integer_0-product : (x : Integer) |$\rightarrow$| (y : Integer)
+                    |$\rightarrow$| (Eq x 0 |$\rightarrow$| Void) |$\rightarrow$| (Eq y 0 |$\rightarrow$| Void)
+                    |$\rightarrow$| (Eq (Integer_* x y) 0 |$\rightarrow$| Void)
+Integer_0-product x y x|$\ne$|0 y|$\ne$|0 xy|$\ne$|0 =
+    y|$\ne$|0 (Integer_isIntegral x y xy|$\ne$|0 x|$\ne$|0)
+\end{minted}
+
+\subsubsection*{Implementation of Rationals}
+As stated before, the base type of our quotient type is essentially a pair of integers along with a proof that the second integer is non-zero. We decided to implement this as an inductive type with a single constructor.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+type @$\mathbb{Z}{\times}\mathbb{Z}{\ne}0$@
+  | inR (@$z_1$@ : Integer) (@$z_2$@ : Integer) (p : Not (Eq @$z_2$@ 0))
+\end{minted}
+
+$\kw{Not}$ has the typical definition as follows:
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Not : (T : Type) @$\rightarrow$@ Type
+Not T = T @$\rightarrow$@ Void
+\end{minted}
+
+The underlying relation takes on the following form, this can be proven to be an equivalence relation.
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+equal@$\mathbb{Q}$@ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ Type
+equal@$\mathbb{Q}$@ p1 p2 = Eq (p1.z1 * p2.z2) (p1.z2 * p2.z1)
+\end{minted}
+
+Finally, we can state the definition of the Rationals.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Rational : Type
+Rational = Quotient @$\zpair$@ equal@$\mathbb{Q}$@
+\end{minted}
+
+As a sanity check, we prove that the resulting $\kw{Rational}$ type is indeed a field as it should be. For brevity, we only provide the full proof of the negation operation, i.e.\ the operation that constructs the additive inverse of a rational number, the construction of the other operations shall merely be sketched. Negation is the simplest operation that we can define on the rationals, it is achieved by simply negating the integer numerator. This is done via the below function.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+negate_fst : @$\zpair \rightarrow \zpair$@
+negate_fst x = inR (-1 * x.z1) x.z2 x.p
+\end{minted}
+
+We also need to prove that $\id{negate\_fst}$ respects the underlying relation $equal\mathbb{Q}$. In other words, we need to prove the following:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+negate_compat : (a : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@) @$\rightarrow$@
+                @$\equalq$@ a b @$\rightarrow$@ @$\equalq$@ (negate_fst a) (negate_fst b)
+negate_compat a b r =
+    (-1 * a.z1) * b.z2
+    ==< Eq_comm (Integer_*-assoc -1 a.z1 b.z2) >==
+    -1 * (a.z1 * b.z2)
+    ==< Eq_cong (lambda e @$\rightarrow$@ -1 * e) r >==
+    -1 * (a.z2 * b.z1)
+    ==< Integer_*-assoc -1 a.z2 b.z1 >==
+    (-1 * a.z2) * b.z1
+    ==< Eq_cong (lambda e @$\rightarrow$@ e * b.z1)
+                (Integer_*-comm -1 a.z2) >==
+    (a.z2 * -1) * b.z1
+    ==< Eq_comm (Integer_*-assoc a.z2 -1 b.z1) >==
+    a.z2 * (-1 * b.z1) @$\qed$@
+\end{minted}
+
+We introduced equational reasoning to facilitate the development and reading of such proofs, more details are given in Section~\ref{section:eqreasoning} of the appendix.
+
+Finally, the negation operation of rational numbers can be constructed like so:
+
+\begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
+Rational_negate : Rational @$\rightarrow$@ Rational
+Rational_negate x =
+  qcase (x : @$\zpair$@ / @$\equalq$@)
+    | Quotient_in a @$\Rightarrow$@ Quotient_in (R := @$\equalq$@) (negate_fst a)
+    | Quotient_eq a a' r @$\Rightarrow$@ Quotient_eq (R := @$\equalq$@)
+                                        (a := negate_fst a)
+                                        (a' := negate_fst a')
+                                        (negate_compat a a' r)
+\end{minted}
 
 \subsection{Real numbers}
 TODO:\ Explore the definition of Dedekind reals in Typer (by leveraging the definition of $\mathbb{R}$). At first sight, I'm not sure if we can do Cauchy reals, TBD
@@ -737,5 +849,77 @@ Quotient inductive types are essentially Higher Inductive Types (HITs) that are 
 
 Compare to Quotient Haskell and cite examples of types that are convenient to define with QITs but are `tedious' to express as Quotient types.
 
+\appendix
+
+\section{Equational Reasoning}\label{section:eqreasoning}
+Equational reasoning provides us with a neat way of expressing proofs in Typer. With the help of some syntactic sugar, this allows us to build chains of equality proofs by using the transitivity property of equality as shown in Section~\ref{subsubsection:eqtransitivity}. This is something that is implemented in the libraries of most proof assistants, such as Agda, Lean, and Lean. This allows lengthy proofs to remain readable as intermediate steps are documented and are clearly seen.
+
+First, we introduce a helper function that simply invokes the transitivity property of equality proofs. This function carries out a single step of equational reasoning.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+step-@$\equiv$@ : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ (z : ?A) @$\rightarrow$@ Eq x y @$\rightarrow$@ Eq y z @$\rightarrow$@ Eq x z
+step-@$\equiv$@ _ p q = Eq_trans p q
+\end{minted}
+
+Next, we require a second function to conclude a chain of equational reasoning.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+qed : (x : ?A) @$\rightarrow$@ Eq x x
+qed x = Eq_refl
+\end{minted}
+
+To make it all come together, we wrap the above functions with some syntaxic sugar.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+_==<_>==_ = step-@$\equiv$@
+_@$\qed$@ = qed
+\end{minted}
+
+%% TODO:\ Make \_$\qed$ look nicer
+\verb|_==<_>==_| can be seen as a mixfix operator, whereas \_$\qed$ is a postfix operator.
+
+When we write the following
+
+\begin{lstlisting}
+  x
+  ==< p >==
+  y
+  ==< ... >==
+  .
+  .
+  .
+  ==< ... >==
+  z $\qed$
+\end{lstlisting}
+
+We require that $\id{p}$ be a proof of equality between $\id{x}$ and $\id{y}$, and this can be chained \latinphrase{ad infinitum}. The expression in its entirety is a proof of equality between $\id{x}$ and $\id{z}$. The usage of this is best illustrated via a simple example:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+example : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ (z : ?A) @$\rightarrow$@ (w : ?A)
+          @$\rightarrow$@ (p : Eq x y) @$\rightarrow$@ (q : Eq y z) @$\rightarrow$@ (r : Eq z w) @$\rightarrow$@ Eq x w
+example x y z w p q r =
+  x ==< p >==
+  y ==< q >==
+  z ==< r >==
+  w @$\qed$@
+\end{minted}
+
+For a more involved example, we rewrite the proof of \verb|Integer_*DistR+| that was shown in Section~\ref{subsubsection:int-theorems} by using equational reasoning.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Integer_*DistR+ : (x : Integer) @$\rightarrow$@ (y : Integer) @$\rightarrow$@ (z : Integer)
+                  @$\rightarrow$@ Eq (Integer_* x (Integer_+ y z))
+                        (Integer_+ (Integer_* x y) (Integer_* x z))
+Integer_*DistR+ x y z =
+  Integer_* x (Integer_+ y z)
+  ==< Integer_*-comm x (Integer_+ y z) >==
+  Integer_* (Integer_+ y z) x
+  ==< Integer_*DistL+ y z x >==
+  Integer_+ (Integer_* y x) (Integer_* z x)
+  ==< Eq_cong (flip Integer_+ (Integer_* z x)) (Integer_*-comm y x) >==
+  Integer_+ (Integer_* x y) (Integer_* z x)
+  ==< Eq_cong (Integer_+ (Integer_* x y)) (Integer_*-comm z x) >==
+  Integer_+ (Integer_* x y) (Integer_* x z) @$\qed$@
+\end{minted}
 
 \end{document}
