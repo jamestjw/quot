@@ -45,8 +45,10 @@
 \NewDocumentCommand{\ileft}{}{\id{i}_0} %% Interval i0
 \NewDocumentCommand{\iright}{}{\id{i}_1} %% Interval i1
 \NewDocumentCommand{\refl}{mg}{\IfValueTF{#2}{\kw{refl}_{#1} (#2)}{\kw{refl} (#1)}}
+
 \NewDocumentCommand{\zpair}{}{\mathbb{Z}{\times}\mathbb{Z}{\ne}0}
 \NewDocumentCommand{\equalq}{}{equal\mathbb{Q}}
+\NewDocumentCommand{\zpairplus}{}{\mathbb{Z}{\times}\mathbb{Z}+}
 
 \NewDocumentCommand{\oftype}{mmg}{\IfValueTF{#3}{#1\vdash#2:#3}{#1:#2}}
 \NewDocumentCommand{\eqterm}{mmmg}{\IfValueTF{#4}{#1\vdash#2\equiv#3:#4}{#1\equiv#2:#3}}
@@ -664,7 +666,7 @@ Integer_*DistL+ : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z
                         (Integer_+ (Integer_* x z) (Integer_* y z))
 \end{minted}
 
-We also want to be able to say that we have additive inverses for all integers and that 0 is the additive identity.
+The above properties can also be stated for the subtraction operation. We also want to be able to say that we have additive inverses for all integers and that 0 is the additive identity.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Integer_+Linv : (x : Integer) |$\rightarrow$| Eq (Integer_+ (Integer_- 0 x) x) 0
@@ -735,6 +737,21 @@ Integer_0-product x y x|$\ne$|0 y|$\ne$|0 xy|$\ne$|0 =
     y|$\ne$|0 (Integer_isIntegral x y xy|$\ne$|0 x|$\ne$|0)
 \end{minted}
 
+We will eventually also make use of the below theorem that states that the negation of an integer may be distributed over multiplication. Its `right' counterpart may also be proven in a similar manner.
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+Integer_NegateDistL* : (x : Integer) |$\rightarrow$| (y : Integer)
+                        |$\rightarrow$| Eq (Integer_- 0 (Integer_* x y))
+                              (Integer_* (Integer_- 0 x) y);
+Integer_NegateDistL* x y =
+  Integer_- 0 (Integer_* x y)
+  ==< Eq_cong (lambda e |$\rightarrow$| Integer_- e (Integer_* x y))
+              (Eq_comm (Integer_*Lzero y)) >==
+  Integer_- (Integer_* 0 y) (Integer_* x y)
+  ==< Eq_comm (Integer_*DistL- 0 x y) >==
+  Integer_* (Integer_- 0 x) y |$\qed$|;
+\end{minted}
+
 \subsubsection*{Implementation of Rationals}
 As stated before, the base type of our quotient type is essentially a pair of integers along with a proof that the second integer is non-zero. We decided to implement this as an inductive type with a single constructor.
 
@@ -762,7 +779,7 @@ Rational : Type
 Rational = Quotient @$\zpair$@ equal@$\mathbb{Q}$@
 \end{minted}
 
-As a sanity check, we prove that the resulting $\kw{Rational}$ type is indeed a field as it should be. For brevity, we only provide the full proof of the negation operation, i.e.\ the operation that constructs the additive inverse of a rational number, the construction of the other operations shall merely be sketched. Negation is the simplest operation that we can define on the rationals, it is achieved by simply negating the integer numerator. This is done via the below function.
+As a sanity check, we prove that the resulting $\kw{Rational}$ type is indeed a field as it should be. Negation is the simplest operation that we can define on the rationals, it is achieved by simply negating the integer numerator. This is done via the below function.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 negate_fst : @$\zpair \rightarrow \zpair$@
@@ -804,6 +821,130 @@ Rational_negate x =
                                         (negate_compat a a' r)
 \end{minted}
 
+We can also define the addition operation on the rationals. As before, we start off by defining a function that operates on expressions of the base type.
+
+\begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
+@$\zpairplus$@ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ @$\zpair$@
+@$\zpairplus$@ a b = inR ((a.z1 * b.z2) + (b.z1 * a.z2))
+                 (a.z2 * b.z2)
+                 (Integer_0-product a.z2 b.z2 a.p b.p)
+\end{minted}
+
+This is an operation that can be shown to be commutative with respect to the equivalence relation.
+
+\begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
+@$\zpairplus$-Comm@ : (a : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@)
+               @$\rightarrow$@ Eq (t := Quotient @$\zpair$@ @$\equalq$@)
+                     (Quotient_in (@$\zpairplus$@+ a b)) (Quotient_in (@$\zpairplus$@+ b a))
+@$\zpairplus$-Comm@ a b =
+  let
+    compat =
+      (a.z1 * b.z2 + b.z1 * a.z2) * (b.z2 * a.z2)
+        ==< Eq_cong (lambda e @$\rightarrow$@ (a.z1 * b.z2 + b.z1 * a.z2) * e)
+                    (Integer_*-comm b.z2 a.z2) >==
+      (a.z1 * b.z2 + b.z1 * a.z2) * (a.z2 * b.z2)
+        ==< Integer_*-comm (a.z1 * b.z2 + b.z1 * a.z2) (a.z2 * b.z2) >==
+      a.z2 * b.z2 * (a.z1 * b.z2 + b.z1 * a.z2)
+        ==< Eq_cong (lambda e @$\rightarrow$@ a.z2 * b.z2 * e)
+                    (Integer_+-comm (a.z1 * b.z2) (b.z1 * a.z2)) >==
+      a.z2 * b.z2 * (b.z1 * a.z2 + a.z1 * b.z2) @$\qed$@
+  in
+      Quotient_eq (R := @$\equalq$@)
+                  (a  := @$\zpairplus$@+ a b)
+                  (a' := @$\zpairplus$@+ b a)
+                  compat
+\end{minted}
+
+We still need to show that the $\zpairplus$ function itself respects the underlying relation, and since this is a binary operation, we will have to prove it for `both sides'. In other words, we have to produce the below proofs.
+
+\begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
+@$\mathbb{Q}$+\_feql@ : (a : @$\zpair$@) @$\rightarrow$@ (a' : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@) @$\rightarrow$@ @$\equalq$@ a a'
+          @$\rightarrow$@ Eq (t := Quotient @$\zpair$@ @$\equalq$@)
+                (Quotient_in (@$\zpairplus$@ a b))
+                (Quotient_in (@$\zpairplus$@ a' b))
+@$\mathbb{Q}$+\_feql@ = ?
+
+@$\mathbb{Q}$+\_feqr@ : (a : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@) @$\rightarrow$@ (b' : @$\zpair$@) @$\rightarrow$@ @$\equalq$@ b b'
+          @$\rightarrow$@ Eq (t := Quotient @$\zpair$@ @$\equalq$@)
+                (Quotient_in (@$\zpairplus$@ a b))
+                (Quotient_in (@$\zpairplus$@ a b'))
+@$\mathbb{Q}$+\_feqr@ = ?
+\end{minted}
+
+The proof of $\mathbb{Q}{+}\_\kw{feql}$ is long and uninteresting and thus will not described here.\footnote{Interested readers may find the proof at TODO:\ link}. However, once this has been proved, its counterpart is a trivial corollary by virtue of the commutativity of $\zpairplus$.
+
+\begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
+@$\mathbb{Q}$+\_feqr@ a b b' p =
+    Eq_trans (@$\zpairplus$-Comm@ a b)
+             (Eq_trans (@$\mathbb{Q}$@+_feql b b' a p) (@$\zpairplus$-Comm@ b' a))
+\end{minted}
+
+We can now assemble the above to define both the addition and subtraction of rationals as follows:
+
+\begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
+Rational_+ : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational;
+Rational_+ a b =
+  Quotient_rec2 (R := @$\equalq$@) (S := @$\equalq$@)
+                Rational_isSet (lambda x y @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))
+                @$\mathbb{Q}$+\_feql@ @$\mathbb{Q}$+\_feqr@ a b;
+
+Rational_- : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational;
+Rational_- a b = Rational_+ a (Rational_negate b);
+\end{minted}
+
+$\kw{Quotient\_rec2}$ is a library function that allows us to simultaneously eliminate two quotient expressions, more details are given in Section ??? (TODO:\ Add this). Finally, we want to prove that negation of a rational produces its additive inverse. We define $\kw{Rational\_0}$ to be the additive identity using a trivial representative of its equivalence class.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+@$\zpairplus$@-Linv : (a : @$\zpair$@) @$\rightarrow$@ Eq (t := Rational)
+                              (Quotient_in (@$\zpairplus$@ (negate_a.z1) a))
+                              Rational_0;
+@$\zpairplus$@-Linv a =
+  let
+    h : Eq ((-1 * a.z1 * a.z2 + a.z1 * a.z2) * 1)
+           (a.z2 * a.z2 * 0);
+    h =
+      (-1 * a.z1 * a.z2 + a.z1 * a.z2) * 1
+      ==< Eq_cong (lambda e @$\rightarrow$@ (e * a.z2 + a.z1 * a.z2) * 1)
+                  (Integer_Negate@$\equiv$@ a.z1) >==
+      ((0 - a.z1) * a.z2 + a.z1 * a.z2) * 1
+      ==< Integer_*Rid ((0 - a.z1) * a.z2 + a.z1 * a.z2) >==
+      (0 - a.z1) * a.z2 + a.z1 * a.z2
+      ==< Eq_cong (lambda e @$\rightarrow$@ e + a.z1 * a.z2)
+                  (Eq_comm (Integer_NegateDistL* a.z1 a.z2)) >==
+      (0 - (a.z1 * a.z2)) + a.z1 * a.z2
+      ==< Integer_+-comm (0 - (a.z1 * a.z2)) (a.z1 * a.z2) >==
+      a.z1 * a.z2 + (0 - (a.z1 * a.z2))
+      ==< Integer_+Rinv (a.z1 * a.z2) >==
+      0
+      ==< Eq_comm (Integer_*Rzero (a.z2 * a.z2)) >==
+      a.z2 * a.z2 * 0 @$\qed$@;
+  in
+    Quotient_eq (R := @$\equalq$@)
+                (a := @$\zpairplus$@ (negate_a.z1) a)
+                (a' := inR 0 1 Integer_1@$\ne$@0)
+                h;
+
+Rational_+Linv : (q : Rational) @$\rightarrow$@ Eq (Rational_+ (Rational_negate q) q)
+                                      Rational_0;
+Rational_+Linv q =
+  Quotient_elimProp (R := @$\equalq$@)
+                    (P := lambda q @$\rightarrow$@
+                            Eq (Rational_+ (Rational_negate q) q)
+                               Rational_0)
+                    (lambda q @$\rightarrow$@
+                        Rational_isSet (Rational_+ (Rational_negate q) q)
+                                       Rational_0)
+                    @$\zpairplus$@-Linv q;
+
+Rational_+Rinv : (q : Rational) @$\rightarrow$@ Eq (Rational_+ q (Rational_negate q))
+                                      Rational_0;
+Rational_+Rinv q = Eq_trans (Rational_+-Comm q (Rational_negate q))
+                            (Rational_+Linv q);
+
+\end{minted}
+
+For brevity, we do not describe the proofs for multiplication as they can be carried out in a similar fashion as the above. In Section ??? (TODO:\ add this), we explore the runtime cost of using this construction of the rational numbers.
+
 \subsection{Real numbers}
 TODO:\ Explore the definition of Dedekind reals in Typer (by leveraging the definition of $\mathbb{R}$). At first sight, I'm not sure if we can do Cauchy reals, TBD
 
@@ -817,6 +958,9 @@ We can encode propositional truncation as a quotient type. The required properti
 	\item $A  \ $subsingleton$ \rightarrow (\norm{A} \ $true$ \rightarrow A \ $true$)$
 	\item For some P that is a subsingleton and some $f :  A \rightarrow P$, there exists a function $g : \norm{A} \rightarrow P$ s.t. $ \forall a : A \ . \ g(a*) = f(a)$, where $ a* \in ||A||$.
 \end{itemize}
+
+\subsection{Elimination (Special cases)}
+TODO\: Mention library that facilitates the elimination of more than one quotient expression at a time, eliminating to Prop, Set, Contr etc
 
 \section{Holy Trinity?}
 Harper's triangle, check this https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/.
@@ -921,5 +1065,7 @@ Integer_*DistR+ x y z =
   ==< Eq_cong (Integer_+ (Integer_* x y)) (Integer_*-comm z x) >==
   Integer_+ (Integer_* x y) (Integer_* x z) @$\qed$@
 \end{minted}
+
+TODO:\ Consider adding a discussion on additional macros and tactics that could be added to ease the development of such proofs, e.g.\ it would be nice to have rewrite tactics that Lean has to avoid having to invoke Eq\_cong that often
 
 \end{document}
