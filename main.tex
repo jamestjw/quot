@@ -742,14 +742,14 @@ We will eventually also make use of the below theorem that states that the negat
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Integer_NegateDistL* : (x : Integer) |$\rightarrow$| (y : Integer)
                         |$\rightarrow$| Eq (Integer_- 0 (Integer_* x y))
-                              (Integer_* (Integer_- 0 x) y);
+                              (Integer_* (Integer_- 0 x) y)
 Integer_NegateDistL* x y =
   Integer_- 0 (Integer_* x y)
   ==< Eq_cong (lambda e |$\rightarrow$| Integer_- e (Integer_* x y))
               (Eq_comm (Integer_*Lzero y)) >==
   Integer_- (Integer_* 0 y) (Integer_* x y)
   ==< Eq_comm (Integer_*DistL- 0 x y) >==
-  Integer_* (Integer_- 0 x) y |$\qed$|;
+  Integer_* (Integer_- 0 x) y |$\qed$|
 \end{minted}
 
 \subsubsection*{Implementation of Rationals}
@@ -882,14 +882,14 @@ The proof of $\mathbb{Q}{+}\_\kw{feql}$ is long and uninteresting and thus will 
 We can now assemble the above to define both the addition and subtraction of rationals as follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
-Rational_+ : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational;
+Rational_+ : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational
 Rational_+ a b =
   Quotient_rec2 (R := @$\equalq$@) (S := @$\equalq$@)
                 Rational_isSet (lambda x y @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))
-                @$\mathbb{Q}$+\_feql@ @$\mathbb{Q}$+\_feqr@ a b;
+                @$\mathbb{Q}$+\_feql@ @$\mathbb{Q}$+\_feqr@ a b
 
-Rational_- : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational;
-Rational_- a b = Rational_+ a (Rational_negate b);
+Rational_- : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational
+Rational_- a b = Rational_+ a (Rational_negate b)
 \end{minted}
 
 $\kw{Quotient\_rec2}$ is a library function that allows us to simultaneously eliminate two quotient expressions, more details are given in Section ??? (TODO:\ Add this). Finally, we want to prove that negation of a rational produces its additive inverse. We define $\kw{Rational\_0}$ to be the additive identity using a trivial representative of its equivalence class.
@@ -897,11 +897,11 @@ $\kw{Quotient\_rec2}$ is a library function that allows us to simultaneously eli
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 @$\zpairplus$@-Linv : (a : @$\zpair$@) @$\rightarrow$@ Eq (t := Rational)
                               (Quotient_in (@$\zpairplus$@ (negate_a.z1) a))
-                              Rational_0;
+                              Rational_0
 @$\zpairplus$@-Linv a =
   let
     h : Eq ((-1 * a.z1 * a.z2 + a.z1 * a.z2) * 1)
-           (a.z2 * a.z2 * 0);
+           (a.z2 * a.z2 * 0)
     h =
       (-1 * a.z1 * a.z2 + a.z1 * a.z2) * 1
       ==< Eq_cong (lambda e @$\rightarrow$@ (e * a.z2 + a.z1 * a.z2) * 1)
@@ -917,15 +917,15 @@ $\kw{Quotient\_rec2}$ is a library function that allows us to simultaneously eli
       ==< Integer_+Rinv (a.z1 * a.z2) >==
       0
       ==< Eq_comm (Integer_*Rzero (a.z2 * a.z2)) >==
-      a.z2 * a.z2 * 0 @$\qed$@;
+      a.z2 * a.z2 * 0 @$\qed$@
   in
     Quotient_eq (R := @$\equalq$@)
                 (a := @$\zpairplus$@ (negate_a.z1) a)
                 (a' := inR 0 1 Integer_1@$\ne$@0)
-                h;
+                h
 
 Rational_+Linv : (q : Rational) @$\rightarrow$@ Eq (Rational_+ (Rational_negate q) q)
-                                      Rational_0;
+                                      Rational_0
 Rational_+Linv q =
   Quotient_elimProp (R := @$\equalq$@)
                     (P := lambda q @$\rightarrow$@
@@ -934,12 +934,12 @@ Rational_+Linv q =
                     (lambda q @$\rightarrow$@
                         Rational_isSet (Rational_+ (Rational_negate q) q)
                                        Rational_0)
-                    @$\zpairplus$@-Linv q;
+                    @$\zpairplus$@-Linv q
 
 Rational_+Rinv : (q : Rational) @$\rightarrow$@ Eq (Rational_+ q (Rational_negate q))
-                                      Rational_0;
+                                      Rational_0
 Rational_+Rinv q = Eq_trans (Rational_+-Comm q (Rational_negate q))
-                            (Rational_+Linv q);
+                            (Rational_+Linv q)
 
 \end{minted}
 
@@ -954,10 +954,49 @@ TODO:\ Explore the definition of Dedekind reals in Typer (by leveraging the defi
 We can encode propositional truncation as a quotient type. The required properties are:
 
 \begin{itemize}
-	\item $A \ true \rightarrow \norm{A} \ true$, $\norm{A}$ is a subsingleton (exists unique)
-	\item $A  \ $subsingleton$ \rightarrow (\norm{A} \ $true$ \rightarrow A \ $true$)$
-	\item For some P that is a subsingleton and some $f :  A \rightarrow P$, there exists a function $g : \norm{A} \rightarrow P$ s.t. $ \forall a : A \ . \ g(a*) = f(a)$, where $ a* \in ||A||$.
+	\item $\id{A} \ \kw{true} \rightarrow \norm{A} \ \kw{true}$ and $\norm{A}$ is a subsingleton (exists unique)
+%% 	\item $\id{A}  \ $subsingleton$ \rightarrow (\norm{A} \ \kw{true} \rightarrow \id{A} \ \kw{true})$
+	\item For some P that is a subsingleton and some $f : \id{A} \rightarrow \kw{P}$, there exists a function $g : \norm{A} \rightarrow P$ s.t. $ \forall a : A \ . \ g(a^*) = f(a)$, where $a^* \in \norm{A}$.
 \end{itemize}
+
+The encoding is simple, we simply define the following type former along with its term former:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+PropTrunc : (P : Type) @$\rightarrow$@ Type
+PropTrunc P = Quotient P (@$\lambda$@ p1 p2 @$\rightarrow$@ Unit)
+
+inPropTrunc : (P : Type) @$\Rrightarrow$@ P @$\rightarrow$@ PropTrunc P
+inPropTrunc p = Quotient_in (R := @$\lambda$@ p1 p2 @$\rightarrow$@ Unit) p
+\end{minted}
+
+The choice of $\id{R}$ here essentially implies that every term of the base type $\kw{P}$ shall be equated in the resulting quotient type. This is witnessed by the following function:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+squash : (P : Type) @$\Rrightarrow$@ (x : PropTrunc P) @$\rightarrow$@ (y : PropTrunc P) @$\rightarrow$@ Eq x y
+squash = @$\lambda$@ P @$\Rrightarrow$@ @$\lambda$@ x y @$\rightarrow$@
+  let
+    rel : P @$\rightarrow$@ P @$\rightarrow$@ Type
+    rel _ _ = Unit
+  in
+    elimProp2 (R := rel) (S := rel)
+              (P := @$\lambda$@ x y @$\rightarrow$@ Eq x y)
+              (@$\lambda$@ x y @$\rightarrow$@ Quotient_trunc (R := rel) (x := x) (y := y))
+              (@$\lambda$@ a a' @$\rightarrow$@ Quotient_eq (R := rel)
+                                     (a := a) (a' := a') unit)
+              x y
+\end{minted}
+
+$\id{inPropTrunc}$ and $\id{squash}$ combined imply that the first property is satisfied. Next, we state the elimination principle of the propositional truncation of some type $\id{P}$.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+propTruncRec : (A P : Type) @$\Rrightarrow$@ isProp P @$\rightarrow$@ (A @$\rightarrow$@ P) @$\rightarrow$@ PropTrunc A @$\rightarrow$@ P;
+propTruncRec prop f a = elimProp (R := @$\lambda$@ _ _ @$\rightarrow$@ Unit)
+                                 (P := @$\lambda$@ _ @$\rightarrow$@ P)
+                                 (@$\lambda$@ _ @$\rightarrow$@ prop)
+                                 f a;
+\end{minted}
+
+By partially applying a proof that P is a proposition and a function of type $\id{A} \rightarrow \id{P}$ to $\id{propTruncRec}$, we obtain the second property. (TODO:\ This doesn't seem to imply that P is a subsingleton though!?)
 
 \subsection{Elimination (Special cases)}
 TODO\: Mention library that facilitates the elimination of more than one quotient expression at a time, eliminating to Prop, Set, Contr etc
