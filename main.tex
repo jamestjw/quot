@@ -17,6 +17,9 @@
 \usepackage{minted} %% Typeset code
 \setminted{fontsize=\small}
 \usepackage{bbold} %% For blackboard font
+\usepackage{tikz} %% For drawing diagrams
+
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt
 
 %% Macro to facilitate the definition of variadic macros
 %% from https://saswat.padhi.me/blog/2019-09_variadic-macros-in-latex/index.html
@@ -989,17 +992,152 @@ squash = @$\lambda$@ P @$\Rrightarrow$@ @$\lambda$@ x y @$\rightarrow$@
 $\id{inPropTrunc}$ and $\id{squash}$ combined imply that the first property is satisfied. Next, we state the elimination principle of the propositional truncation of some type $\id{P}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-propTruncRec : (A P : Type) @$\Rrightarrow$@ isProp P @$\rightarrow$@ (A @$\rightarrow$@ P) @$\rightarrow$@ PropTrunc A @$\rightarrow$@ P;
+propTruncRec : (A P : Type) @$\Rrightarrow$@ isProp P @$\rightarrow$@ (A @$\rightarrow$@ P) @$\rightarrow$@ PropTrunc A @$\rightarrow$@ P
 propTruncRec prop f a = elimProp (R := @$\lambda$@ _ _ @$\rightarrow$@ Unit)
                                  (P := @$\lambda$@ _ @$\rightarrow$@ P)
                                  (@$\lambda$@ _ @$\rightarrow$@ prop)
-                                 f a;
+                                 f a
 \end{minted}
 
 By partially applying a proof that P is a proposition and a function of type $\id{A} \rightarrow \id{P}$ to $\id{propTruncRec}$, we obtain the second property. (TODO:\ This doesn't seem to imply that P is a subsingleton though!?)
 
 \subsection{Elimination (Special cases)}
 TODO\: Mention library that facilitates the elimination of more than one quotient expression at a time, eliminating to Prop, Set, Contr etc
+
+The elimination of quotients involves numerous proof obligations, and this quickly gets tedious especially if we are eliminating multiple quotient expressions at once. We provide a library that aims to reduce repetitive boilerplate in user code.
+
+\subsubsection*{rec2}
+We start off by describing \id{Quotient\_rec2}, which serves to eliminate two arbitrary quotient expressions.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+rec2 : (A B C: Type_ ?) @$\Rrightarrow$@
+       (R : A @$\rightarrow$@ A @$\rightarrow$@ Type_ ?) @$\Rrightarrow$@
+       (S : B @$\rightarrow$@ B @$\rightarrow$@ Type_ ?) @$\Rrightarrow$@
+       (C_isSet : isSet C) @$\rightarrow$@
+       (f : A @$\rightarrow$@ B @$\rightarrow$@ C) @$\rightarrow$@
+       ((a : A) @$\rightarrow$@ (b : A) @$\rightarrow$@ (c : B) @$\rightarrow$@ R a b @$\rightarrow$@ Eq (f a c) (f b c)) @$\rightarrow$@
+       ((a : A) @$\rightarrow$@ (b : B) @$\rightarrow$@ (c : B) @$\rightarrow$@ S b c @$\rightarrow$@ Eq (f a b) (f a c)) @$\rightarrow$@
+       Quotient A R @$\rightarrow$@ Quotient B S @$\rightarrow$@ C
+rec2 =
+  @$\lambda$@ _ _ _ _ _ A B C R S @$\Rrightarrow$@
+    @$\lambda$@ C_isSet f feql feqr @$\rightarrow$@
+      Quotient_rec (R := R)
+        (@$\lambda$@ a @$\rightarrow$@ @$\lambda$@ b @$\rightarrow$@
+          Quotient_rec (R := S) (f a) (p := feqr a) b)
+        (p := @$\lambda$@ a a' r @$\rightarrow$@
+          let
+            eqf : (b : B) @$\rightarrow$@ Eq (f a b) (f a' b)
+            eqf b = feql a a' b r
+            p : (x : Quotient B S) @$\rightarrow$@
+                isProp (Eq (Quotient_rec (f a) (p := feqr a) x)
+                           (Quotient_rec (f a') (p := feqr a') x))
+            p x = C_isSet (Quotient_rec (f a) (p := feqr a) x)
+                          (Quotient_rec (f a') (p := feqr a') x)
+            compat : (x : Quotient B S) @$\rightarrow$@
+                     (Eq (Quotient_rec (f a) (p := feqr a) x)
+                         (Quotient_rec (f a') (p := feqr a') x))
+            compat x = elimProp (R := S)
+                                (P := @$\lambda$@ x @$\rightarrow$@
+                                  (Eq (Quotient_rec (f a) (p := feqr a) x)
+                                      (Quotient_rec (f a') (p := feqr a') x)))
+                                p eqf x
+          in
+            Eq_funext (f := Quotient_rec (f a) (p := feqr a))
+                      (g := Quotient_rec (f a') (p := feqr a'))
+                      compat)
+\end{minted}
+
+The function itself does the only logical thing it could do, it uses \kw{Quotient\_rec} to eliminate the first quotient, and then it makes another nested call to \kw{Quotient\_rec} to eliminate the second one. Essentially, the result of the elimination of the first quotient is a function that takes another quotient as an argument and then eliminates that. This is the intution behind the requirement that the output type $\id{C}$ be a $\kw{Set}$. In other words, this enables us to prove that for two quotients of type $\id{Quotient A R}$, we are indeed producting two output functions that are equal. We also made use of $\id{elimProp}$, a function that we shall describe next.
+
+\subsubsection*{elimProp}
+$\id{elimProp}$ is a function that simplifies the elimination of a quotient when the target type is a $\kw{Prop}$ (TODO:\ Link to other section that first introduced this notion). We will see that the nature of the function $\id{f}$ has no bearing on our proof obligations, as they can be discharged in a very systematic way by leveraging the fact that output type is a $\kw{Prop}$. First, we need to proof a lemma, $\id{toPathOver}$. Suppose that we have a type former $\id{A} : \id{I} \Rrightarrow \kw{Type}$ and two terms $\id{x}$ and $\id{y}$ of types $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ respectively, we get the following diagram.
+
+
+\begin{center}
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Shape: Ellipse [id:dp6858943436655307]
+\draw  [fill={rgb, 255:red, 231; green, 234; blue, 244 }  ,fill opacity=1 ] (230,230.5) .. controls (230,202.61) and (269.18,180) .. (317.5,180) .. controls (365.82,180) and (405,202.61) .. (405,230.5) .. controls (405,258.39) and (365.82,281) .. (317.5,281) .. controls (269.18,281) and (230,258.39) .. (230,230.5) -- cycle ;
+%Shape: Ellipse [id:dp4978096684614166]
+\draw  [fill={rgb, 255:red, 255; green, 219; blue, 219 }  ,fill opacity=1 ] (230,103) .. controls (230,79.25) and (268.73,60) .. (316.5,60) .. controls (364.27,60) and (403,79.25) .. (403,103) .. controls (403,126.75) and (364.27,146) .. (316.5,146) .. controls (268.73,146) and (230,126.75) .. (230,103) -- cycle ;
+%Shape: Circle [id:dp2462377080592002]
+\draw  [fill={rgb, 255:red, 242; green, 5; blue, 5 }  ,fill opacity=1 ] (326,105.5) .. controls (326,103.01) and (328.01,101) .. (330.5,101) .. controls (332.99,101) and (335,103.01) .. (335,105.5) .. controls (335,107.99) and (332.99,110) .. (330.5,110) .. controls (328.01,110) and (326,107.99) .. (326,105.5) -- cycle ;
+%Shape: Circle [id:dp1552015327211651]
+\draw  [fill={rgb, 255:red, 26; green, 38; blue, 234 }  ,fill opacity=1 ] (360,244.5) .. controls (360,242.01) and (362.01,240) .. (364.5,240) .. controls (366.99,240) and (369,242.01) .. (369,244.5) .. controls (369,246.99) and (366.99,249) .. (364.5,249) .. controls (362.01,249) and (360,246.99) .. (360,244.5) -- cycle ;
+%Shape: Circle [id:dp924511868212545]
+\draw  [fill={rgb, 255:red, 26; green, 38; blue, 234 }  ,fill opacity=1 ] (271,244.5) .. controls (271,242.01) and (273.01,240) .. (275.5,240) .. controls (277.99,240) and (280,242.01) .. (280,244.5) .. controls (280,246.99) and (277.99,249) .. (275.5,249) .. controls (273.01,249) and (271,246.99) .. (271,244.5) -- cycle ;
+%Straight Lines [id:da43777492366231496]
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (280,244.5) -- (360,244.5) ;
+%Straight Lines [id:da5251303335065973]
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (330.5,105.5) -- (364.5,244.5) ;
+%Straight Lines [id:da2553652396779533]
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (330.5,105.5) -- (275.5,244.5) ;
+
+% Text Node
+\draw (321,82) node [anchor=north west][inner sep=0.75pt]   [align=left] {x};
+% Text Node
+\draw (371,232) node [anchor=north west][inner sep=0.75pt]   [align=left] {y};
+% Text Node
+\draw (244,222) node [anchor=north west][inner sep=0.75pt]  [font=\scriptsize] [align=left] {transport\_x};
+% Text Node
+\draw (318,221) node [anchor=north west][inner sep=0.75pt]   [align=left] {p};
+% Text Node
+\draw (160,92) node [anchor=north west][inner sep=0.75pt]   [align=left] {$\Funapp{\id{A}}{(\earg{\_}{\ileft})}$};
+% Text Node
+\draw (160,222) node [anchor=north west][inner sep=0.75pt]   [align=left] {$\Funapp{\id{A}}{(\earg{\_}{\iright})}$};
+% Text Node
+\draw (351,150.92) node [anchor=north west][inner sep=0.75pt]  [rotate=-0.06] [align=left] {toPathOver};
+
+\end{tikzpicture}
+\end{center}
+
+The circles represent the two types and points in the circle are elements of the corresponding types. With our definition of equality, we can trivially construct an equality between $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and $\Funapp{\id{A}}{(\earg{\_}{\iright})}$. Now, given that the two circles are `equal', intuitively speaking, every point in one circle should have a counterpart in the other circle, and this can be obtained transporting a point along the equality between the two types. The result of transporting $\id{x}$ to the type $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ is a point that we shall call $\id{transport\_x}$. Additionally, suppose also that we have an equality between $\id{transport\_x}$ and $\id{y}$, this is indicated by the path $\id{p}$ between the two points in the diagram. Given that $\id{x}$ is transported to $\id{transport\_x}$, and that $\id{transport\_x}$ is equal to $\id{y}$, we also want to be able to say something about the relationship between $\id{x}$ and $\id{y}$. Since they are not of the same type, all we can do is construct a heterogenous equality between them, and this is precisely what the function $\id{toPathOver}$ seeks to do.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+toPathOver : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0)) @$\Rightarrow$@ (y : A (_ := i1))
+             @$\Rightarrow$@ Eq (Eq_cast (p := Eq_eq (f := A)) (f := id) x) y
+             @$\rightarrow$@ Heq x y;
+toPathOver = @$\lambda$@ _  A @$\Rrightarrow$@ @$\lambda$@ x y @$\Rightarrow$@ @$\lambda$@ p @$\rightarrow$@
+  let
+    l : Heq x (Eq_cast (p := Eq_eq (f := A)) (f := id) x);
+    l = Heq_eq (t := A)
+               (f := @$\lambda$@ i @$\Rrightarrow$@
+                     I_transp (A := (@$\lambda$@ j @$\Rrightarrow$@ A (_ := I_meet i j)))
+                              (r := I_not i) x);
+  in
+    Eq_cast
+        (x := (Eq_cast (p := Eq_eq (f := A)) (f := id) x))
+        (y := y)
+        (p := p) (f := @$\lambda$@ y' @$\rightarrow$@ Heq x y') l;
+\end{minted}
+
+We construct a heterogenous equality between $\id{x}$ and $\id{transport\_x}$ and we concatenate it with the equality proof between $\id{transport\_x}$ and $\id{y}$ to complete the proof.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+elimProp : (A : Type_ ?) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
+           @$\Rrightarrow$@ (P : Quotient A R @$\rightarrow$@ Type)
+           @$\Rrightarrow$@ (prop : (x : Quotient A R) @$\rightarrow$@ isProp (P x))
+           @$\rightarrow$@ (f : (x : A) @$\rightarrow$@ P (Quotient_in x))
+           @$\rightarrow$@ (x : Quotient A R) @$\rightarrow$@ P x
+elimProp = @$\lambda$@ _ _ _ A R P @$\Rrightarrow$@ @$\lambda$@ prop f @$\rightarrow$@
+  Quotient_elim
+    (R := R) (P := P) f
+    (p := @$\lambda$@ a a' r @$\rightarrow$@
+      let
+        a=a' : Eq (t := Quotient A R) (Quotient_in a) (Quotient_in a')
+        a=a' = Quotient_eq (R := R) (a := a) (a' := a') r
+        fa=fa' : Heq (f a) (f a')
+        fa=fa' = toPathOver
+                    (A := @$\lambda$@ i @$\Rrightarrow$@ P (Eq_uneq (p := a=a') (i := i)))
+                    (prop (Quotient_in a')
+                          (Eq_cast (p := a=a') (f := P) (f a))
+                          (f a'))
+      in
+        fa=fa')
+\end{minted}
+
+$\id{toPathOver}$ does the heavy lifting in this proof by allowing us to leverage $\Funapp{\id{isProp}}{(\Funapp{\id{P}}{\id{x}})}$ to easily produce a proof of $\Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}})}{(\Funapp{\id{f}}{\id{a}'})}$.
 
 \section{Holy Trinity?}
 Harper's triangle, check this https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/.
