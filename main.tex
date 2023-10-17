@@ -42,6 +42,7 @@
 
 \newcommand\kw[1] {\textsf{#1}}
 \newcommand\id[1] {\textsl{#1}}
+\newcommand\fn[1] {\texttt{#1}}
 \newcommand\latinphrase{\textit}
 
 \NewDocumentCommand{\bI}{}{\mathbb{I}} %% Bold Interval I
@@ -1137,7 +1138,24 @@ elimProp = @$\lambda$@ _ _ _ A R P @$\Rrightarrow$@ @$\lambda$@ prop f @$\righta
         fa=fa')
 \end{minted}
 
-$\id{toPathOver}$ does the heavy lifting in this proof by allowing us to leverage $\Funapp{\id{isProp}}{(\Funapp{\id{P}}{\id{x}})}$ to easily produce a proof of $\Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}})}{(\Funapp{\id{f}}{\id{a}'})}$.
+$\fn{toPathOver}$ does the heavy lifting in this proof by allowing us to leverage $\Funapp{\fn{isProp}}{(\Funapp{\id{P}}{\id{x}})}$ to easily produce a proof of $\Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}})}{(\Funapp{\id{f}}{\id{a}'})}$. We can also iterate this to define $\fn{elimProp}_2$, $\fn{elimProp}_3$ etc. In general, we can define $\fn{elimProp}_n$ in terms of $\fn{elimProp}_{n-1}$ and $\fn{elimProp}$. To illustrate this, we define $\fn{elimProp}_2$.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+elimProp2 : (A B : Type)
+            @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type) @$\Rrightarrow$@ (S : B @$\rightarrow$@ B @$\rightarrow$@ Type)
+            @$\Rrightarrow$@ (P : Quotient A R @$\rightarrow$@ Quotient B S @$\rightarrow$@ Type)
+            @$\Rrightarrow$@ (prop : (x : Quotient A R) @$\rightarrow$@ (y : Quotient B S)
+                       @$\rightarrow$@ isProp (P x y))
+            @$\rightarrow$@ (f : (x : A) @$\rightarrow$@ (y : B) @$\rightarrow$@ P (Quotient_in x) (Quotient_in y))
+            @$\rightarrow$@ (x : Quotient A R) @$\rightarrow$@ (y : Quotient B S) @$\rightarrow$@ P x y
+elimProp2 = @$\lambda$@ _ _ _ _ _ A B R S P @$\Rrightarrow$@ @$\lambda$@ prop f @$\rightarrow$@
+  elimProp (P := @$\lambda$@ x @$\rightarrow$@ (y : Quotient B S) @$\rightarrow$@ P x y)
+           (@$\lambda$@ x @$\rightarrow$@ isProp@$\Pi$@ (B := P x) (prop x))
+           (@$\lambda$@ a @$\rightarrow$@ elimProp (P := P (Quotient_in a))
+                            (prop (Quotient_in a)) (f a))
+\end{minted}
+
+TODO\: Consider defining a macro that defines $\fn{elimProp}_n$, i.e.\ the general case.
 
 \section{Holy Trinity?}
 Harper's triangle, check this https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/.
