@@ -476,7 +476,7 @@ We present the $\id{Quotient}$ primitives along with their typing rules.
    \hypo{\oftype{\ctx}{\id{P}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}} \rightarrow \kw{Type}}}
    \hypo{\oftype{\ctx}{\id{q}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}}
    \infer[no rule]2{\oftype{\ctx}{\id{f}}{(\oftype{\id{a}}{\id{A}})
-                                    \rightarrow \Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}}})}}
+                                    \rightarrow \Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}})}}}
    \infer[no rule]1{\oftype{\ctx}{\id{h}}{(\oftype{\id{a}_1 \ \id{a}_2}{\id{A}})
                                           \rightarrow \Funapp{\id{R}}{\id{a}_1}{\id{a}_2}}
                                           \rightarrow \Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}_1})}
@@ -1225,16 +1225,209 @@ elimProp2 = @$\lambda$@ _ _ _ _ _ A B R S P @$\Rrightarrow$@ @$\lambda$@ prop f 
 TODO\: Consider defining a macro that defines $\fn{elimProp}_n$, i.e.\ the general case.
 
 \section{Holy Trinity?}
-Harper's triangle, check this https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/.
+There is an intricate relationship between logic, programming (type theory) and category theory, as was proposed by Harper (TODO:\ link his article https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/). Everything that exists in each of these domains necessarily has an interesting analogue in the other two. In this chapter, we discuss quotients from the perspective of logic and category theory. In some cases, this will motivate the `discovery' of some interesting properties of the $\kw{Quotient}$ type.
 
-\subsection{Relationship to Logic/Set Theory}
-Mention the typical definition of a quotient set, and what it is usually used for.
+\subsection{Relationship to Logic}
+TODO:\ Figure out what could be informative to say here.
 
 \subsection{Relationship to Category Theory}
-Say that lots of constructs in type theory have equivalents in cat theory. Mention how a quotient type is a coequaliser of two `parallel' functions and compare this to actual code.
+Numerous constructs in type theory have equivalents in category theory. To set the stage for this, we shall do a very short primer on category theory. For a more detailed introduction, interested readers are directed to other works such as Awodey's textbook\cite{awodey-cattheory}.
 
+\subsubsection{Introduction}
+Category theory is built on merely a few foundational constructs, these alone give rise to a lot of interesting structures and properties. First, we postulate the existence of categories that contain objects. Next, we say that objects can be related to other objects via morphisms (also known as arrows, these two terms shall be used interchangeably in the following discussion). Assuming that readers are familiar with programming and/or type theory, one could think of categories as types, objects as terms of a particular type, and morphisms as functions. Every object has an identity arrow that relates it with itself.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Shape: Ellipse [id:dp9346439808655433]
+\draw   (220,155) .. controls (220,113.58) and (275.96,80) .. (345,80) .. controls (414.04,80) and (470,113.58) .. (470,155) .. controls (470,196.42) and (414.04,230) .. (345,230) .. controls (275.96,230) and (220,196.42) .. (220,155) -- cycle ;
+%Shape: Circle [id:dp22784360669527182]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (262,145.33) .. controls (262,142.56) and (264.24,140.33) .. (267,140.33) .. controls (269.76,140.33) and (272,142.56) .. (272,145.33) .. controls (272,148.09) and (269.76,150.33) .. (267,150.33) .. controls (264.24,150.33) and (262,148.09) .. (262,145.33) -- cycle ;
+%Curve Lines [id:da27074905740711297]
+\draw    (272,140.33) .. controls (292.91,130.36) and (285.32,171.14) .. (268.07,151.6) ;
+\draw [shift={(267,150.33)}, rotate = 51.34] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (4.37,-1.32) .. controls (2.78,-0.56) and (1.32,-0.12) .. (0,0) .. controls (1.32,0.12) and (2.78,0.56) .. (4.37,1.32)   ;
+%Shape: Circle [id:dp9211255412324888]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (400,147) .. controls (400,144.24) and (402.24,142) .. (405,142) .. controls (407.76,142) and (410,144.24) .. (410,147) .. controls (410,149.76) and (407.76,152) .. (405,152) .. controls (402.24,152) and (400,149.76) .. (400,147) -- cycle ;
+%Curve Lines [id:da7233344958507704]
+\draw    (410,142) .. controls (430.91,132.04) and (423.32,172.81) .. (406.07,153.27) ;
+\draw [shift={(405,152)}, rotate = 51.34] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (4.37,-1.32) .. controls (2.78,-0.56) and (1.32,-0.12) .. (0,0) .. controls (1.32,0.12) and (2.78,0.56) .. (4.37,1.32)   ;
+%Curve Lines [id:da38568823352847637]
+\draw    (267,150.33) .. controls (263.04,198.67) and (387.15,206.66) .. (399.66,151.69) ;
+\draw [shift={(400,150)}, rotate = 102.82] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (4.37,-1.32) .. controls (2.78,-0.56) and (1.32,-0.12) .. (0,0) .. controls (1.32,0.12) and (2.78,0.56) .. (4.37,1.32)   ;
+%Shape: Circle [id:dp8096171242464965]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (340,105) .. controls (340,102.24) and (342.24,100) .. (345,100) .. controls (347.76,100) and (350,102.24) .. (350,105) .. controls (350,107.76) and (347.76,110) .. (345,110) .. controls (342.24,110) and (340,107.76) .. (340,105) -- cycle ;
+%Curve Lines [id:da10314349904359177]
+\draw    (352,100) .. controls (372.91,90.04) and (365.32,130.81) .. (348.07,111.27) ;
+\draw [shift={(347,110)}, rotate = 51.34] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (4.37,-1.32) .. controls (2.78,-0.56) and (1.32,-0.12) .. (0,0) .. controls (1.32,0.12) and (2.78,0.56) .. (4.37,1.32)   ;
+
+% Text Node
+\draw (197,145.5) node [anchor=north west][inner sep=0.75pt]   [align=left] {A};
+% Text Node
+\draw (251,132.33) node [anchor=north west][inner sep=0.75pt]  [font=\small] [align=left] {x};
+% Text Node
+\draw (283,132.33) node [anchor=north west][inner sep=0.75pt]  [font=\small] [align=left] {id\_x};
+% Text Node
+\draw (389,134) node [anchor=north west][inner sep=0.75pt]  [font=\small] [align=left] {y};
+% Text Node
+\draw (423,144) node [anchor=north west][inner sep=0.75pt]  [font=\small] [align=left] {id\_y};
+% Text Node
+\draw (351,192) node [anchor=north west][inner sep=0.75pt]   [align=left] {f};
+% Text Node
+\draw (363,92) node [anchor=north west][inner sep=0.75pt]  [font=\small] [align=left] {id\_z};
+% Text Node
+\draw (329,94) node [anchor=north west][inner sep=0.75pt]  [font=\small] [align=left] {z};
+
+
+\end{tikzpicture}
+\caption{Example of a category A with objects x, y and z with a morphism f that goes from x to y}
+\end{figure}
+
+At the heart of category theory, we have the notion of composition. Suppose that we have an arrow from A to B, and another arrow from B to C, then there is necessarily another arrow that goes directly from A to C. We call this the composition of the first two arrows. This is of course analogous to function composition in programming.
+
+\begin{figure}[H]
+\centering
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Shape: Ellipse [id:dp5682347326089148]
+\draw   (210,155) .. controls (210,113.58) and (265.96,80) .. (335,80) .. controls (404.04,80) and (460,113.58) .. (460,155) .. controls (460,196.42) and (404.04,230) .. (335,230) .. controls (265.96,230) and (210,196.42) .. (210,155) -- cycle ;
+%Shape: Circle [id:dp9592501831446234]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (253,160.06) .. controls (253,157.3) and (255.24,155.06) .. (258,155.06) .. controls (260.76,155.06) and (263,157.3) .. (263,160.06) .. controls (263,162.82) and (260.76,165.06) .. (258,165.06) .. controls (255.24,165.06) and (253,162.82) .. (253,160.06) -- cycle ;
+%Shape: Circle [id:dp2931536659208638]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (328,110.06) .. controls (328,107.3) and (330.24,105.06) .. (333,105.06) .. controls (335.76,105.06) and (338,107.3) .. (338,110.06) .. controls (338,112.82) and (335.76,115.06) .. (333,115.06) .. controls (330.24,115.06) and (328,112.82) .. (328,110.06) -- cycle ;
+%Curve Lines [id:da24285465512107507]
+\draw    (338,110.06) .. controls (364.46,112.94) and (388.04,119.72) .. (416.27,152.99) ;
+\draw [shift={(418,155.06)}, rotate = 229.87] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (7.14,-3.43) -- (0,0) -- (7.14,3.43) -- cycle    ;
+%Curve Lines [id:da2451569195346175]
+\draw    (258,160.06) .. controls (258.98,139.48) and (278.21,117.88) .. (325.09,110.49) ;
+\draw [shift={(328,110.06)}, rotate = 171.94] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (7.14,-3.43) -- (0,0) -- (7.14,3.43) -- cycle    ;
+%Shape: Circle [id:dp5266322522520346]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (413,160.06) .. controls (413,157.3) and (415.24,155.06) .. (418,155.06) .. controls (420.76,155.06) and (423,157.3) .. (423,160.06) .. controls (423,162.82) and (420.76,165.06) .. (418,165.06) .. controls (415.24,165.06) and (413,162.82) .. (413,160.06) -- cycle ;
+%Curve Lines [id:da19962913311880914]
+\draw    (258,160.06) .. controls (289.52,210.24) and (385.07,210.02) .. (416.6,167.05) ;
+\draw [shift={(418,165.06)}, rotate = 123.72] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (7.14,-3.43) -- (0,0) -- (7.14,3.43) -- cycle    ;
+
+% Text Node
+\draw (321,91) node [anchor=north west][inner sep=0.75pt]   [align=left] {B};
+% Text Node
+\draw (241,151) node [anchor=north west][inner sep=0.75pt]   [align=left] {A};
+% Text Node
+\draw (426,151) node [anchor=north west][inner sep=0.75pt]   [align=left] {C};
+% Text Node
+\draw (268,111) node [anchor=north west][inner sep=0.75pt]   [align=left] {f};
+% Text Node
+\draw (388,111) node [anchor=north west][inner sep=0.75pt]   [align=left] {g};
+% Text Node
+\draw (321,201) node [anchor=north west][inner sep=0.75pt]   [align=left] {g $\circ$ f};
+
+\end{tikzpicture}
+
+\caption{The composition of two morphisms f and g. The identity arrows are not explicitly shown as we can take their existence for granted.}
+
+\end{figure}
+
+To conclude our short introduction to category theory, we would like to present the category theoretic equivalent of a ubiqituous construct in type theory, i.e.\ products (also known as tuples). One should be familiar with the notion of products being defined as pairs of elements, however in category theory, we have to define such objects in terms of its morphisms that relate it to other objects. If some object C were to be the product of objects A and B, then we require that it has two morphisms that behave as the first and second projections out of the product. In other words, we require the two morphisms $\id{p} : \id{C} \rightarrow \id{A}$ and $\id{q} : \id{C} \rightarrow \id{B}$.
+
+\begin{figure}[H]
+  \centering
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Shape: Circle [id:dp07095704485213461]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (339.5,95.06) .. controls (339.5,92.3) and (341.74,90.06) .. (344.5,90.06) .. controls (347.26,90.06) and (349.5,92.3) .. (349.5,95.06) .. controls (349.5,97.82) and (347.26,100.06) .. (344.5,100.06) .. controls (341.74,100.06) and (339.5,97.82) .. (339.5,95.06) -- cycle ;
+%Shape: Circle [id:dp6029113112328306]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (380.5,165.06) .. controls (380.5,162.3) and (382.74,160.06) .. (385.5,160.06) .. controls (388.26,160.06) and (390.5,162.3) .. (390.5,165.06) .. controls (390.5,167.82) and (388.26,170.06) .. (385.5,170.06) .. controls (382.74,170.06) and (380.5,167.82) .. (380.5,165.06) -- cycle ;
+%Shape: Circle [id:dp8272191866621565]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (299.5,165.06) .. controls (299.5,162.3) and (301.74,160.06) .. (304.5,160.06) .. controls (307.26,160.06) and (309.5,162.3) .. (309.5,165.06) .. controls (309.5,167.82) and (307.26,170.06) .. (304.5,170.06) .. controls (301.74,170.06) and (299.5,167.82) .. (299.5,165.06) -- cycle ;
+%Straight Lines [id:da6629962247946746]
+\draw    (344.5,95.06) -- (308.96,158.88) ;
+\draw [shift={(307.5,161.5)}, rotate = 299.11] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (8.93,-4.29) -- (0,0) -- (8.93,4.29) -- cycle    ;
+%Straight Lines [id:da8118877575329375]
+\draw    (344.5,95.06) -- (381.49,158.41) ;
+\draw [shift={(383,161)}, rotate = 239.72] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (8.93,-4.29) -- (0,0) -- (8.93,4.29) -- cycle    ;
+
+% Text Node
+\draw (338,71.5) node [anchor=north west][inner sep=0.75pt]   [align=left] {C};
+% Text Node
+\draw (382,171.5) node [anchor=north west][inner sep=0.75pt]   [align=left] {B};
+% Text Node
+\draw (298,171.5) node [anchor=north west][inner sep=0.75pt]   [align=left] {A};
+% Text Node
+\draw (299,110.5) node [anchor=north west][inner sep=0.75pt]   [align=left] {p};
+% Text Node
+\draw (371,110) node [anchor=north west][inner sep=0.75pt]   [align=left] {q};
+
+\end{tikzpicture}
+
+\caption{A candidate product of A and B with its projection morphisms.}
+
+\end{figure}
+
+However, we notice that this is far too general of a definition since it is likely that there are many objects that fulfil these criteria. Here, we introduce the notion of a universal property which allows us to identify `the best product'. The best product is the one that is not too general, and yet not too restrictive, it is `just right'. More formally, the product of $\id{A}$ and $\id{B}$ is an object $\id{A} \times \id{B}$ with the morphisms $\pi_1 : \id{A} \times \id{B} \rightarrow A$ and $\pi_2 : \id{A} \times \id{B} \rightarrow B$. Additionally, for any other object $\id{C}$ with morphisms $\id{p} : \id{C} \rightarrow \id{A}$ and $\id{q} : \id{C} \rightarrow \id{B}$, there exists a unique morphism $\id{f}$ such that $\id{p} = \pi_1 \circ \id{f}$ and $\id{q} = \pi_2 \circ \id{f}$. In other words, we require that the following diagram commute:
+
+\begin{figure}[H]
+\centering
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Shape: Circle [id:dp8623415585531431]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (350.7,165.46) .. controls (350.7,162.7) and (352.94,160.46) .. (355.7,160.46) .. controls (358.46,160.46) and (360.7,162.7) .. (360.7,165.46) .. controls (360.7,168.22) and (358.46,170.46) .. (355.7,170.46) .. controls (352.94,170.46) and (350.7,168.22) .. (350.7,165.46) -- cycle ;
+%Shape: Circle [id:dp8629465911347864]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (309.9,214.92) .. controls (309.9,212.16) and (312.14,209.92) .. (314.9,209.92) .. controls (317.66,209.92) and (319.9,212.16) .. (319.9,214.92) .. controls (319.9,217.69) and (317.66,219.92) .. (314.9,219.92) .. controls (312.14,219.92) and (309.9,217.69) .. (309.9,214.92) -- cycle ;
+%Shape: Circle [id:dp07686054824860356]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (390.3,215.32) .. controls (390.3,212.56) and (392.54,210.32) .. (395.3,210.32) .. controls (398.06,210.32) and (400.3,212.56) .. (400.3,215.32) .. controls (400.3,218.09) and (398.06,220.32) .. (395.3,220.32) .. controls (392.54,220.32) and (390.3,218.09) .. (390.3,215.32) -- cycle ;
+%Straight Lines [id:da5396059636931949]
+\draw    (355.7,165.46) -- (320.88,208.66) ;
+\draw [shift={(319,211)}, rotate = 308.86] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (8.93,-4.29) -- (0,0) -- (8.93,4.29) -- cycle    ;
+%Straight Lines [id:da09985777044473254]
+\draw    (355.7,165.46) -- (389.18,209.28) ;
+\draw [shift={(391,211.67)}, rotate = 232.62] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (8.93,-4.29) -- (0,0) -- (8.93,4.29) -- cycle    ;
+%Shape: Circle [id:dp44714117032868783]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (350.03,105.46) .. controls (350.03,102.7) and (352.27,100.46) .. (355.03,100.46) .. controls (357.79,100.46) and (360.03,102.7) .. (360.03,105.46) .. controls (360.03,108.22) and (357.79,110.46) .. (355.03,110.46) .. controls (352.27,110.46) and (350.03,108.22) .. (350.03,105.46) -- cycle ;
+%Curve Lines [id:da13360932709149242]
+\draw    (355.03,105.46) .. controls (324.14,108.29) and (279.69,163.31) .. (309.58,209.56) ;
+\draw [shift={(311,211.67)}, rotate = 235.01] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (8.93,-4.29) -- (0,0) -- (8.93,4.29) -- cycle    ;
+%Curve Lines [id:da35945481458004735]
+\draw    (355.03,105.46) .. controls (383.24,107.63) and (430.88,163.29) .. (400.44,208.92) ;
+\draw [shift={(399,211)}, rotate = 305.93] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (8.93,-4.29) -- (0,0) -- (8.93,4.29) -- cycle    ;
+%Straight Lines [id:da17703597924842862]
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (355.03,105.46) -- (355.66,157.46) ;
+\draw [shift={(355.7,160.46)}, rotate = 269.31] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (8.93,-4.29) -- (0,0) -- (8.93,4.29) -- cycle    ;
+
+% Text Node
+\draw (363.87,156.33) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {A $\times$ B};
+% Text Node
+\draw (306,221.67) node [anchor=north west][inner sep=0.75pt]   [align=left] {A};
+% Text Node
+\draw (394.67,221) node [anchor=north west][inner sep=0.75pt]   [align=left] {B};
+% Text Node
+\draw (319.33,175.33) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {$\displaystyle \pi _{1}$};
+% Text Node
+\draw (374.67,175.6) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {$\displaystyle \pi _{2}$};
+% Text Node
+\draw (365.33,91) node [anchor=north west][inner sep=0.75pt]   [align=left] {C};
+% Text Node
+\draw (294.67,126) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {$\displaystyle p$};
+% Text Node
+\draw (403.33,125.33) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {$\displaystyle q$};
+% Text Node
+\draw (340,124.67) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {$\displaystyle f$};
+
+\end{tikzpicture}
+
+\caption{Universal mapping property of the product}
+
+\end{figure}
+
+Another way of saying the above is that $\id{h}$ factorises $\id{p}$ and $\id{q}$. The universal product, if it exists, is unique up to isomorphism. Products are not guaranteed to exist in every category. In the category of sets, the universal product is none other than the Cartesian product.
 
 \subsubsection{Coequaliser}
+TODO\: Mention how a quotient type is a coequaliser of two `parallel' functions (i.e.\  the two projections of a pair that are related by an equiv relation) and compare this to actual code.
 
 \subsubsection{Initial object of quotient set algebras}
 
@@ -1329,5 +1522,10 @@ Integer_*DistR+ x y z =
 \end{minted}
 
 TODO:\ Consider adding a discussion on additional macros and tactics that could be added to ease the development of such proofs, e.g.\ it would be nice to have rewrite tactics that Lean has to avoid having to invoke Eq\_cong that often
+
+\newpage
+
+\bibliography{main}
+\bibliographystyle{ieeetr}
 
 \end{document}
