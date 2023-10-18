@@ -279,6 +279,38 @@ Eq_comm : (x y : ?t) |$\Rrightarrow$| Eq x y |$\rightarrow$| Eq y x
 Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := !i))
 \end{minted}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Shape: Ellipse [id:dp7216176657267284]
+\draw   (220,155) .. controls (220,113.58) and (275.96,80) .. (345,80) .. controls (414.04,80) and (470,113.58) .. (470,155) .. controls (470,196.42) and (414.04,230) .. (345,230) .. controls (275.96,230) and (220,196.42) .. (220,155) -- cycle ;
+%Shape: Circle [id:dp028557385614719877]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (262,153.33) .. controls (262,150.56) and (264.24,148.33) .. (267,148.33) .. controls (269.76,148.33) and (272,150.56) .. (272,153.33) .. controls (272,156.09) and (269.76,158.33) .. (267,158.33) .. controls (264.24,158.33) and (262,156.09) .. (262,153.33) -- cycle ;
+%Shape: Circle [id:dp44344880871890213]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (420,153) .. controls (420,150.24) and (422.24,148) .. (425,148) .. controls (427.76,148) and (430,150.24) .. (430,153) .. controls (430,155.76) and (427.76,158) .. (425,158) .. controls (422.24,158) and (420,155.76) .. (420,153) -- cycle ;
+%Curve Lines [id:da7287709889449594]
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (267,153.33) .. controls (297.69,181.71) and (370.52,184.94) .. (423.4,158.8) ;
+\draw [shift={(425,158)}, rotate = 153.7] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Curve Lines [id:da6566329581802051]
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (425,153) .. controls (394.47,125.42) and (303.78,126.95) .. (268.57,147.38) ;
+\draw [shift={(267,148.33)}, rotate = 327.9] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (438,143) node [anchor=north west][inner sep=0.75pt]  [font=\small] [align=left] {y};
+% Text Node
+\draw (381,180) node [anchor=north west][inner sep=0.75pt]   [align=left] {$\id{p}$};
+% Text Node
+\draw (248,141) node [anchor=north west][inner sep=0.75pt]   [align=left] {x};
+% Text Node
+\draw (311,111) node [anchor=north west][inner sep=0.75pt]   [align=left] {$\sim \id{p}$};
+
+\end{tikzpicture}
+
+\caption{A path from x to y along with its inversion}
+\end{figure}[H]
+
 \subsubsection*{Functional extensionality}
 The notion of functional extensionality implies that pointwise-equal functions are indeed equal. By postulating the existence of the $\id{Interval}$ type along with an equality type that's based on it, functional extensionality can be derived trivially as is illustrated by the below proof.
 
@@ -372,6 +404,41 @@ Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
                                  (f := |$\lambda$| x' |$\rightarrow$| Eq x x')
                                  x=y
 \end{minted}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Shape: Ellipse [id:dp014634117148388581]
+\draw   (210,155) .. controls (210,113.58) and (265.96,80) .. (335,80) .. controls (404.04,80) and (460,113.58) .. (460,155) .. controls (460,196.42) and (404.04,230) .. (335,230) .. controls (265.96,230) and (210,196.42) .. (210,155) -- cycle ;
+%Shape: Circle [id:dp26323124675512766]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (253,160.06) .. controls (253,157.3) and (255.24,155.06) .. (258,155.06) .. controls (260.76,155.06) and (263,157.3) .. (263,160.06) .. controls (263,162.82) and (260.76,165.06) .. (258,165.06) .. controls (255.24,165.06) and (253,162.82) .. (253,160.06) -- cycle ;
+%Shape: Circle [id:dp6819431699402925]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (328,110.06) .. controls (328,107.3) and (330.24,105.06) .. (333,105.06) .. controls (335.76,105.06) and (338,107.3) .. (338,110.06) .. controls (338,112.82) and (335.76,115.06) .. (333,115.06) .. controls (330.24,115.06) and (328,112.82) .. (328,110.06) -- cycle ;
+%Curve Lines [id:da09243595336985422]
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (338,110.06) .. controls (364.73,112.97) and (388.52,119.86) .. (417.13,154.01) ;
+\draw [shift={(418,155.06)}, rotate = 229.87] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Curve Lines [id:da576198955407853]
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (258,160.06) .. controls (258.99,139.27) and (277.62,125.28) .. (326.51,110.51) ;
+\draw [shift={(328,110.06)}, rotate = 163.36] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Shape: Circle [id:dp7540304044235371]
+\draw  [fill={rgb, 255:red, 23; green, 1; blue, 1 }  ,fill opacity=1 ] (413,160.06) .. controls (413,157.3) and (415.24,155.06) .. (418,155.06) .. controls (420.76,155.06) and (423,157.3) .. (423,160.06) .. controls (423,162.82) and (420.76,165.06) .. (418,165.06) .. controls (415.24,165.06) and (413,162.82) .. (413,160.06) -- cycle ;
+%Curve Lines [id:da43079739398707617]
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (258,160.06) .. controls (302.55,202.13) and (372.58,201.57) .. (411.82,166.14) ;
+\draw [shift={(413,165.06)}, rotate = 136.9] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (321,91) node [anchor=north west][inner sep=0.75pt]   [align=left] {y};
+% Text Node
+\draw (241,147.06) node [anchor=north west][inner sep=0.75pt]   [align=left] {x};
+% Text Node
+\draw (424,147.06) node [anchor=north west][inner sep=0.75pt]   [align=left] {z};
+
+\end{tikzpicture}
+
+\caption{The concatenation of a path between x and y and a path between y and z to produce a new path between x and z.}
+\end{figure}
 
 \subsection{Limitations}
 We don't have primitives such as $hcomp$, what does this imply? Is there a certain class of proofs we are unable to construct? Or do we just suffer from some amount of inconvenience?
