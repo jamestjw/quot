@@ -1427,7 +1427,169 @@ However, we notice that this is far too general of a definition since it is like
 Another way of saying the above is that $\id{h}$ factorises $\id{p}$ and $\id{q}$. The universal product, if it exists, is unique up to isomorphism. Products are not guaranteed to exist in every category. In the category of sets, the universal product is none other than the Cartesian product.
 
 \subsubsection{Coequaliser}
-TODO\: Mention how a quotient type is a coequaliser of two `parallel' functions (i.e.\  the two projections of a pair that are related by an equiv relation) and compare this to actual code.
+We now introduce the notion of a coequaliser. We shall see later that $\kw{Quotient}$ acts indeed as a coequaliser, or rather coequalisers are generalisation of quotients. For two arrows $\oftype{f, g}{A \rightarrow B}$, a coequaliser is an arrow $\oftype{q}{B \rightarrow Q}$ such that $qf = qg$ (we use juxtaposition to imply composition). The universal property of the coequaliser then dictates that for any other $Z$ and $\oftype{z}{B \rightarrow Z}$, if $zf = zg$, then there must exist a unique $\oftype{u}{Q \rightarrow Z}$ such that $uq = g$. This allows us to call $q$ \textbf{the} coequaliser of $f$ and $g$.
+
+\begin{figure}[H]
+  \centering
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da9967367962188358]
+\draw    (208,127) -- (285,127) ;
+\draw [shift={(288,127)}, rotate = 180] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da10808455754917401]
+\draw    (208,134.33) -- (285,134.33) ;
+\draw [shift={(288,134.33)}, rotate = 180] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da5630721975359221]
+\draw    (305.33,130) -- (382.33,130) ;
+\draw [shift={(385.33,130)}, rotate = 180] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da6026678626663149]
+\draw    (304.33,136.33) -- (385.47,188.05) ;
+\draw [shift={(388,189.67)}, rotate = 212.52] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da1216641628607622]
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (392.67,137) -- (392.67,178.33) ;
+\draw [shift={(392.67,181.33)}, rotate = 270] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+
+% Text Node
+\draw (191,122) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {A};
+% Text Node
+\draw (292,121.5) node [anchor=north west][inner sep=0.75pt]   [align=left] {B};
+% Text Node
+\draw (386.17,121.67) node [anchor=north west][inner sep=0.75pt]   [align=left] {Q};
+% Text Node
+\draw (388.67,181) node [anchor=north west][inner sep=0.75pt]   [align=left] {Z};
+% Text Node
+\draw (241.33,108.67) node [anchor=north west][inner sep=0.75pt]   [align=left] {f};
+% Text Node
+\draw (241.33,137.33) node [anchor=north west][inner sep=0.75pt]   [align=left] {g};
+% Text Node
+\draw (341.67,111) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {q};
+% Text Node
+\draw (338.67,163) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {z};
+% Text Node
+\draw (398.33,152) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {u};
+
+
+\end{tikzpicture}
+
+\caption{Illustration of a coequaliser}
+
+\end{figure}
+
+\textbf{Proposition} In any category, if $\oftype{q}{B \rightarrow Q}$ is a coequaliser of a pair of arrows $\oftype{f, \ g}{A \rightarrow B}$, then $q$ is an epimorphism.
+
+Proof.
+
+We first state the definition of an epimorphism. An epimorphism is a morphism $\oftype{f}{X \rightarrow Y}$ such that for all objects C and morphisms $\oftype{g_1, g_2}{Y \rightarrow Z}$, if $g_1f = g_2f$ then $g_1 = g_2$.
+
+Now, we consider the below diagram
+
+\begin{figure}[H]
+  \centering
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da5779265165541632]
+\draw    (208,127) -- (285,127) ;
+\draw [shift={(288,127)}, rotate = 180] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da20539623997737722]
+\draw    (208,134.33) -- (285,134.33) ;
+\draw [shift={(288,134.33)}, rotate = 180] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da259761440148945]
+\draw    (305.33,130) -- (382.33,130) ;
+\draw [shift={(385.33,130)}, rotate = 180] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da923412514180374]
+\draw    (304.33,136.33) -- (385.47,188.05) ;
+\draw [shift={(388,189.67)}, rotate = 212.52] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da6028721128255661]
+\draw    (389.67,137.5) -- (389.67,178.83) ;
+\draw [shift={(389.67,181.83)}, rotate = 270] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da20084318131652013]
+\draw    (398.17,137.5) -- (398.17,178.83) ;
+\draw [shift={(398.17,181.83)}, rotate = 270] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+
+% Text Node
+\draw (191,122) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {A};
+% Text Node
+\draw (292,121.5) node [anchor=north west][inner sep=0.75pt]   [align=left] {B};
+% Text Node
+\draw (386.17,121.67) node [anchor=north west][inner sep=0.75pt]   [align=left] {Q};
+% Text Node
+\draw (388.67,181) node [anchor=north west][inner sep=0.75pt]   [align=left] {Z};
+% Text Node
+\draw (241.33,108.67) node [anchor=north west][inner sep=0.75pt]   [align=left] {f};
+% Text Node
+\draw (241.33,137.33) node [anchor=north west][inner sep=0.75pt]   [align=left] {g};
+% Text Node
+\draw (341.67,111) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {q};
+% Text Node
+\draw (338.67,163) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {z};
+% Text Node
+\draw (377.83,150.5) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {x};
+% Text Node
+\draw (399.83,151) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {y};
+
+\end{tikzpicture}
+\end{figure}
+
+in which $q$ is the coequaliser of $f$ and $g$. Supposing that $xq = yq$, we need to show that $x = y$. We have that $z = xq = yq$, implying that $zf = xqf = xqg = zg$. By the universal property of the coequaliser, there exists a unique $u$ such that $z = uq$. Since $z = xq$ and $z = yq$, it must be the case that $u = x = y$. Hence, $q$ is epic.
+
+Suppose that $R$ is a pair of some set X that is related by some equivalence relation, such that there are morphisms $\oftype{\pi_1, \pi_2}{R \rightarrow X}$ that act as projections out of the pair. Then, the injection into the quotient, $\oftype{q}{X \rightarrow X/R}$ is an coequaliser of $\pi_1$ and $\pi_2$. Its counterpart in Typer is the function $\kw{Quotient\_in}$. Since the coequaliser is epic, this implies that $\kw{Quotient\_in}$ is surjective, as can be proven within typer. TODO\: Describe this proof.
+
+Additionally, if we have an $\oftype{f}{X \rightarrow Y}$ such that it respects the underlying equivalence relation, i.e. $f \circ \pi_1 = f \circ \pi_2$, then there exists a unique function $\oftype{\overline{f}}{X/R \rightarrow Y}$. For $x \in X$, we have that $f(x) = \overline{f}(q(x))$. The equivalent of $\overline{f}$ in Typer is the function $\Funapp{\kw{Quotient\_elim}}{f}{(\earg{p}{p})}$ where $p$ is an appropriate proof that $f$ respects the relation. This also justifies the reduction rule of $\kw{Quotient\_elim}$.
+
+\begin{figure}[H]
+  \centering
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da7734725100317463]
+\draw    (228,147) -- (305,147) ;
+\draw [shift={(308,147)}, rotate = 180] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da007971811961900777]
+\draw    (228,154.33) -- (305,154.33) ;
+\draw [shift={(308,154.33)}, rotate = 180] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da3202673895090322]
+\draw    (325.33,150) -- (402.33,150) ;
+\draw [shift={(405.33,150)}, rotate = 180] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da7225860259717922]
+\draw    (324.33,156.33) -- (405.47,208.05) ;
+\draw [shift={(408,209.67)}, rotate = 212.52] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+%Straight Lines [id:da21057174956898383]
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (412.33,157.17) -- (412.33,198.5) ;
+\draw [shift={(412.33,201.5)}, rotate = 270] [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.08]  [draw opacity=0] (5.36,-2.57) -- (0,0) -- (5.36,2.57) -- cycle    ;
+
+% Text Node
+\draw (211,142) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {R};
+% Text Node
+\draw (312,141.5) node [anchor=north west][inner sep=0.75pt]   [align=left] {X};
+% Text Node
+\draw (406.17,141.67) node [anchor=north west][inner sep=0.75pt]   [align=left] {Q};
+% Text Node
+\draw (408.67,201) node [anchor=north west][inner sep=0.75pt]   [align=left] {Y};
+% Text Node
+\draw (261.33,128.67) node [anchor=north west][inner sep=0.75pt]   [align=left] {$\displaystyle \pi _{1}$};
+% Text Node
+\draw (261.33,157.33) node [anchor=north west][inner sep=0.75pt]   [align=left] {$\displaystyle \pi _{2}$};
+% Text Node
+\draw (361.67,131) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {q};
+% Text Node
+\draw (358.67,183) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {f};
+% Text Node
+\draw (400.5,170.17) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {$\overline{f}$};
+
+\end{tikzpicture}
+
+\end{figure}
+
+We can also phrase the universal property of $\kw{Quotient}$ in a type-theoretic way as follows:
+
+\begin{align*}
+  & (X/R \rightarrow Y) \simeq \Sigma \ (X \rightarrow Y) \ (\lambda \ f \rightarrow (x \ y : X) \rightarrow \Funapp{R}{x}{y} \rightarrow \Funapp{f}{x} \equiv \Funapp{f}{y}) \\
+\end{align*}
+
+This property may be proven within Typer itself. (TODO\: Actually make this work).
 
 \subsubsection{Initial object of quotient set algebras}
 
