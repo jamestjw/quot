@@ -1534,7 +1534,24 @@ Now, we consider the below diagram
 
 in which $q$ is the coequaliser of $f$ and $g$. Supposing that $xq = yq$, we need to show that $x = y$. We have that $z = xq = yq$, implying that $zf = xqf = xqg = zg$. By the universal property of the coequaliser, there exists a unique $u$ such that $z = uq$. Since $z = xq$ and $z = yq$, it must be the case that $u = x = y$. Hence, $q$ is epic.
 
-Suppose that $R$ is a pair of some set X that is related by some equivalence relation, such that there are morphisms $\oftype{\pi_1, \pi_2}{R \rightarrow X}$ that act as projections out of the pair. Then, the injection into the quotient, $\oftype{q}{X \rightarrow X/R}$ is an coequaliser of $\pi_1$ and $\pi_2$. Its counterpart in Typer is the function $\kw{Quotient\_in}$. Since the coequaliser is epic, this implies that $\kw{Quotient\_in}$ is surjective, as can be proven within typer. TODO\: Describe this proof.
+Suppose that $R$ is a pair of some set X that is related by some equivalence relation, such that there are morphisms $\oftype{\pi_1, \pi_2}{R \rightarrow X}$ that act as projections out of the pair. Then, the injection into the quotient, $\oftype{q}{X \rightarrow X/R}$ is an coequaliser of $\pi_1$ and $\pi_2$. Its counterpart in Typer is the function $\kw{Quotient\_in}$. Since the coequaliser is epic, this implies that $\kw{Quotient\_in}$ is surjective, as can be proven within Typer. When we say that a function $\oftype{f}{X \rightarrow Y}$ is surjective, we are essentially saying that $\forall y \in Y. \ \exists x \in X. \ f(x) = y$. Note that we should represent this by a weak sum, i.e.\ we do not require a concrete witness of $x$.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+type SurjectiveQuotientProof (A : Type) (R : A -> A -> Type)
+                             (x : Quotient A R) : Type
+   | surjectiveQuotientProof (a : A) (Eq (Quotient_in (R := R) a) x);
+\end{minted}
+
+We define the above type, intending to return the propositional truncatin of it as a proof of the surjectivity of $\kw{Quotient\_in}$. The proof goes as follows:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Quotient_in_surjective : (A : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
+                         @$\Rrightarrow$@ (x : Quotient A R)
+                         @$\rightarrow$@ PropTrunc (SurjectiveQuotientProof A R x)
+Quotient_in_surjective = lambda A R @$\Rrightarrow$@
+  elimProp (@$\lambda$@ x @$\rightarrow$@ squash (P := SurjectiveQuotientProof A R x))
+           (@$\lambda$@ a @$\rightarrow$@ inPropTrunc (surjectiveQuotientProof a Eq_refl))
+\end{minted}
 
 Additionally, if we have an $\oftype{f}{X \rightarrow Y}$ such that it respects the underlying equivalence relation, i.e. $f \circ \pi_1 = f \circ \pi_2$, then there exists a unique function $\oftype{\overline{f}}{X/R \rightarrow Y}$. For $x \in X$, we have that $f(x) = \overline{f}(q(x))$. The equivalent of $\overline{f}$ in Typer is the function $\Funapp{\kw{Quotient\_elim}}{f}{(\earg{p}{p})}$ where $p$ is an appropriate proof that $f$ respects the relation. This also justifies the reduction rule of $\kw{Quotient\_elim}$.
 
@@ -1589,9 +1606,11 @@ We can also phrase the universal property of $\kw{Quotient}$ in a type-theoretic
   & (X/R \rightarrow Y) \simeq \Sigma \ (X \rightarrow Y) \ (\lambda \ f \rightarrow (x \ y : X) \rightarrow \Funapp{R}{x}{y} \rightarrow \Funapp{f}{x} \equiv \Funapp{f}{y}) \\
 \end{align*}
 
-This property may be proven within Typer itself. (TODO\: Actually make this work).
+This property may be proven within Typer itself. (TODO:\ Actually make this work and direct readers to it).
 
 \subsubsection{Initial object of quotient set algebras}
+
+Ok maybe let's scratch this, this isn't super interesting.
 
 \section{Alternatives that were considered}
 \subsection{QITs}
