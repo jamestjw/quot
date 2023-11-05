@@ -1618,11 +1618,104 @@ Requires significantly more work to accomplish, but approximately the same expre
 The implementation of QITs would negatively impact the modularity of inductive types.
 
 \subsection{Quotient by normalisation}
-Explain what this is.
+When we take the quotient of a type/set based on an equivalence relation, we are essentially partitioning the elements of the type into their respective equivalence classes. Elements of the same equivalence class are then identified in the resulting quotient type/set.
 
-Implementation is rather simple, but it seemed to be less expressive and less convenient.
+\begin{figure}[H]
+  \centering
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
 
-Further investigation led to proof that such quotients can be represented in the type system as it is (refer to Lemma 6.10.8 in HoTT book). Describe proof that the universal property of quotients is respected by such a construction.
+%Shape: Ellipse [id:dp4829810342761349]
+\draw  [color={rgb, 255:red, 140; green, 66; blue, 66 }  ,draw opacity=1 ][fill={rgb, 255:red, 208; green, 162; blue, 162 }  ,fill opacity=1 ] (171,152.5) .. controls (171,100.86) and (237.71,59) .. (320,59) .. controls (402.29,59) and (469,100.86) .. (469,152.5) .. controls (469,204.14) and (402.29,246) .. (320,246) .. controls (237.71,246) and (171,204.14) .. (171,152.5) -- cycle ;
+%Curve Lines [id:da7772387220169334]
+\draw    (172,165) .. controls (220,144) and (335,171) .. (320,59) ;
+%Curve Lines [id:da0576638127246778]
+\draw    (264.2,147.6) .. controls (366.2,188.6) and (355,231) .. (314,246) ;
+%Curve Lines [id:da8789468342677784]
+\draw    (315.4,174.4) .. controls (355.4,144.4) and (407.4,213.6) .. (455,114.8) ;
+
+% Text Node
+\draw (244,97.6) node [anchor=north west][inner sep=0.75pt]   [align=left] {[ 0 ]};
+% Text Node
+\draw (356,116.8) node [anchor=north west][inner sep=0.75pt]   [align=left] {[ 1 ]};
+% Text Node
+\draw (250.4,186.4) node [anchor=north west][inner sep=0.75pt]   [align=left] {[ 2 ]};
+% Text Node
+\draw (383.6,192) node [anchor=north west][inner sep=0.75pt]   [align=left] {[ 3 ]};
+
+
+\end{tikzpicture}
+\caption{Equivalence classes of $\mathbb{Z}$ under the relation $x \equiv y \ (\kw{mod} \ 4)$}
+\end{figure}
+
+An alternative way of defining a quotient on type $\kw{A}$ under a relation $\kw{R}$ is to construct a function $\oftype{\id{nf}}{A \rightarrow A}$ such that $\Funapp{\id{nf}}{\id{a}}$ is the canonical representative of the equivalence class that $\id{a}$ belongs to. This approach is comparable to \cite{courtieu-normalizedtypes}. In other words, for $\oftype{x, y}{A}$, $\Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})} \iff \Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$. To represent this in our system, we can simply treat this as a quotient under the relation $\Funapp{\id{R}}{\id{x}}{\id{y}} = \Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$.
+
+To simplify the utilisation of this class of quotients in Typer programs, we define the following helper functions:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Qnorm : (A : Type) @$\rightarrow$@ (nf : A @$\rightarrow$@ A) @$\rightarrow$@ Type
+Qnorm A nf = Quotient A (@$\lambda$@ x y @$\rightarrow$@ Eq (nf x) (nf y))
+
+Qnorm_in : ?A @$\rightarrow$@ Qnorm ?A ?nf;
+Qnorm_in a = Quotient_in a;
+
+Qnorm_elim : Qnorm ?A ?nf @$\rightarrow$@ (?A @$\rightarrow$@ ?B) @$\rightarrow$@ ?B
+Qnorm_elim q f = Quotient_rec (f @$\circ$@ nf)
+                              (p := @$\lambda$@ x y r @$\rightarrow$@ Eq_cong f r)
+                              q
+
+Qnorm_eq : (a a' : ?A) @$\rightarrow$@ Eq (nf a) (nf a') @$\rightarrow$@ Eq (Qnorm_in a) (Qnorm_in a')
+Qnorm_eq a a' eq = Quotient_eq (a := a') (a' = a') eq
+\end{minted}
+
+We could have alternatively introduced quotients to Typer by implementing the above as a built-in construct instead of what we have implemented currently. However, as we have demonstrated above, this flavour of quotients is a strict subset of our implementation. Implying that this is less expressive and flexible compared to our implementation. Indeed, it is not always possible to define a normalisation function for a certain equivalence relation (TODO:\ Construct a convincing example). However, this approach also has its advantages, notably in Courtieu's system \cite{courtieu-normalizedtypes}, $\Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})} \Rightarrow \Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})}$ actually deals with definitional equivalences instead of propositional equivalences as is done with $Qnorm\_eq$.
+
+Quotients based on normalisation may actually be represented in Typer without extending the language. Indeed, this can be done in any language that supports coproducts, as is suggested in \cite{HoTTbook}. Similarly, Courtieu's implementation may also be translated to the Calculus of Inductive Constructions \cite{werner-cic}. We now describe the aforementioned construction in Typer, and then provide a proof that it fulfils the universal property of a quotient.
+
+We define a dependent pair as follows (this is why we require coproducts):
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
+  | sigma (fst : A) (snd : B fst);
+\end{minted}
+
+Now, we can define the type $\kw{Qnorm}$ for some type $\id{A}$ and normalisation function $\oftype{r}{A \rightarrow A}$ as a dependent pair that contains some term of type $\id{A}$ and a proof that it has been normalised. This of course necessitates the idempotency of the normalisation function.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Qnorm : (A : Type) @$\rightarrow$@ isSet A @$\rightarrow$@ (r : A @$\rightarrow$@ A)
+        @$\rightarrow$@ (i : (x : A) @$\rightarrow$@ Eq (r (r x)) (r x)) @$\rightarrow$@ Type
+Qnorm A p r i = Sigma A (@$\lambda$@ (x : A) @$\rightarrow$@ Eq (r x) x)
+\end{minted}
+
+The injection into $\kw{Qnorm}$ is simply the construction of a dependent pair containing a term that has been normalised and a proof of its normalisation. This is in contrast to the construction that was described previously with $\kw{Quotient}$ which applied the normalisation upon the elimination of a quotient, whereas here, normalisation immediately occurs upon the construction of a term of type $\kw{Qnorm}$.
+
+We can prove that the equality of $\kw{Qnorm}$ terms is characterised by the equality between the normalised forms of the underlying terms. As usual, we require $\Funapp{\kw{isSet}}{\id{A}}$ to prove this equality. A simple invocation of the ${\Sigma}{\equiv}$\_prop lemma completes the proof.
+
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Qnorm_eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\Rightarrow$@ (p : HoTT_isSet A)
+           @$\Rightarrow$@ (r : A @$\rightarrow$@ A) @$\Rightarrow$@ (i : (x : A) @$\rightarrow$@ Eq (r (r x)) (r x))
+           @$\Rightarrow$@ Eq (r x) (r y) @$\rightarrow$@ Eq (Qnorm_in (p := p) (r := r) (i := i) x)
+                                   (Qnorm_in (p := p) (r := r) (i := i) y)
+Qnorm_eq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x y p r i @$\Rightarrow$@ @$\lambda$@ rx@$\equiv$@ry @$\rightarrow$@
+  @${\Sigma}{\equiv}$@_prop (B := @$\lambda$@ x @$\rightarrow$@ Eq (r x) x)
+           (@$\lambda$@ x @$\rightarrow$@ p (r x) x)
+           (sigma (B := @$\lambda$@ x @$\rightarrow$@ Eq (r x) x) (r x) (i x))
+           (sigma (B := @$\lambda$@ x @$\rightarrow$@ Eq (r x) x) (r y) (i y))
+           rx@$\equiv$@ry
+\end{minted}
+
+We can easily prove the reverse of this too, i.e. if we have that $\Funapp{\kw{Eq}}{(\Funapp{\kw{Qnorm\_in}}{x})}{(\Funapp{\kw{Qnorm\_in}}{y})}$, then $\Funapp{\kw{Eq}}{(\Funapp{r}{x})}{(\Funapp{r}{y})}$ is immediate by taking the first projection of the pairs.
+
+Finally, we can also show that $\kw{Qnorm}$ fulfils the universal property of a quotient. In other words, we want show the following equivalence:
+
+\begin{align*}
+  & (\Funapp{\kw{Qnorm}}{A}{p}{r}{i} \rightarrow B) \simeq \Sigma \ (A \rightarrow B) \ (\lambda g \rightarrow (x \ y : A) \rightarrow \Funapp{r}{x} \equiv \Funapp{r}{y} \rightarrow \Funapp{g}{x} \equiv \Funapp{g}{y})
+\end{align*}
+
+The proof itself is not very interesting, hence we do not describe it here. (TODO:\ Link to proof). We note however that the reverse direction of this equivalence gives us a means of eliminating $\kw{Qnorm}$, as was the case for $\kw{Quotient}$.
+
+TODO: Mention how we could also have an NF of type $A \rightarrow B$, i.e. doesn't have to be the same type as the base type, but obviously this doesn't work with this precise construction.
 
 \section{Comparison to QITs}
 Quotient inductive types are essentially Higher Inductive Types (HITs) that are set-truncated. This essentially provides us with the full range of expressiveness of HITs without higher-dimensional paths (make sure to define paths in the equality section). Such paths are not typically used in day-to-day programming tasks.
