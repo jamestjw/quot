@@ -1612,8 +1612,19 @@ This property may be proven within Typer itself. (TODO:\ Actually make this work
 
 Ok maybe let's scratch this, this isn't super interesting.
 
-\section{Alternatives that were considered}
-\subsection{QITs}
+\section{Related works}
+\subsection{HITs}
+Higher inductive types (HITs) are a generalisation of inductive types that has been popularized by homotopy type theory\cite{HoTTbook}. Aside from the usual definitions of constructors, HITs allow the definition of path constructors, i.e.\ equalities between terms of the inductive type. Additionally, we are allowed to define paths between paths.
+
+TODO\: Add Agda example of Quotient defined as a HIT here
+
+\subsection{QITs and Quotient Haskell}
+Points:
+
+Quotient inductive types are essentially Higher Inductive Types (HITs) that are set-truncated. This essentially provides us with the full range of expressiveness of HITs without higher-dimensional paths (make sure to define paths in the equality section). Such paths are not typically used in day-to-day programming tasks.
+
+Compare to Quotient Haskell and cite examples of types that are convenient to define with QITs but are `tedious' to express as our Quotient type.
+
 Requires significantly more work to accomplish, but approximately the same expressive power as quotient types (how true is this!?)? Or do we draw the line at ``in practice, it has comparable expressivity''?
 The implementation of QITs would negatively impact the modularity of inductive types.
 
@@ -1716,11 +1727,6 @@ Finally, we can also show that $\kw{Qnorm}$ fulfils the universal property of a 
 The proof itself is not very interesting, hence we do not describe it here. (TODO:\ Link to proof). We note however that the reverse direction of this equivalence gives us a means of eliminating $\kw{Qnorm}$, as was the case for $\kw{Quotient}$.
 
 TODO: Mention how we could also have an NF of type $A \rightarrow B$, i.e. doesn't have to be the same type as the base type, but obviously this doesn't work with this precise construction.
-
-\section{Comparison to QITs}
-Quotient inductive types are essentially Higher Inductive Types (HITs) that are set-truncated. This essentially provides us with the full range of expressiveness of HITs without higher-dimensional paths (make sure to define paths in the equality section). Such paths are not typically used in day-to-day programming tasks.
-
-Compare to Quotient Haskell and cite examples of types that are convenient to define with QITs but are `tedious' to express as Quotient types.
 
 \appendix
 
