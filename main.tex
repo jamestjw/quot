@@ -45,6 +45,8 @@
 \newcommand\fn[1] {\texttt{#1}}
 \newcommand\latinphrase{\textit}
 
+%% SM-FIXME: This `I` looks like a weird box/rectangle.
+%% Maybe try and find a similar thing but with serifs?
 \NewDocumentCommand{\bI}{}{\mathbb{I}} %% Bold Interval I
 \NewDocumentCommand{\ileft}{}{\id{i}_0} %% Interval i0
 \NewDocumentCommand{\iright}{}{\id{i}_1} %% Interval i1
@@ -95,12 +97,16 @@ First, we provide the typical definition of the \id{Interval} type, subsequently
    \infer0{\oftype{\ctx}{i_{1}}{\bI}}
 \end{prooftree*}
 
+%% SM-FIXME: You have not defined `eqtype` yet.
 \begin{prooftree*}
    \infer0{\oftype{\ctx}{seg}{\eqtype{i_0}{i_1}}}
 \end{prooftree*}
 
 We postulate the existence of the unit interval, along with the ends of the interval \id{$i_0$} and \id{$i_1$}. We also have \id{seg} which is a witness of a continuous path between \id{$i_0$} and \id{$i_1$}.
 
+%% SM-FIXME: The readers may be confused by the term "recursion" since outside
+%% of this domain, the term is usually restricted to more complex cases,
+%% so you should point this out clearly.
 Elimination of $\bI$ is similar to that of \id{Booleans} the only difference is that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected. The recursion principle of $\bI$ can thus be stated as follows:
 
 \begin{prooftree*}
@@ -108,6 +114,7 @@ Elimination of $\bI$ is similar to that of \id{Booleans} the only difference is 
    \hypo{\oftype{\ctx}{M}{A}}
    \hypo{\oftype{\ctx}{N}{A}}
    \hypo{\oftype{\ctx}{P}{\eqtype{M}{N}}}
+   %% SM-FIXME: You don't have to include A, M, and N in the syntax of `rec`.
    \infer4{\oftype{\ctx, \oftype{i}{\bI}}{rec_{\bI} (\_.\ A, M, N, P, i)}{A}}
 \end{prooftree*}
 
@@ -116,9 +123,14 @@ The recursion principle computes as follows:
 \begin{align*}
   & rec_{\bI}(\_ . A, M, N, P, \ileft) = M \\
   & rec_{\bI}(\_ . A, M, N, P, \iright) = N \\
+  %% SM-FIXME: You have not defined `cong` yet.
   & \kw{cong}_{rec_{\bI}(\_ . A, M, N, P)}(\id{seg}) = P
 \end{align*}
 
+%% SM-FIXME: While equalities between equality proofs are an interesting topic,
+%% it's one that your system doesn't really tackle (because Typer wants
+%% something similar to K), and with which most readers won't be familiar,
+%% so clarify that this is all in the HoTT world.
 We can expect the first two equations to hold definitionally. If we imagine that the first two computation rules were defined via pattern-matching, it would make sense for the equations to hold definitionally. However, more often than not, the third equation only holds propositionally, as is the case when such a type is defined in other type systems, e.g. Agda. (TODO:\ Might have to improve the phrasing, the entire thing might not be relevant at all, idk we'll see)
 
 TODO:\ The proof below requires depelim of Interval?
@@ -155,6 +167,7 @@ TODO:\ Add proof of $\kw{cong}_2$ and $\Sigma$ path characterisation in the appe
 For the sake of simplifying the proof of $\beta$, we assume the $\eta$-rule for dependent pairs. And with that, the proof is complete.
 
 \subsection{Justification}
+%% SM-FIXME: Lots of concepts you haven't presented here.
 We have established that the equality type (also known as the identity type) is equivalent to a function out of the interval. We have also illustrated that such a function is expected to be constant on the unit interval. This `condition' is enforced by virtue of the fact that $\id{Interval}$ is defined as a higher inductive type with an identification of its two `points' (TODO:\ wording?). An alternate way of enforcing this is to use erasable functions out of a $\mathbbm{2}$-type. In other words, we can first define the $\id{Interval}$ type as a normal algebraic data type.
 
 TODO:\ Define/explain erasable functions
@@ -577,6 +590,11 @@ erasedIsProp t1 t2 =
 Typer does not offer the direct specialisation of $\kw{case}$ targets in branches. In other words, in the first case branch, we do not have a definitional equality between $\id{t1}$ and $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$. Instead, an equality proof between them is injected into the context, which can be accessed as the variable at deBruijn index 0. Now that we have the two equality proofs, in order to concatenate them \footnote{By considering equalities as path, the application of the transitivity property of equality is conceptually similar to concatenating two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and $\Funapp{\id{erased}}{(\earg{\_}{\id{e2}})}$ to be equal. A priori, the two terms are not equal as $\id{e1}$ and $\id{e2}$ are completely arbitrary. However, Typer ignores erasable terms when checking the convertibility of terms, this is a property that was proven to be sound in ??? (TODO: Cite ICC paper). This allows the concatenation to succeed and thus concludes the proof.
 
 \subsubsection{Axiom}
+%% SM-NOTE: I like that you explain that we need to convince ourselves that
+%% the new equality constructor doesn't break our system...
+%% SM-FIXME: ...but maybe you'll want to spell it out more fully and visibly
+%% because for some readers it may be a subtle point that they might miss.
+%% E.g. with a more specific sub*section title.
 Propositional extensionality essentially means that if two propositions that are logically equivalent, i.e.\ each proposition implies the other, then we can say that they are equal. And precisely because we are postulating a new equality constructor, we have to be very careful that the resulting equality proof is indeed proof irrelevant. In other words, we need this equality proof to not have any runtime relevance. This is principally because we insist that the transport operation to be a no-op during runtime. This is the motivation behind our choice to use the $\id{Erased}$ type to represent propositions, as it is a guarantee that such a type carries no useful runtime information. This implies that a transport operation from one $\id{Erased}$ type to another is simply a no-op.
 
 In a setting with univalence, propositional extensionality is simply a theorem that may be proven (TODO:\ Maybe cite something here). This is a result that is immediate as an equivalence between logically equivalent propositions is trivial. In the setting of Typer however, propositional extensionality is implemented as an axiom with the following type signature:
@@ -683,6 +701,7 @@ In this proof, we can see that all aspects of the sufficient condition are at pl
 Examples of usage of the above theorem are in Chapter XXX (TODO: Link to other section).
 
 \section{Examples}
+%% SM-FIXME: "allow" is transitive.
 The addition of quotient types to Typer allows to define certain constructs that are typically defined in set theory as quotient sets. In this chapter, we discuss some types that are now natively definable by taking the quotient of existing types in the system.
 
 \subsection{Rational numbers}
@@ -706,6 +725,9 @@ The second option is similar to the first:
 
 In this definition, the base type of a quotient is a pair of integers, along with a proof that the denominator is non-zero. We chose to use this as the basis of our definition of the rationals, as it is more convenient to work with a pair of elements of the same type.
 
+%% SM-FIXME: Beware of unproven assertions such as "This gives us good
+%% runtime efficiency".  This can only be true if you define clearly what
+%% you mean by "naive implementations".
 Given that the equivalence of rational numbers is captured by a relation, we do not need to normalise our rational numbers after each computation, instead we prove that all of our operations respect the equivalence of rational numbers. This gives us good runtime efficiency, as opposed to more naive implementations.
 
 Typer has a built-in $\kw{Integer}$ type. Behind the scenes, this is based on big integers in OCaml (TODO: Maybe some more elaboration here). Operations on the $\kw{Integer}$ type such as addition, multiplication etc are implemented as axioms. At runtime, the corresponding OCaml operations are invoked to carry out the necessary computations. So far, we are unable to reason about these operations in Typer as they are merely primitives that are implemented in the host language. In the following section, we propose the addition of several axioms that will allow us to prove certain properties of the built-in $\kw{Integer}$ type, this will be necessary when we start reasoning about operations on Rational numbers.
@@ -1017,6 +1039,7 @@ Rational_+Rinv q = Eq_trans (Rational_+-Comm q (Rational_negate q))
 For brevity, we do not describe the proofs for multiplication as they can be carried out in a similar fashion as the above. In Section ??? (TODO:\ add this), we explore the runtime cost of using this construction of the rational numbers.
 
 \subsection{Real numbers}
+%% SM-FIXME: Not sure we want to go there for your MSc.
 TODO:\ Explore the definition of Dedekind reals in Typer (by leveraging the definition of $\mathbb{R}$). At first sight, I'm not sure if we can do Cauchy reals, TBD
 
 \subsection{Multiset}
