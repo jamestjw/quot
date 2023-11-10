@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 \usepackage{amsmath,amsfonts,amssymb}
 \usepackage{mathpartir,mdframed,empheq}
 \usepackage{mathtools}
@@ -1542,7 +1542,7 @@ type SurjectiveQuotientProof (A : Type) (R : A -> A -> Type)
    | surjectiveQuotientProof (a : A) (Eq (Quotient_in (R := R) a) x);
 \end{minted}
 
-We define the above type, intending to return the propositional truncatin of it as a proof of the surjectivity of $\kw{Quotient\_in}$. The proof goes as follows:
+We define the above type, intending to return the propositional truncation of it as a proof of the surjectivity of $\kw{Quotient\_in}$. The proof goes as follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Quotient_in_surjective : (A : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
@@ -1615,13 +1615,68 @@ Ok maybe let's scratch this, this isn't super interesting.
 \section{Related works}
 \subsection{HITs}
 Higher inductive types (HITs) are a generalisation of inductive types that has been popularized by homotopy type theory\cite{HoTTbook}. Aside from the usual definitions of constructors, HITs allow the definition of path constructors, i.e.\ equalities between terms of the inductive type. Additionally, we are allowed to define paths between paths.
+In other words, in a system that supports HITs, we could simply define quotient types as a HIT. For instance, here is how one might do it in Cubical Agda.
 
-TODO\: Add Agda example of Quotient defined as a HIT here
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+data _/_ {l l'} (A : Type l) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type l') : Type (l-max l l')
+   where
+   [_] : (a : A) @$\rightarrow$@ A / R
+   eq/ : (a b : A) @$\rightarrow$@ (r : R a b) @$\rightarrow$@ [ a ] @$\equiv$@ [ b ]
+   trunc/ : (a b : A / R) @$\rightarrow$@ (p q : a @$\equiv$@ b) @$\rightarrow$@ p @$\equiv$@ q
+\end{minted}
+
+In such languages, the elimination of HITs is done in the same manner in which we typically eliminate inductive types, i.e.\ with pattern matching. Path constructors also need to be handled during pattern matching. Explicit side conditions are then added to ensure that the elimination of path constructors is coherent with the elimination of other constructors. To illustrate the above, we describe some HITs that are common in the context of synthetic homotopy theory.
+
+%% FIXME: Why isn't loop of the right colour?
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+data @$S^1$@ : Type where
+  base : @$S^1$@
+  loop : base @$\equiv$@ base
+\end{minted}
+
+%% TODO: I think I need to find a good place to define the word `identify'
+The $S^1$ type is a synthetic way of representing a circle (also known as a 1-sphere). A reasonable way of describing a circle would be to say that it consists of a base point and a continuous line that joins the base point to itself. In this HIT, we have the $\id{base}$ as a normal constructor of the type. But more curiously, we also have a path constructor $\id{loop}$ that identifies $\id{base}$ with itself. By visualising the type, we see that it indeed ressembles a circle.
+
+\begin{figure}[H]
+  \centering
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Shape: Circle [id:dp8752212823145744]
+\draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (351,225) .. controls (351,222.79) and (352.79,221) .. (355,221) .. controls (357.21,221) and (359,222.79) .. (359,225) .. controls (359,227.21) and (357.21,229) .. (355,229) .. controls (352.79,229) and (351,227.21) .. (351,225) -- cycle ;
+%Shape: Arc [id:dp1917418004201512]
+\draw  [draw opacity=0] (342.88,223.71) .. controls (324.62,218.04) and (311.33,200.69) .. (311.33,180.17) .. controls (311.33,155.04) and (331.26,134.67) .. (355.83,134.67) .. controls (380.41,134.67) and (400.33,155.04) .. (400.33,180.17) .. controls (400.33,200.99) and (386.66,218.54) .. (367.99,223.95) -- (355.83,180.17) -- cycle ; \draw   (342.88,223.71) .. controls (324.62,218.04) and (311.33,200.69) .. (311.33,180.17) .. controls (311.33,155.04) and (331.26,134.67) .. (355.83,134.67) .. controls (380.41,134.67) and (400.33,155.04) .. (400.33,180.17) .. controls (400.33,200.99) and (386.66,218.54) .. (367.99,223.95) ;
+\draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (373.91,226.89) -- (364.82,224.59) -- (372.03,218.6) -- (368.9,223.67) -- cycle ;
+
+% Text Node
+\draw (338,233) node [anchor=north west][inner sep=0.75pt]   [align=left] {base};
+% Text Node
+\draw (294.5,131.75) node [anchor=north west][inner sep=0.75pt]   [align=left] {loop};
+
+
+\end{tikzpicture}
+
+\caption{Visualisation of $S^1$}
+\end{figure}
+
+To really show how HITs shine, we briefly describe the definition of $\id{double}$ that is a function from $S^1$ to $S^1$ that sends the $\id{loop}$ to the concatenation of two
+loops.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+double : @$S^1$@ @$\rightarrow$@ @$S^1$@
+double base = base
+double (loop i) = (loop @$\cdot$@ loop) i
+\end{minted}
+
+%% TODO: Improve wording here
+Pattern matching allows us to `do the job' more cleanly. Aside from that, we get defitional equalities even for path constructors.
+
+TODO:\ Wanted to show an example of HIT-style elimination of a quotient, but I didn't find anything worth showing for now.
 
 \subsection{QITs and Quotient Haskell}
 Points:
 
-Quotient inductive types are essentially Higher Inductive Types (HITs) that are set-truncated. This essentially provides us with the full range of expressiveness of HITs without higher-dimensional paths (make sure to define paths in the equality section). Such paths are not typically used in day-to-day programming tasks.
+Quotient inductive types (QITs) are essentially HITs that are set-truncated. This essentially provides us with the full range of expressiveness of HITs without higher-dimensional paths. In other words, we are not allowed to define paths between paths. Indeed, such paths are not typically used in day-to-day programming tasks.
 
 Compare to Quotient Haskell and cite examples of types that are convenient to define with QITs but are `tedious' to express as our Quotient type.
 
