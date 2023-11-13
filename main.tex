@@ -72,7 +72,38 @@
 \maketitle
 
 \begin{abstract}
-  TODO:Insert abstract
+Contributions:
+
+- Modified the Eq type by basing it on an Interval type
+
+  - Somewhat different version of transp that seems to still do the job
+
+- Demonstrate that a `cubical' equality makes it easier to manipulate equality proofs
+
+  - Some proofs are clearer and are more intuitive
+
+- Add heterogenous equality, required to make depelim of quotients possible
+
+    - Notably this allows us to represent path overs
+
+- Added quotient types to Typer
+
+- Explored the usability and convenenience of Typer's quotients for programming tasks
+
+    - Demonstrate also that such quotients have little to no runtime cost
+
+- Developed a library to facilitate the usage of quotients
+
+    - Convenience functions, macros etc
+
+- Explore the writing of proofs in Typer, this is the first ever attempt to really write a substantial amount of proofs in Typer
+
+- Added some constructs that facilitate the writing of proofs in general in Typer
+
+    - Macros such as equational reasoning
+
+    - Integer axioms
+
 \end{abstract}
 
 \tableofcontents
