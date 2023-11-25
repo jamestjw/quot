@@ -109,6 +109,34 @@ Contributions:
 \tableofcontents
 
 \section{Introduction}
+TODO:Motivate equality types, what are they, why do we need them and what can we do with them?
+
+I probably have more points here than necessary, extra stuff should go into other chapters
+
+- an Eq type gives us something that we can manipulate with `logical' operations such as negation (with $\kw{Not}$), which cannot be done with judgemental equality. Can be seen as a predicate parametrised by a type A and two terms of A. Used to express mathematical truths, i.e. plays the role of equality in mathematical theories. Example: allows us to state that addition is commutative, i.e. $\forall xy. x + y = y + x$.
+
+- Mention that our Eq type is a proposition, but not a mere proposition. Contrast this with other systems where UIP is a given.
+
+- For two terms a, b of the same type A, we would like to be able to state the proposition that the two terms are equal (for now limit the discussion to terms of the same type only). This gives us a type former that takes a type as input, along with two terms of that type. A term of this type/proposition can thus be seen as a `proof' that a and b are indeed equal (maybe this is the right time to mention that terms of this type may or may not be unique, depending on the system we are working in. In other words, when we ask ourselves the question. is a = b, we do not only care if the answer is yes or no, if they are indeed equal, we also care about in what ways they are equal).
+
+- Maybe introduce the possible syntaxes for the type former, e.g. Id, $a=b$, Eq etc. (or just show one here and defer the examples for another section).
+
+- The intro rule of Eq only allows the construction of reflexive equalities, at first sight this leads us to believe that not much can be done with the Eq type. After all, we surely can't do much with a proof that x = x!? Perfect segue into the following point.
+
+- Mention the elimination principle and justify it (the justification should probably in the dedicated section for Eq types, NOTE: check the alternative yoneda justification to see if its worth mentioning p216 HoTT-book) (J rule was introduced in Per Martin-Lof. An intuitionistic theory of types: predicative part 1973, though I think it was given this particular name in the paper, TODO: check this!)
+
+- Maybe it's worth mentioning why it's fine to provide `cast' as a means of eliminating Eq types instead of providing `J'. (TODO: want to be able to prove that J can be derived from cast, by leveraging the fact that $(x , refl) = (y , p)$, check notes for more details).
+
+- later (maybe not in the intro) draw a comparison with extensional identity types that admit equality reflecction (Martin-Löf 1982)
+
+Give code examples of the Eq type and what we can do with it.
+
+At some point, I'd like to mention that Eq types are not defined as `native' datatypes because our inductive types are not indexed datatypes. To encode indexed datatypes using our inductive types, we would require use of Eq types itself, i.e. we have a chicken and egg problem here. (Detailed explanation of this likely doesn't belong in the intro, could bring it up in passing in the intro.)
+
+TODO:Motivate quotients, why are they useful and why do we care about them? Examples of things that can be made easier with quotients
+
+In keeping with the theme of equality, we shall discuss the implementation of quotient types in Typer. Quotient types allow us to redefine the equality of a type, usually on the basis of an equivalence relaton on the type. This is inspired by quotients in set theory, where if we are given a set A and an equivalence relation $\sim$ on A, then we can construct the quotient set of A by $\sim$, which we denote as $A / \sim$. Equivalent elements in A are considered equal in $A / \sim$. We opted to implement quotient types as axioms in Typer, however we preserve canonicity by adding appropriate reduction rules wherever necessary. In the rest of the paper, we first describe the typing and reduction rules of the introduced type, and then we discuss the library that was implemented to faciliate the usage of quotient types in Typer. Finally, we illustrate how the quotient type may be used by providing examples in the form of code along with commentary.
+
 
 \section{Cubical Equality}
 \subsection{Interval type}
