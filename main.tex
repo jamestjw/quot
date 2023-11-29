@@ -129,13 +129,23 @@ I probably have more points here than necessary, extra stuff should go into othe
 
 - later (maybe not in the intro) draw a comparison with extensional identity types that admit equality reflecction (Martin-Löf 1982)
 
-Give code examples of the Eq type and what we can do with it.
+- Give code examples of the Eq type and what we can do with it.
 
-At some point, I'd like to mention that Eq types are not defined as `native' datatypes because our inductive types are not indexed datatypes. To encode indexed datatypes using our inductive types, we would require use of Eq types itself, i.e. we have a chicken and egg problem here. (Detailed explanation of this likely doesn't belong in the intro, could bring it up in passing in the intro.)
+Note: At some point, I'd like to mention that Eq types are not defined as `native' datatypes because our inductive types are not indexed datatypes. To encode indexed datatypes using our inductive types, we would require use of Eq types itself, i.e. we have a chicken and egg problem here. (Detailed explanation of this likely doesn't belong in the intro, could bring it up in passing in the intro.)
 
-TODO:Motivate quotients, why are they useful and why do we care about them? Examples of things that can be made easier with quotients
+- Briefly mention the Interval, and say why we want to base an equality type on that
+
+- Typically, many proofs regarding identity types require the use of identity elimination, i.e. the J-rule. But this is often tedious and less intuitive. An equality based on the interval allows to derive such proofs in an alternative manner that is much cleaner and more elegant.
+
+- Example of proofs that are `simplified': congruence, eq-comm. We also get new `theorems' such as funext. Also, we can prove the contractibility of singletons (as mentioned in https://arxiv.org/pdf/1611.02108.pdf). This proof is especially useful if we want to derive the J-rule.
+
+
+TODO: Motivate quotients, why are they useful and why do we care about them? Examples of things that can be made easier with quotients
 
 In keeping with the theme of equality, we shall discuss the implementation of quotient types in Typer. Quotient types allow us to redefine the equality of a type, usually on the basis of an equivalence relaton on the type. This is inspired by quotients in set theory, where if we are given a set A and an equivalence relation $\sim$ on A, then we can construct the quotient set of A by $\sim$, which we denote as $A / \sim$. Equivalent elements in A are considered equal in $A / \sim$. We opted to implement quotient types as axioms in Typer, however we preserve canonicity by adding appropriate reduction rules wherever necessary. In the rest of the paper, we first describe the typing and reduction rules of the introduced type, and then we discuss the library that was implemented to faciliate the usage of quotient types in Typer. Finally, we illustrate how the quotient type may be used by providing examples in the form of code along with commentary.
+
+
+- Mention some caveats that we have, i.e. $cong \ id \ p \equiv p$ does not hold definitionally in Typer, unlike in Cubical Agda (also mentioned in `A model of type theory in cubical sets - Marc Bezem, Thierry Coquand, Simon Huber'). Of course, if we could add an eta rule to make this work if we really wanted to (TODO: Though how to add this without it being extremely ugly?).
 
 
 \section{Cubical Equality}
