@@ -144,9 +144,16 @@ TODO: Motivate quotients, why are they useful and why do we care about them? Exa
 
 In keeping with the theme of equality, we shall discuss the implementation of quotient types in Typer. Quotient types allow us to redefine the equality of a type, usually on the basis of an equivalence relaton on the type. This is inspired by quotients in set theory, where if we are given a set A and an equivalence relation $\sim$ on A, then we can construct the quotient set of A by $\sim$, which we denote as $A / \sim$. Equivalent elements in A are considered equal in $A / \sim$. We opted to implement quotient types as axioms in Typer, however we preserve canonicity by adding appropriate reduction rules wherever necessary. In the rest of the paper, we first describe the typing and reduction rules of the introduced type, and then we discuss the library that was implemented to faciliate the usage of quotient types in Typer. Finally, we illustrate how the quotient type may be used by providing examples in the form of code along with commentary.
 
+- Other contributions related to quotient types: a proof of Hedberg's theorem (TODO: implement this!) to facilitate eliminations to `Sets'. After explaining why this is necessary, we can motivate the addition of the set truncation constructor for Quotients. If we can prove that $\mathbb{Z}$ is a set when defined inductively (with the aforementioned theorem), then it would be odd if the same cannot be done if $\mathbb{Z}$ was defined as a quotient of $\mathbb{N} \times \mathbb{N}$. Indeed, this entails bigger consequences (as mentioned in https://staff.math.su.se/anders.mortberg/papers/cubicalagda2.pdf section 2.4.1).
+
 
 - Mention some caveats that we have, i.e. $cong \ id \ p \equiv p$ does not hold definitionally in Typer, unlike in Cubical Agda (also mentioned in `A model of type theory in cubical sets - Marc Bezem, Thierry Coquand, Simon Huber'). Of course, if we could add an eta rule to make this work if we really wanted to (TODO: Though how to add this without it being extremely ugly?).
 
+
+Other notes (this won't go into the intro):
+- Apparently if Eq_uneq doesn't reduce directly to either endpoint of the path for concrete canonical values of I, then we can't derive funext directly. Not sure if this fun fact is worth mentioning.
+
+- Implementing quotients by interpreting the theory in a setoid models (as done by Nuo Li) results in a depelim that only works for Props (as opposed to what we have)
 
 \section{Cubical Equality}
 \subsection{Interval type}
