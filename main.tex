@@ -142,16 +142,74 @@ Note: At some point, I'd like to mention that Eq types are not defined as `nativ
 
 TODO: Motivate quotients, why are they useful and why do we care about them? Examples of things that can be made easier with quotients
 
-In keeping with the theme of equality, we shall discuss the implementation of quotient types in Typer. Quotient types allow us to redefine the equality of a type, usually on the basis of an equivalence relaton on the type. This is inspired by quotients in set theory, where if we are given a set A and an equivalence relation $\sim$ on A, then we can construct the quotient set of A by $\sim$, which we denote as $A / \sim$. Equivalent elements in A are considered equal in $A / \sim$. We opted to implement quotient types as axioms in Typer, however we preserve canonicity by adding appropriate reduction rules wherever necessary. In the rest of the paper, we first describe the typing and reduction rules of the introduced type, and then we discuss the library that was implemented to faciliate the usage of quotient types in Typer. Finally, we illustrate how the quotient type may be used by providing examples in the form of code along with commentary.
 
-- Other contributions related to quotient types: a proof of Hedberg's theorem (TODO: implement this!) to facilitate eliminations to `Sets'. After explaining why this is necessary, we can motivate the addition of the set truncation constructor for Quotients. If we can prove that $\mathbb{Z}$ is a set when defined inductively (with the aforementioned theorem), then it would be odd if the same cannot be done if $\mathbb{Z}$ was defined as a quotient of $\mathbb{N} \times \mathbb{N}$. Indeed, this entails bigger consequences (as mentioned in https://staff.math.su.se/anders.mortberg/papers/cubicalagda2.pdf section 2.4.1).
+In keeping with the theme of equality, we shall discuss the implementation of quotient types in Typer. Quotient types allow us to redefine the equality of a type, usually on the basis of an equivalence relaton on the type. This is inspired by quotients in set theory, where if we are given a set A and an equivalence relation $\sim$ on A, then we can construct the quotient set of A by $\sim$, which we denote as $A / \sim$ (TODO: examples of this). Equivalent elements in A are considered equal in $A / \sim$. The subsets of elements that are considered equal in $A / \sim$ are precisely the subsets whose elements are all equivalent under the equivalence relation. We can say that for some $a \in A$, the subset of $A$ such that all elements are equivalent to $a$ is $\{a' \in A \ | \ a' \sim a \}$. Indeed, this subset is what one would call the equivalence class of $a$, this is usually denoted as $[a]$. When we take the quotient of a set, we are essentially partitioning the set into equivalence classes, implying that we can regard a quotient set as simply the set of equivalence classes induced by the equivalence relation.
+
+For a more concrete example, we could define the set of integers $\mathbb{Z}$ as a quotient of pairs of natural numbers $\mathbb{N}$. The set of pairs of natural numbers can be denoted as $\mathbb{N} \times \mathbb{N} = \{(x,y) : x \in \mathbb{N}, y \in \mathbb{N}\}$. The intuition behind this definition of the integers is that a pair of natural numbers can be interpreted as an integer if we consider the `difference' between the first and second natural number of a pair $(x, y)$ as the integer that is represented by the pair. For instance, we want the pairs $(0, 2), (1, 3), (2, 4)$  to all represent the integer $-2$. In other words, we would like to define the relation such as  $(x_1, y_1) \ R_{\mathbb{Z}} \ (x_2, y_2) = x_1 - y_1 \equiv x_2 - y_2$. However, natural numbers only typically support truncated subtraction, hence the better way of defining the relation would be to rewrite the equation using addition. The appropriate equivalence relation is $R_{\mathbb{Z}} = \{((x_1, y_1), (x_2, y_2)) \in (\mathbb{N} \times \mathbb{N})^2 \ | \ x_1 + y_2 = x_2 + y_1\}$. We define the relation the usual way by saying that it is a subset of the Cartesian product of the underlying set of the relation with itself. With that, we can define $\mathbb{Z} = \mathbb{N} \times \mathbb{N} / R_{\mathbb{Z}}$. Pairs that are equivalent under the relation $R_{\mathbb{Z}}$ are considered equal in the resulting quotient (set) $\mathbb{N} \times \mathbb{N} / R_{\mathbb{Z}}$.
+
+We opted to implement quotient types as axioms in Typer, however we preserve canonicity by adding appropriate reduction rules wherever necessary (TODO: this particular sentence doesn't belong in the intro, I'll move it away). We introduced a quotient type former, term former and eliminator. We also define an equality constructor that is a witness of the equality of equivalent terms under the quotient. As a quick overview, we describe the construction of integers by using the constructs introduced in this work.
+
+\begin{samepage}
+\begin{minted}{haskell}
+equalZ : Pair Nat Nat -> Pair Nat Nat -> Type;
+equalZ
+  | ((x1, y1), (x2, y2)) => Eq (x1 + y2) (x2 + y1);
+
+Z = Quotient (Pair Nat Nat) equalZ;
+\end{minted}
+\end{samepage}
+
+Here, we introduce the Quotient type former that takes a base type and an equivalence relation as arguments. Next, we demonstrate how a negation function may be defined on the integers. Since we interpret the integers as the difference in pairs of natural numbers, it suffices for us to flip the two underlying natural numbers of an integer in order to obtain its negation.
+
+\begin{samepage}
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Z_negate : Z -> Z;
+Z_negate z =
+  let
+    flip : Pair Nat Nat -> Pair Nat Nat;
+    flip p = pair (snd p) (fst p);
+
+    compat : (a b : Pair Nat Nat)
+             -> (r : Eq ((fst a) + (snd b)) ((fst b) + (snd a)))
+             -> equalZ (pair (snd a) (fst a)) (pair (snd b) (fst b));
+    compat a b r =
+      (snd a) + (fst b)
+        ==< +-comm (snd a) (fst b) >==
+      (fst b) + (snd a)
+        ==< sym r >==
+      (fst a) + (snd b)
+        ==< +-comm (fst a) (snd b) >==
+      (snd b) + (fst a) @$\qed$@;
+  in
+    qcase (z : (Pair Nat Nat) / equalZ)
+     | Quotient_in a => Quotient_in (flip a)
+     | Quotient_eq a a' r => Quotient_eq (flip a) (flip b)
+                                         (compat a b r);
+\end{minted}
+\end{samepage}
+
+TODO: mention how quotient elimination involves proving that the operation respects the quotient. This is the opportunity to mention what Quotient_eq is all about and that it is very oten necessary during quotient elimination.
+
+Quotient types often provide us with alternative ways of defining inductive types that are familiar to us. Some of these definitions could potentially be better than the original formulations depending on the use cases of the resulting data type. For example, as was noted in \cite{hewer2023quotient}, by defining the List data type as a quotient of binary trees where the joining operation of two trees is associative, the resulting List datatype has a constant time append operation. Another example is if we consider the simple definition of integers as a normal inductive datatype based on natural numbers as such:
+
+\begin{minted}{haskell}
+type Integer
+  | pos Nat
+  | neg Nat
+\end{minted}
+
+We would have two canonical representations of the integer 0, i.e. $\Funapp{\kw{pos}}{0}$ and $\Funapp{\kw{neg}}{0}$. Users of this Integer datatype would then be burdened with the responsbility of ensuring that both representations of zero are treated in the same manner in their programs. With quotient types, we could identify $\Funapp{\kw{pos}}{0}$ and $\Funapp{\kw{neg}}{0}$ such that well typed programs that use the quotiented integer type will necessarily have to be treat both representations of zero equally, in other words, we can let the type system do the book keeping for us.
+
+We also show that there exists a class of quotients that can be defined without the addition of a new type former, i.e. quotients that are characterised by a normalisation function (TODO: mention Nuo Li and Courtieu). For these quotients, it is possible to elect a canonical representative for each equivalence class. In the rest of the paper, we first describe the typing and reduction rules of the introduced type, and then we discuss the library that was implemented to faciliate the usage of quotient types in Typer. Finally, we illustrate how the quotient type may be used by providing examples in the form of code along with commentary.
+
+- Other contributions related to quotient types: a proof of Hedberg's theorem (TODO: implement this!) to facilitate eliminations to `Sets'. After explaining why this is necessary, we can motivate the addition of the set truncation constructor for Quotients. If we can prove that $\mathbb{Z}$ is a set when defined inductively (with the aforementioned theorem), then it would be odd if the same cannot be done if $\mathbb{Z}$ was defined as a quotient of $\mathbb{N} \times \mathbb{N}$. Indeed, this entails bigger consequences (as mentioned in https://staff.math.su.se/anders.mortberg/papers/cubicalagda2.pdf section 2.4.1). (TODO: refer to my notes for a proof that Unit != Unit/R without the truncation).
 
 
 - Mention some caveats that we have, i.e. $cong \ id \ p \equiv p$ does not hold definitionally in Typer, unlike in Cubical Agda (also mentioned in `A model of type theory in cubical sets - Marc Bezem, Thierry Coquand, Simon Huber'). Of course, if we could add an eta rule to make this work if we really wanted to (TODO: Though how to add this without it being extremely ugly?).
 
 
 Other notes (this won't go into the intro):
-- Apparently if Eq_uneq doesn't reduce directly to either endpoint of the path for concrete canonical values of I, then we can't derive funext directly. Not sure if this fun fact is worth mentioning.
+- Apparently if Eq\_uneq doesn't reduce directly to either endpoint of the path for concrete canonical values of I, then we can't derive funext directly. Not sure if this fun fact is worth mentioning.
 
 - Implementing quotients by interpreting the theory in a setoid models (as done by Nuo Li) results in a depelim that only works for Props (as opposed to what we have)
 
