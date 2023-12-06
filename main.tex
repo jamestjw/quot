@@ -113,6 +113,8 @@ TODO:Motivate equality types, what are they, why do we need them and what can we
 
 I probably have more points here than necessary, extra stuff should go into other chapters
 
+The `propositions as types' paradigm states that proofs are analogous to programs. Writing programs in the form of code is equivalent to writing mathematical proofs (TODO: it might be cool to show some examples of props as types, show some simple examples of conjunctions, disjunctions and implications.). However, in order to do anything meaningful, we would need a way to express mathematical truths, in other words we require a type (TODO: ok might need to improve the phrasing here) that plays the role of equality in mathematical proofs. For instance, we might want to state the theorem that the addition of natural numbers is commutative, i.e. $\forall xy. x + y \equiv y + x$. To this end, our system requires an equality type (TODO: mention in footnotes other names of this type. Also, I should choose a name and stick to it in the paper) that allows us to make statements such as the above. Such a type provides us with a proof object that can be manipulated like any other. This implies that we can manipulate it with other operations such as logical negation, conjunction, disjunction etc. This is in stark contrast to judgemental equality which only exists in the metatheory and cannot be manipulated directly in programs.
+
 - an Eq type gives us something that we can manipulate with `logical' operations such as negation (with $\kw{Not}$), which cannot be done with judgemental equality. Can be seen as a predicate parametrised by a type A and two terms of A. Used to express mathematical truths, i.e. plays the role of equality in mathematical theories. Example: allows us to state that addition is commutative, i.e. $\forall xy. x + y = y + x$.
 
 - Mention that our Eq type is a proposition, but not a mere proposition. Contrast this with other systems where UIP is a given.
@@ -147,7 +149,7 @@ In keeping with the theme of equality, we shall discuss the implementation of qu
 
 For a more concrete example, we could define the set of integers $\mathbb{Z}$ as a quotient of pairs of natural numbers $\mathbb{N}$. The set of pairs of natural numbers can be denoted as $\mathbb{N} \times \mathbb{N} = \{(x,y) : x \in \mathbb{N}, y \in \mathbb{N}\}$. The intuition behind this definition of the integers is that a pair of natural numbers can be interpreted as an integer if we consider the `difference' between the first and second natural number of a pair $(x, y)$ as the integer that is represented by the pair. For instance, we want the pairs $(0, 2), (1, 3), (2, 4)$  to all represent the integer $-2$. In other words, we would like to define the relation such as  $(x_1, y_1) \ R_{\mathbb{Z}} \ (x_2, y_2) = x_1 - y_1 \equiv x_2 - y_2$. However, natural numbers only typically support truncated subtraction, hence the better way of defining the relation would be to rewrite the equation using addition. The appropriate equivalence relation is $R_{\mathbb{Z}} = \{((x_1, y_1), (x_2, y_2)) \in (\mathbb{N} \times \mathbb{N})^2 \ | \ x_1 + y_2 = x_2 + y_1\}$. We define the relation the usual way by saying that it is a subset of the Cartesian product of the underlying set of the relation with itself. With that, we can define $\mathbb{Z} = \mathbb{N} \times \mathbb{N} / R_{\mathbb{Z}}$. Pairs that are equivalent under the relation $R_{\mathbb{Z}}$ are considered equal in the resulting quotient (set) $\mathbb{N} \times \mathbb{N} / R_{\mathbb{Z}}$.
 
-We opted to implement quotient types as axioms in Typer, however we preserve canonicity by adding appropriate reduction rules wherever necessary (TODO: this particular sentence doesn't belong in the intro, I'll move it away). We introduced a quotient type former, term former and eliminator. We also define an equality constructor that is a witness of the equality of equivalent terms under the quotient. As a quick overview, we describe the construction of integers by using the constructs introduced in this work.
+We opted to implement quotient types as axioms in Typer, however we preserve canonicity by adding appropriate reduction rules wherever necessary (TODO: this particular sentence doesn't belong in the intro, I'll move it away). We introduced a quotient type former, term former and eliminator. We also define an equality constructor that is a witness of the equality of the injection of equivalent terms into the quotient. As a quick overview, we describe the construction of integers by using the constructs introduced in this work.
 
 \begin{samepage}
 \begin{minted}{haskell}
@@ -159,9 +161,33 @@ Z = Quotient (Pair Nat Nat) equalZ;
 \end{minted}
 \end{samepage}
 
-Here, we introduce the Quotient type former that takes a base type and an equivalence relation as arguments. Next, we demonstrate how a negation function may be defined on the integers. Since we interpret the integers as the difference in pairs of natural numbers, it suffices for us to flip the two underlying natural numbers of an integer in order to obtain its negation.
+Here, we introduce the Quotient type former that takes a base type and an equivalence relation as arguments. To form a term of this type, we use the term former $\kw{Quotient\_in}$ which acts as a injection into the Quotient type. We later prove that this term former is in fact surjective (in the set theoretical sense).
 
 \begin{samepage}
+\begin{minted}{haskell}
+Integer_0 : Z;
+Integer_0 = Quotient_in (pair zero zero);
+
+Z = Quotient (Pair Nat Nat) equalZ;
+\end{minted}
+\end{samepage}
+
+The second Quotient term former is a witness that given two equivalent terms $a$ and $a'$, their injections into the Quotient are equal. For instance, we could prove that that the injection of $(2, 0)$ and $(3, 1)$ into the quotient are equal as they both represent the integer 2.
+
+\begin{samepage}
+\begin{minted}{haskell}
+Zeq_2 : Eq (Quotient_in (pair (succ (succ zero)) zero))
+           (Quotient_in (pair (succ (succ (succ zero))) (succ zero)));
+Zeq_2 = Quotient_eq (a := pair (succ (succ zero)) zero)
+                    (a' := pair (succ (succ (succ zero))) (succ zero))
+                    Eq_refl;
+\end{minted}
+\end{samepage}
+
+Since $2 + 1 \equiv 0 + 3$ is an equality that holds definitionally based on the way we defined addition on natural numbers, we can trivially fulfil the proof obligation by using $\kw{Eq\_refl}$. We shall see that such proof obligations are not always that easily fulfilled.
+
+Next, we demonstrate how a negation function may be defined on the integers. Since we interpret the integers as the difference in pairs of natural numbers, it suffices for us to flip the two underlying natural numbers of an integer in order to obtain its negation.
+
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Z_negate : Z -> Z;
 Z_negate z =
@@ -169,26 +195,25 @@ Z_negate z =
     flip : Pair Nat Nat -> Pair Nat Nat;
     flip p = pair (snd p) (fst p);
 
-    compat : (a b : Pair Nat Nat)
-             -> (r : Eq ((fst a) + (snd b)) ((fst b) + (snd a)))
-             -> equalZ (pair (snd a) (fst a)) (pair (snd b) (fst b));
+    compat : (a : Pair Nat Nat) -> (b : Pair Nat Nat)
+             -> (r : Eq (a.fst + b.snd) (b.fst + a.snd))
+             -> equalZ (pair a.snd a.fst) (pair b.snd b.fst);
     compat a b r =
-      (snd a) + (fst b)
-        ==< +-comm (snd a) (fst b) >==
-      (fst b) + (snd a)
-        ==< sym r >==
-      (fst a) + (snd b)
-        ==< +-comm (fst a) (snd b) >==
-      (snd b) + (fst a) @$\qed$@;
+      a.snd + b.fst
+        ==< Nat+_comm a.snd b.fst >==
+      b.fst + a.snd
+        ==< Eq_comm r >==
+      a.fst + b.snd
+        ==< Nat+_comm a.fst b.snd >==
+      b.snd + a.fst @$\qed$@;
   in
     qcase (z : (Pair Nat Nat) / equalZ)
      | Quotient_in a => Quotient_in (flip a)
      | Quotient_eq a a' r => Quotient_eq (flip a) (flip b)
                                          (compat a b r);
 \end{minted}
-\end{samepage}
 
-TODO: mention how quotient elimination involves proving that the operation respects the quotient. This is the opportunity to mention what Quotient_eq is all about and that it is very oten necessary during quotient elimination.
+In this example, we see that the usage of $\kw{qcase}$, i.e. the eliminator of quotients. Two things are required when eliminating a quotient, a map from the base type of the quotient to the output type of the elimination, and a proof that the aforementioned map respects the quotient. In the $\kw{Quotient\_in}$ branch of the eliminator, we get to `look inside' the quotient and use the underlying value. The $\kw{Quotient\_eq}$ branch is basically what quotient types are all about, we need to provide a proof that the mapping provided in the previous branch is compatible with the quotient. For a given $a$ and $a'$ that are equivalent with respect to the underlying relation, we need to produce a propositional equality between the action of the mapping on $a$ and $a'$. The elimination principle of quotient types essentially requires the coherent treatment of both the term constructor and the equality constructor.
 
 Quotient types often provide us with alternative ways of defining inductive types that are familiar to us. Some of these definitions could potentially be better than the original formulations depending on the use cases of the resulting data type. For example, as was noted in \cite{hewer2023quotient}, by defining the List data type as a quotient of binary trees where the joining operation of two trees is associative, the resulting List datatype has a constant time append operation. Another example is if we consider the simple definition of integers as a normal inductive datatype based on natural numbers as such:
 
