@@ -115,37 +115,110 @@ I probably have more points here than necessary, extra stuff should go into othe
 
 The `propositions as types' paradigm states that proofs are analogous to programs. Writing programs in the form of code is equivalent to writing mathematical proofs (TODO: it might be cool to show some examples of props as types, show some simple examples of conjunctions, disjunctions and implications.). However, in order to do anything meaningful, we would need a way to express mathematical truths, in other words we require a type (TODO: ok might need to improve the phrasing here) that plays the role of equality in mathematical proofs. For instance, we might want to state the theorem that the addition of natural numbers is commutative, i.e. $\forall xy. x + y \equiv y + x$. To this end, our system requires an equality type (TODO: mention in footnotes other names of this type. Also, I should choose a name and stick to it in the paper) that allows us to make statements such as the above. Such a type provides us with a proof object that can be manipulated like any other. This implies that we can manipulate it with other operations such as logical negation, conjunction, disjunction etc. This is in stark contrast to judgemental equality which only exists in the metatheory and cannot be manipulated directly in programs.
 
-- an Eq type gives us something that we can manipulate with `logical' operations such as negation (with $\kw{Not}$), which cannot be done with judgemental equality. Can be seen as a predicate parametrised by a type A and two terms of A. Used to express mathematical truths, i.e. plays the role of equality in mathematical theories. Example: allows us to state that addition is commutative, i.e. $\forall xy. x + y = y + x$.
+For two terms $x$ and $y$ of the same type $A$, we would like to be able to state the proposition that the two terms are equal. For now, we merely consider equality between terms of the same type. This gives us a type former that takes a type as input, along with two terms of that type. In Typer, equality between terms is represented by the $\kw{Eq}$ type former\footnote{A type former can be thought of as a constructor that constructs a Type.} which has the below type signature.
 
-- Mention that our Eq type is a proposition, but not a mere proposition. Contrast this with other systems where UIP is a given.
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\rightarrow$@ Type
+\end{minted}
 
-- For two terms a, b of the same type A, we would like to be able to state the proposition that the two terms are equal (for now limit the discussion to terms of the same type only). This gives us a type former that takes a type as input, along with two terms of that type. A term of this type/proposition can thus be seen as a `proof' that a and b are indeed equal (maybe this is the right time to mention that terms of this type may or may not be unique, depending on the system we are working in. In other words, when we ask ourselves the question. is a = b, we do not only care if the answer is yes or no, if they are indeed equal, we also care about in what ways they are equal).
+The $\kw{Eq}$ type former takes a type as input, along with two terms of that type that we wish to claim are equal. We could then construct the type that stipulates that the addition of natural numbers is commutative by using the $\kw{Eq}$ type former.
 
-- Maybe introduce the possible syntaxes for the type former, e.g. Id, $a=b$, Eq etc. (or just show one here and defer the examples for another section).
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Nat+_comm : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ Eq (m + n) (n + m);
+\end{minted}
 
-- The intro rule of Eq only allows the construction of reflexive equalities, at first sight this leads us to believe that not much can be done with the Eq type. After all, we surely can't do much with a proof that x = x!? Perfect segue into the following point.
+$\Funapp{\kw{Eq}}{(m + n)}{(n + m)}$ is merely a type and can be seen as a statement of the proposition that $m + n \equiv n + m$. In order to prove that the proposition is actually true, we would need to construct a term of this type. Such a term may be seen as a proof object that witnesses the validity of the proposition. Interested readers may find the complete proof of the commutativity of addition of natural numbers in the Appendix (TODO: Link appendix!). The one and only constructor of the $\kw{Eq}$ type is the following:
 
-- Mention the elimination principle and justify it (the justification should probably in the dedicated section for Eq types, NOTE: check the alternative yoneda justification to see if its worth mentioning p216 HoTT-book) (J rule was introduced in Per Martin-Lof. An intuitionistic theory of types: predicative part 1973, though I think it was given this particular name in the paper, TODO: check this!)
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Eq_refl : (x : ?A) @$\Rrightarrow$@ Eq x x;
+\end{minted}
+
+Given a term $x$ of an arbitrary type $A$, we can trivially construct the proof that $x$ is equal to itself. This is known as the reflexive proof of equality. Although we say that our equality type is a proposition, it is by no means a mere proposition (HoTT book\cite{HoTTbook} Chapter 3.3). This implies that it is not a given that two proofs of the same equality are provably equal. In other words, when we ask ourselves the question  ``Is it the case that a = b'', we do not only care if the answer is yes or no, if they are indeed equal, we can interest ourselves in what ways exactly are they equal. This is in contrast to other systems where the uniquess of identity types (UIP) applies to all types. Notably, this is true of systems that admit axiom K \cite{streicher1993investigations} that states all identity proofs are equal to the reflexivity proof, and by extension all proofs of the same equality are equal. We will later show that UIP is a property that is true for a certain class of types in Typer.
+
+- TODO: Maybe introduce the possible syntaxes for the type former, e.g. Id, $a=b$, Eq etc. (or just show one here and defer the examples for another section).
+
+The sole term former of the $\kw{Eq}$ only allows the construction of reflexive equalities, at first sight this leads us to believe that not much can actually be done with the $\kw{Eq}$ type. After all, if all we had were proofs of the form $x = x$, it would be difficult to imagine achieving anything with them. The true magic of the equality type lies in it's elimination principle. Traditionally, the equality type comes with an elimination principle known as the J-rule. This was first introduced by Per Martin-Löf in \cite{martin1975intuitionistic}, although it had not been given this particular name when the rule first made its appearance. (TODO:\ Where was the name J first introduced?) Suppose that we have a type family $C$ that is parametrised by two terms $x$ and $y$ of some type $A$ as well as a proof that $x$ and $y$ are equal, i.e. of type $\Funapp{\kw{Eq}}{x}{y}$. If we have have a proof term $p$ that witnesses the equality of two arbitrary terms $a$ and $b$ of type $A$, and we wish to produce a term of type $\Funapp{C}{a}{b}{p}$, then the J-rule says that it suffices for us to provide a means of producing for all $\oftype{x}{A}$ a term of type $\Funapp{C}{x}{x}{(\Funapp{\kw{refl}}{x})}$. We now state the type of the J-rule:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+J : (C : (x : ?A) -> (y : ?A) -> Eq x y -> Type)
+    -> ((x : A) -> C x x Eq_refl)
+    -> (x : A) -> (y : A) -> (p : Eq x y)
+    -> C x y p;
+\end{minted}
+
+This rule is essentially saying that in order to know what to do with an equality between an arbitrary $x$ and $y$, we merely need to know how to handle the case where we are dealing a reflexivity proof. Now, given the fact that the reflexivity constructor is the only constructor of the $\kw{Eq}$ type, one might think that the above elimination principle is well justified. Recall that elimination principle of an inductively defined datatype (that satisfies the positivity check, TODO: ideally I cite something here to not have to elaborate on this) can usually be derived based on the constructors of the datatype itself. For instance, consider the below inductive definition of the Peano natural numbers.
+
+\begin{minted}{haskell}
+type Nat
+    | zero
+    | succ Nat
+\end{minted}
+
+The corresponding elimination principle then takes on the following logical form:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Nat_elim : (P : Nat @$\rightarrow$@ Type)
+           @$\Rrightarrow$@ P zero @$\rightarrow$@ ((n : Nat) @$\rightarrow$@ P n @$\rightarrow$@ P (succ n))
+           @$\rightarrow$@ (n : Nat) @$\rightarrow$@ P n;
+\end{minted}
+
+First, we need to define what needs to be done if the natural number we are trying to eliminate is $\id{zero}$. Next, if the natural number we want to eliminate is something of the form $\Funapp{succ}{n}$, then we can imagine making a recursive call to the eliminator to produce a result for $\Funapp{succ}{n}$ for $n$, and now we need a means of transforming a proof of $\Funapp{P}{n}$ to one of $\Funapp{P}{(\Funapp{succ}{n})}$. Indeed, the elimination principle of natural numbers is just mathematical induction. Hence, it is reasonable to say that in order to eliminate an equality proof, it suffices for us define what needs to be odne for reflexivity proofs. However, as was mentioned before, we are not able to prove that all equality proofs are in fact equal to the reflexivity proof. Regardless, attempts have been made to justify the elimination principle of the equality type, although we opt not to elaborae on this here. (TODO: consider linking something on this topic here or discuss it elsewhere on the in appendix. Also, check the alternative yoneda justification to see if its worth mentioning p216 HoTT-book)
+
+However in Typer, the elimination rule for the $\kw{Eq}$ type is not provided in the form of the J-rule, instead we have the means of using the equality proof to perform a cast. This operation is also known commonly known as `transport'. The type of the cast function is descriptive of what it does.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Eq_cast : (x : ?A) @$\Rrightarrow$@ (y : ?A) @$\Rrightarrow$@ (p : Eq x y) @$\Rrightarrow$@ (f : ?A -> Type)
+          @$\Rrightarrow$@ f x -> f y;
+\end{minted}
+
+Note that it is possible to derive $Eq\_cast$ from the J-rule.
+
+
+The natural that we should now ask ourselves is whether the J-rule can be derived from $Eq\_cast$, in other words we would like to know if the two elimination principles are equivalent. It turns out that one way of doing it hinges upon whether we are able to inhabit the following type:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+eqUnique : (A : Type) @$\Rrightarrow$@ (a b : A) (p : Eq a b)
+           @$\rightarrow$@ Eq (t := Sigma A (lambda a' -> Eq a a'))
+                              (sigma A Eq_refl) (sigma b p);
+\end{minted}
+
+We provide more details of this in the appendix (TODO: actually do this).
 
 - Maybe it's worth mentioning why it's fine to provide `cast' as a means of eliminating Eq types instead of providing `J'. (TODO: want to be able to prove that J can be derived from cast, by leveraging the fact that $(x , refl) = (y , p)$, check notes for more details).
 
-- later (maybe not in the intro) draw a comparison with extensional identity types that admit equality reflecction (Martin-Löf 1982)
+In Typer and in intensional type theory in general, we need to explicitly invoke a cast function of some sort, this is in contrast with extensional type theory (ETT)\cite{martin1982constructive} where equality proofs in the context are automatically used by the typechecker to carry out casts whenever necessary. This is shown by the following judgement in ETT that states that equality proofs can be converted to judgemental equalities.
 
-- Give code examples of the Eq type and what we can do with it.
+\begin{prooftree*}
+  \hypo{\oftype{\ctx}{t}{\Funapp{\kw{Eq}}{a}{b}}}
+  \infer1{\ctx \vdash a \equiv b}
+\end{prooftree*}
 
-Note: At some point, I'd like to mention that Eq types are not defined as `native' datatypes because our inductive types are not indexed datatypes. To encode indexed datatypes using our inductive types, we would require use of Eq types itself, i.e. we have a chicken and egg problem here. (Detailed explanation of this likely doesn't belong in the intro, could bring it up in passing in the intro.)
+This is also the reason why typechecking is not decidable in ETT as the necessity to invoke the above rule is not syntax directed.
 
-- Briefly mention the Interval, and say why we want to base an equality type on that
+%% - Give code examples of the Eq type and what we can do with it.
 
-- Typically, many proofs regarding identity types require the use of identity elimination, i.e. the J-rule. But this is often tedious and less intuitive. An equality based on the interval allows to derive such proofs in an alternative manner that is much cleaner and more elegant.
+One might also wonder why the $\kw{Eq}$ type is not implemented as a `native' inductive datatype in Typer. This is because Typer does not have out-of-the-box support for indexed datatypes. Consider the below definition of the $\kw{Eq}$ type in the language Coq that does support indexed datatypes:
 
-- Example of proofs that are `simplified': congruence, eq-comm. We also get new `theorems' such as funext. Also, we can prove the contractibility of singletons (as mentioned in https://arxiv.org/pdf/1611.02108.pdf). This proof is especially useful if we want to derive the J-rule.
+\begin{minted}{coq}
+Inductive eq {A : Type} : A -> A -> Prop :=
+    eq_refl : forall x : A, eq x x.
+\end{minted}
+
+To encode the above definition in Typer would require us to do something like the following:
+
+\begin{minted}{coq}
+type Eq (A ::: Type) (x : A) (y : A)
+    | Eq_refl (a : A) (p1 ::: Eq x a) (p2 ::: Eq y a);
+\end{minted}
+
+This implies that the definition of $\kw{Eq}$ necessitates the use of the $\kw{Eq}$ type itself and we get a definition that is unpleasant to use.
+
+Our first contribution in this paper involves proposing an alternative formulation of the $\kw{Eq}$ type based on an $\kw{Interval}$ type. Inspired by homotopy theory, the unit interval offers us an alternative way of modelling the equality type. For instance, an equality between two terms $x$ and $y$ can be seen as a path between the two terms where each term is precisely at an endpoint of the unit interval. Using the traditional formulation of equality types, many proofs regarding involving equality proofs require the use of the J-rule or transport. But this is often tedious and results in less intuitive proofs. An equality type based on the interval allows us to derive such proofs in an alternative manner that is much cleaner and more elegant. Examples of proofs that are simplified includ the congruence property of equality and a proof the commutativity of equality. An equality type based on the interval also allows us to derive function extensionality as a theorem.
+
+- (TODO: mention this in the actual section) Also, we can prove the contractibility of singletons (as mentioned in https://arxiv.org/pdf/1611.02108.pdf). This proof is especially useful if we want to derive the J-rule.
 
 
-TODO: Motivate quotients, why are they useful and why do we care about them? Examples of things that can be made easier with quotients
-
-
-In keeping with the theme of equality, we shall discuss the implementation of quotient types in Typer. Quotient types allow us to redefine the equality of a type, usually on the basis of an equivalence relaton on the type. This is inspired by quotients in set theory, where if we are given a set A and an equivalence relation $\sim$ on A, then we can construct the quotient set of A by $\sim$, which we denote as $A / \sim$ (TODO: examples of this). Equivalent elements in A are considered equal in $A / \sim$. The subsets of elements that are considered equal in $A / \sim$ are precisely the subsets whose elements are all equivalent under the equivalence relation. We can say that for some $a \in A$, the subset of $A$ such that all elements are equivalent to $a$ is $\{a' \in A \ | \ a' \sim a \}$. Indeed, this subset is what one would call the equivalence class of $a$, this is usually denoted as $[a]$. When we take the quotient of a set, we are essentially partitioning the set into equivalence classes, implying that we can regard a quotient set as simply the set of equivalence classes induced by the equivalence relation.
+In keeping with the theme of equality, we shall discuss the implementation of quotient types in Typer. Quotient types allow us to redefine the equality of a type, usually on the basis of an equivalence relaton on the type. This is inspired by quotients in set theory, where if we are given a set A and an equivalence relation $\sim$ on A, then we can construct the quotient set of A by $\sim$, which we denote as $A / \sim$. Equivalent elements in A are considered equal in $A / \sim$. The subsets of elements that are considered equal in $A / \sim$ are precisely the subsets whose elements are all equivalent under the equivalence relation. We can say that for some $a \in A$, the subset of $A$ such that all elements are equivalent to $a$ is $\{a' \in A \ | \ a' \sim a \}$. Indeed, this subset is what one would call the equivalence class of $a$, this is usually denoted as $[a]$. When we take the quotient of a set, we are essentially partitioning the set into equivalence classes, implying that we can regard a quotient set as simply the set of equivalence classes induced by the equivalence relation.
 
 For a more concrete example, we could define the set of integers $\mathbb{Z}$ as a quotient of pairs of natural numbers $\mathbb{N}$. The set of pairs of natural numbers can be denoted as $\mathbb{N} \times \mathbb{N} = \{(x,y) : x \in \mathbb{N}, y \in \mathbb{N}\}$. The intuition behind this definition of the integers is that a pair of natural numbers can be interpreted as an integer if we consider the `difference' between the first and second natural number of a pair $(x, y)$ as the integer that is represented by the pair. For instance, we want the pairs $(0, 2), (1, 3), (2, 4)$  to all represent the integer $-2$. In other words, we would like to define the relation such as  $(x_1, y_1) \ R_{\mathbb{Z}} \ (x_2, y_2) = x_1 - y_1 \equiv x_2 - y_2$. However, natural numbers only typically support truncated subtraction, hence the better way of defining the relation would be to rewrite the equation using addition. The appropriate equivalence relation is $R_{\mathbb{Z}} = \{((x_1, y_1), (x_2, y_2)) \in (\mathbb{N} \times \mathbb{N})^2 \ | \ x_1 + y_2 = x_2 + y_1\}$. We define the relation the usual way by saying that it is a subset of the Cartesian product of the underlying set of the relation with itself. With that, we can define $\mathbb{Z} = \mathbb{N} \times \mathbb{N} / R_{\mathbb{Z}}$. Pairs that are equivalent under the relation $R_{\mathbb{Z}}$ are considered equal in the resulting quotient (set) $\mathbb{N} \times \mathbb{N} / R_{\mathbb{Z}}$.
 
