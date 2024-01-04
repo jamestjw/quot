@@ -1,7 +1,119 @@
-\documentclass[11pt]{article}
+%%
+%% This is file `gabaritmem.tex',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% dms.dtx  (with options: `memoire,gabarit')
+%% Example TeX file for the documentation
+%% of the jurabib package
+%% Copyright (C) 1999, 2000, 2001 Jens Berger
+%% See dms.ins  for the copyright details.
+%% 
+%%% ====================================================================
+%%%  @LaTeX-file{
+%%%     filename        = "dms.dtx",
+%%%     author    = "Nicolas Beauchemin, Damien Rioux-Lavoie, Victor Fardel, Jonathan Godin",
+%%%     copyright = "Copyright (C) 2000 , DMS
+%%%                  all rights reserved.  Copying of this file is
+%%%                  authorized only if either:
+%%%                  (1) you make absolutely no changes to your copy,
+%%%                  including name; OR
+%%%                  (2) if you do make changes, you first rename it
+%%%                  to some other name.",
+%%%     address   = "Département de Mathématiques et de Statistique",
+%%%     telephone = "514-343-6705",
+%%%     FAX       = "514-343-5700",
+%%%     email     = "aide@dms.umontreal.ca (Internet)",
+%%%     keywords  = "latex, amslatex, ams-latex, theorem",
+%%%     abstract  = " Ce fichier est un package conçu pour être
+%%%                  utilisé avec la version de LaTeX2e 1995/06/01. Il
+%%%                  est prévue pour la classe ``amsbook''. Il en
+%%%                  modifie le format des pages, l'entête des
+%%%                  sections, etc, afin d'être  conforme au modèle de
+%%%                  mémoire de maîtrise de l'Université de
+%%%                  Montréal. Finalement ce fichier est grandement
+%%%                  inspiré du fichier amsclass.dtx.",
+%%%     docstring = "The checksum field contains: CRC-16 checksum,
+%%%                  word count, line count, and character count, as
+%%%                  produced by Robert Solovay's checksum utility."}
+%%%  ====================================================================
 
-\usepackage[hidelinks]{hyperref}
+%% Pour voir les accents de ce fichier, assurez-vous que votre
+%% éditeur de texte lise le fichier en utf-8!
+
+%% La classe <dms> est construite au-dessus de <amsbook>, donc
+%% <amsmath>, <amsfonts> et <amsthm> sont automatiquement chargés.
+%% Pour un mémoire
+\documentclass[12pt,twoside,maitrise]{dms}
+%% Pour une thèse
+%%\documentclass[12pt,twoside,phd]{dms}
+
+\usepackage[utf8]{inputenc} %Obligatoires
+\usepackage[T1]{fontenc}    %
+
+%% <lmodern> incorpore les fontes en T1, pour
+%% faciliter le dépôt final. Ceci n'est pas la
+%% seule option :
+%%  1. Si cm-super est installé, vous pouvez enlever <lmodern>
+%%     (à ce moment, la police est un peu plus fidèle
+%%      au Computer Modern orginal);
+%%  2. Si vous avez une police préférée, par exemple,
+%%     <times> ou <euler> ou <mathpazo> (et bien d'autres),
+%%     alors vous pouvez remplacer <lmodern> ci-bas.
+%% Par contre, si vous faîtes face à un problème d'encapsulation
+%% lors dépôt final, il se peut que la solution soit d'utiliser <lmodern>.
+%% (Parfois le problème est au niveau de l'installation, donc
+%%  essayez de compiler sur un autre ordinateur sur lequel vous êtes
+%%  certain·e que l'installation est bonne.)
+\usepackage{lmodern}
+\DeclareSymbolFont{largesymbols}{OMX}{cmex}{m}{n}
+
+%% Il n'est pas nécessaire d'utiliser <babel>, car
+%% les commandes intégrées par la classe <dms>
+%% \francais et \anglais font le travail. Néanmoins,
+%% certains autres packages nécessitent <babel> (comme
+%% <natbib>), donc simplement enlever les % devant <babel>
+%% dans ce cas. Attention! Certains packages sont sensibles
+%% à l'ordre dans lequel ils sont chargés.
+%% \francais % or
+\anglais
+%%
+%%\usepackage[english,frenchb]{babel}
+
+ % ENGLISH OPTION
+ % If you call \anglais here before the \begin{document},
+ % all the chater's header will be in english, even if you
+ % call \francais. To change this, use
+ % \entetedynamique
+
+%% La commande \sloppy peut avoir des effets étranges sur les
+%% lignes de certains paragraphes.  Dans ce cas, essayez \fussy
+%% qui suppresse les effets de \sloppy.
+%% (\fussy est normalement le comportement par défaut.)
+%% On redéfinit \sloppy, pour tenter de réduire les comportements
+%% étranges. Le seul changement apporté à la version originale
+%% est la valeur de \tolerance.
+\def\sloppy{%
+  \tolerance 500%  %9999 dans LaTeX ordinaire, mauvaise idée.
+  \emergencystretch 3em%
+  \hfuzz .5pt
+  \vfuzz\hfuzz}
+\sloppy   %appel de \sloppy pour le document
+%%\fussy  %ou \fussy
+
+
+%% Packages - START
 \usepackage{amsmath,amsfonts,amssymb}
+\usepackage{hyperref} % Ajoute les hyperlien
+\hypersetup{colorlinks=true,allcolors=black}
+\usepackage{hypcap}   % Corrige la position du lien pour les images
+\usepackage{bookmark} % Remédie à des petits problème
+                      % de <hyperref> (important qu'il
+                      % apparaisse APRÈS <hyperref>)
+%% pour que la largeur de la légende des figures soit = \textwidth
+\usepackage[labelfont=bf, width=\linewidth]{caption}
+
 \usepackage{mathpartir,mdframed,empheq}
 \usepackage{mathtools}
 \usepackage{ebproof}
@@ -20,7 +132,96 @@
 \usepackage{tikz} %% For drawing diagrams
 
 \tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt
+%% Packages - END.
 
+  % Enlever les commentaires du prochaine \hypersetup et
+  % le remplir avec l'information pertinente.
+  % Ceci ajoute des « méta-données » au pdf.  C'est optionnel,
+  % mais recommandé. Vous pouvez voir ces méta-données en
+  % ouvrant un visionneur de pdf et en cherchant les propriétés
+  % du pdf. (Vous pouvez aussi tapez ' pdfinfo <nom-du-pdf> '
+  % dans un terminal.) Ces données sont utiles, par exemple,
+  % pour augmenter les chances qu'un algorithme de recherche
+  % trouve votre document sur Internet, une fois diffusé.
+\hypersetup{
+ pdftitle = {Quotients Types in Typer?},
+ pdfauthor = {James Tan Juan Whei},
+ pdfsubject = {Quotient types},
+ pdfkeywords = {dependent types, quotient type}
+}
+
+%% Définition des environnements utiles pour un mémoire scientifique.
+%% La numérotation est laissée à la discrétion de l'auteur·e. L'exemple
+%% illustré ici produit « Définition x.y.z »
+%%   x = no. chapitre
+%%   y = no. section
+%%   z = no. définition
+%% et la numérotation des corollaires, définitions, etc. se fait
+%% successivement.
+%%
+%% Les macros \<type>name sont telles qu'ils suivent
+%% la langue actuelle. (P.ex. si \francais est utilisé,
+%% alors \begin{theo} va faire un Théorème et si \anglais
+%% est utilisé, \begin{theo} fera un Theorem.)
+%%
+\newtheorem{cor}{\corollaryname}[section]
+\newtheorem{deff}[cor]{\definitionname}
+\newtheorem{ex}[cor]{\examplename}
+\newtheorem{lem}[cor]{\lemmaname}
+\newtheorem{prop}[cor]{Proposition}
+\newtheorem{rem}[cor]{\remarkname}
+\newtheorem{theo}[cor]{\theoremname}
+\theoremstyle{definition}
+\newtheorem{algo}[cor]{\algoname}
+%% NOTE : Il peut être commode de redéfinir \the<type> pour
+%% obtenir la numérotation désirée. Par exemple, pour
+%% que les corollaires soit numérotés #section.#sous-section.#sous-sous-section.#paragraphe.#corollaire,
+%% on fait
+%% \renewcommand\thecor{\theparagraph.\arabic{cor}}
+
+%%%
+%%% Si vous préférez que les corollaires, définitions, théorèmes,
+%%% etc. soient numérotés séparément, utilisez plutôt un bloc de
+%%% commandes de la forme :
+%%%
+
+%%\newtheorem{cor}{\corollaryname}[section]
+%%\newtheorem{deff}{\definitionname}[section]
+%%\newtheorem{ex}{\examplename}[section]
+%%\newtheorem{lem}{\lemmaname}[section]
+%%\newtheorem{prop}{Proposition}[section]
+%%\newtheorem{rem}{\remarkname}[section]
+%%\newtheorem{theo}{\theoremname}[section]
+
+%%
+%% Numérotation des équations par section
+%% et des  tableaux et figures par chapitre.
+%% Ceci peut être modifié selon les préférences de l'utilisateur.
+\numberwithin{equation}{section}
+\numberwithin{table}{chapter}
+\numberwithin{figure}{chapter}
+
+%%
+%% Si on veut faire un index, il faut décommenter la ligne
+%% suivante. Ajouter des mots à l'index avec la commande \index{mot cle} au
+%% fur et à mesure dans le texte.  Compiler, puis taper la commande
+%% makeindex pour creer les indexs.  Après une nouvelle compilation,
+%% vous aurez votre index.
+%%
+
+%%\makeindex
+
+%% Il est obligatoire d'écrire à double interligne
+%% ou à interligne et demi. On peut soit utiliser
+%% le package <setspace> ou \baselinestretch.
+%% Le package a tendance a créé des grands espaces blancs,
+%% le gabarit décourage son utilisation, mais il en
+%% reste à la discrétion de l'utilisateur·e.
+%% \usepackage[onehalfspacing]{setspace}
+ % ou
+\renewcommand{\baselinestretch}{1.286} %Interligne et demi (environ 18pt (12pt+6pt) entre les lignes)
+
+%% Other macros and commands
 %% Macro to facilitate the definition of variadic macros
 %% from https://saswat.padhi.me/blog/2019-09_variadic-macros-in-latex/index.html
 %% USAGE :: \VARIADIC {name} {start_sym} {mid_sym} {stop_sym}
@@ -60,18 +261,110 @@
 \NewDocumentCommand{\ctx}{}{\Gamma}
 \NewDocumentCommand{\earg}{mg}{\IfValueTF{#2}{#1:=#2}{\_:=#1}} %% Erasable argument
 
-\newcommand\qed {\square}
+%% \newcommand\qed {\square}
 
-\title{Quotient Types in Typer}
-\author{James Tan \\ Université de Montréal \\ \href{mailto:james.juan.whei.tan@umontreal.ca}{james.juan.whei.tan@umontreal.ca}}
-
-\date{September 11, 2023}
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%                                     %%%%%%%%%%%%%
+%%%%%%%%%% D é b u t    d u    d o c u m e n t %%%%%%%%%%%%%
+%%%%%%%%%%                                     %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
+
+%%
+%% Voici des options pour annoter les différentes versions de votre
+%% mémoire. La commande \brouillon imprime, au bas de chacune des pages, la
+%% date ainsi que l'heure de la dernière compilation de votre fichier.
+%%
+%%\brouillon
+%%
+%%
+%% \version est la version de votre manuscrit
+%%
+\version{1}
+\pagenumbering{roman}
+
+%%------------------------------------------------- %
+%%              pages i et ii                       %
+%%------------------------------------------------- %
+
+%%%
+%%% Voici les variables à définir pour les deux premières pages de votre
+%%% mémoire.
+%%%
+
+\title{Quotients Types in Typer}
+
+\author{James Tan Juan Whei}
+
+\copyrightyear{2024}
+
+\department{Département de mathématiques et de statistique}
+
+\date{\today} %Date du DÉPÔT INITIAL (ou du 2e dépôt s'il y a corrections majeures)
+
+\sujet{Discipline}
+%%\orientation{orientation}%Ce champ est optionnel
+%%
+%% Voici les disciplines possibles (voir avec votre directeur):
+%% \sujet{statistique},
+%% \sujet{mathématiques}, \orientation{mathématiques appliquées},
+%% \orientation{mathématiques fondamentales}
+%% \orientation{mathématiques de l'ingénieur} et
+%% \orientation{mathématiques appliquées}
+
+\president{Nom du président du jury}
+
+\directeur{Nom du directeur de recherche}
+
+%%\codirecteur{Nom du 1er codirecteur}         % s'il y a lieu
+%%\codirecteurs{Nom du 2e codirecteur}         % s'il y a lieu
+
+\membrejury{Nom du membre de jury}
+
+%%\examinateur{Nom de l'examinateur externe}   %obligatoire pour la these
+
+%% \membresjury{Deuxième membre du jury}  % s'il y a lieu
+
+%%  \plusmembresjury{Troisième membre du jury}    % s'il y a lieu
+
+ % Cette option existe encore, mais elle n'a plus sa place
+ % dans la page titre. L'utiliser seulement si le directeur
+ % insiste...
+%%\repdoyen{Nom du représentant du doyen} %(thèse seulement)
+
+%%
+%% Fin des variables à définir. La commande \maketitle créera votre
+%% page titre.
+
+%% Pour mettre bouton qui mène à la page titre
+%% dans le visionneur de pdf. Peut être enlever.
+\pdfbookmark[chapter]{Couverture}{PageUn}
 
 \maketitle
 
-\begin{abstract}
+ % Pour générer la deuxième page titre, il faut appeler à nouveau \maketitle
+ % Cette page est obligatoire.
+\maketitle
+
+%%------------------------------------------------- %
+%%              pages iii                           %
+%%------------------------------------------------- %
+
+\francais
+
+\chapter*{Résumé}
+
+...sommaire et mots clés en français...
+
+%%------------------------------------------------- %
+%%              pages iv                            %
+%%------------------------------------------------- %
+
+\anglais
+\chapter*{Abstract}
+
 Contributions:
 
 - Modified the Eq type by basing it on an Interval type
@@ -104,11 +397,106 @@ Contributions:
 
     - Integer axioms
 
-\end{abstract}
+%%------------------------------------------------- %
+%%        page v --- Table de matieres              %
+%%------------------------------------------------- %
 
+ % Pour un mémoire en anglais, changer pour
+ % \anglais. Noter qu'il faut une permission
+ % pour écrire son mémoire en anglais.
+\anglais
+%% \francais
+ % \cleardoublepage termine la page actuel et force TeX
+ % a poussé les éléments flottant (fig., tables, etc.) sur
+ % la page (normalement TeX les garde en suspend jusqu'à ce
+ % qu'il trouve un endroit approprié). Avec l'option <twoside>,
+ % la commande s'assure que la prochaine page de texte est sur
+ % le recto, pour l'impression. On l'utilise ici
+ % pour que TeX sache que la table des matières etc. soit
+ % sur la page qui suit.
+%% TABLE DES MATIÈRES
+\cleardoublepage
+\pdfbookmark[chapter]{\contentsname}{toc}  % Crée un bouton sur
+                                           % la bar de navigation
 \tableofcontents
+ % LISTE DES TABLES
+\cleardoublepage
+\phantomsection  % Crée une section invisible (utile pour les hyperliens)
+\listoftables
+ % LISTE DES FIGURES
+\cleardoublepage
+\phantomsection
+\listoffigures
 
-\section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% LISTE DES SIGLES ET ABRÉVIATION %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Il est obligatoire, selon les directives de la FESP,
+%% pour une thèse ou un mémoire d'avoir une liste des sigles et
+%% des abréviations.  Si vous considérez que de telles listes ne seraient pas
+%% pertinentes (si, par exemple, vous n'utilisez aucun sigle ou abré.), son
+%% inclusion ou omission est laissé à votre discrétion.  En cas de doute,
+%% parlez-en à votre directeur de recherche, le coadministrateur ou au/à la
+%% bibliothécaire.
+%%
+%% Le gabarit inclut un exemple d'une liste « fait à la main ».  Il existe des outils
+%% plus sophistiqués si vous devez inclure une multitude de sigles et abréviations.
+%% Par exemple, le package <glossaries> peut faire des index élaborés.  Comme
+%% son utilisation est technique, il n'y a pas d'exemple directement dans ce gabarit.
+%% On invite les gens qui aurait à l'utiliser à lire la documentation officielle,
+%% soit en allant sur https://www.ctan.org/, soit en tapant dans un terminal :
+%%
+%% texdoc glossaries
+%%
+
+\chapter*{Liste des sigles et des abréviations}
+ % Option de colonnes: definir \colun ou \coldeux
+%%% Exemple
+%%% \def\colun{\bf} % Première colonne en gras
+%%% Pour numéroté les entrées, on peut faire
+%%% \newcount\abbrlist
+%%% \abbrlist=0
+%%% \def\plusun{\global\advance\abbrlist by 1\relax}
+%%% \def\colun{\plusun\the\abbrlist. }
+%%\def\coldeux{\relax}
+\begin{twocolumnlist}{.2\textwidth}{.7\textwidth}
+  KQ-Methode & Méthode des moindres carrés, de l'allemand
+      \textit{Methode der kleinsten Quadrate}\\
+  MCMC  & Monte Carlo par chaînes de Markov, de l'anglais
+      \textit{Markov Chain Monte Carlo} \\
+  MSE  &  Erreur quadratique moyenne, de l'anglais \textit{Mean Square Error}\\
+  NDR & Retract d'un voisinage, de l'anglais \textit{Neighbourhood Deformation Retract}\\
+  OLS  &  Moindres carrés ordinaires, de l'anglais \textit{Ordinary Least Square}\\
+  ZFC & Théorie des ensembles de Zermelo-Fraenkel avec l'axiome du choix\\
+\end{twocolumnlist}
+%% L'environnement <threecolumnlist> existe aussi pour trois colonnes.
+
+%%------------------------------------------------- %
+%%              pages vi                            %
+%%------------------------------------------------- %
+
+\chapter*{Remerciements}
+
+...remerciements...
+
+ %
+ % Fin des pages liminaires.  À partir d'ici, les
+ % premières pages des chapitres ne doivent pas
+ % être numérotées
+ %
+
+\NoChapterPageNumber
+\cleardoublepage
+\pagenumbering{arabic}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                                  %
+%%   TEXTE DU MÉMOIRE :  introduction page 1,...    %
+%%                                                  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter*{Introduction}
+
 TODO:Motivate equality types, what are they, why do we need them and what can we do with them?
 
 I probably have more points here than necessary, extra stuff should go into other chapters
@@ -311,8 +699,12 @@ Other notes (this won't go into the intro):
 
 - Implementing quotients by interpreting the theory in a setoid models (as done by Nuo Li) results in a depelim that only works for Props (as opposed to what we have)
 
-\section{Cubical Equality}
-\subsection{Interval type}
+%%------------------------------------------------- %
+%%                Chapters                          %
+%%------------------------------------------------- %
+
+\chapter{Cubical Equality}
+\section{Interval type}
 First, we provide the typical definition of the \id{Interval} type, subsequently we present our alternative formulation of the \id{Interval} type and show that it is equivalent to the traditional definition.
 
 \begin{prooftree*}
@@ -355,7 +747,7 @@ We can expect the first two equations to hold definitionally. If we imagine that
 
 TODO:\ The proof below requires depelim of Interval?
 
-\subsection{Motivation}
+\section{Motivation}
 We show that a function out of the interval into some type \id{A} is equivalent to a path between two terms of type \id{A}, in other words, we show the following
 
 \begin{align*}
@@ -386,7 +778,7 @@ TODO:\ Add proof of $\kw{cong}_2$ and $\Sigma$ path characterisation in the appe
 
 For the sake of simplifying the proof of $\beta$, we assume the $\eta$-rule for dependent pairs. And with that, the proof is complete.
 
-\subsection{Justification}
+\section{Justification}
 We have established that the equality type (also known as the identity type) is equivalent to a function out of the interval. We have also illustrated that such a function is expected to be constant on the unit interval. This `condition' is enforced by virtue of the fact that $\id{Interval}$ is defined as a higher inductive type with an identification of its two `points' (TODO:\ wording?). An alternate way of enforcing this is to use erasable functions out of a $\mathbbm{2}$-type. In other words, we can first define the $\id{Interval}$ type as a normal algebraic data type.
 
 TODO:\ Define/explain erasable functions
@@ -411,15 +803,15 @@ Then, it is vacuously true that $\eqtype{h(i_0)}{h(i_1)}$. With that, we are abl
 
 The above shall be the basis of our new definition of identity types.
 
-\subsection{Elimination of the Interval type}
+\section{Elimination of the Interval type}
 TODO:\ Mention transp
 
-\subsection{Manipulation of the Interval type}
+\section{Manipulation of the Interval type}
 TODO:\ Mention operators like $\!$, $\wedge$ and $\vee$.
 
-\subsection{Identity type}
+\section{Identity type}
 
-\subsubsection{Heterogenous equality}
+\subsection{Heterogenous equality}
 With the above definition of $\bI$, we are now ready to introduce the notion of heterogenous equality. Such an equality type allows us to identify two terms that are not necessarily of the same type. The heterogenous equality type has the following type signature\footnote{Although not mentioned explicitly, functions involving the identity type are universe polymorphic in their arguments and return type.} and is implemented axiomatically.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
@@ -450,7 +842,7 @@ Heq_uneq : (t : I @$\Rrightarrow$@ Type)
 
 The composition of $\id{Heq\_uneq}$ and  $\id{Heq\_eq}$ (modulo the implicit arguments) is equal to the identity function.
 
-\subsubsection{Homogenous equality}
+\subsection{Homogenous equality}
 Homogenous equality is by far the more typical notion of equality. We are able to define it as a special case of heterogenous equality where the two terms $\id{x}$ and $\id{y}$ in $\Funapp{\id{Heq}}{\id{x}}{\id{y}}$ are of the same type.
 
 %% TODO: Fix the alignment
@@ -474,7 +866,7 @@ Eq_uneq : (t : Type) @$\Rrightarrow$@ (x : t) @$\Rightarrow$@ (y : t) @$\Rightar
 Eq_uneq p i = Heq_uneq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (p := p) (i := i)
 \end{minted}
 
-\subsection{Reduction rules}
+\section{Reduction rules}
 
 \begin{prooftree*}
    \infer0[UNEQ-LEFT]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\ileft}
@@ -486,10 +878,10 @@ Eq_uneq p i = Heq_uneq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (p := p) (i := i)
                        \rightsquigarrow \id{y}}
 \end{prooftree*}
 
-\subsection{Examples}
+\section{Examples}
 Common properties of the equality type remain true, some of them are easier to prove than with a traditional equality type.
 
-\subsubsection*{Reflexivity}
+\subsection*{Reflexivity}
 A reflexive equality is the most trivial equality that we are able to construct, and indeed, it is the one that we are able to construct with an erasable function out of $\bI$ given that such a function is necessarily a constant function.
 
 %% Eq_refl : (l : TypeLevel) ≡> (t : Type_ l)
@@ -501,7 +893,7 @@ Eq_refl : (x : ?t) |$\Rrightarrow$| Eq x x
 Eq_refl x = Eq_eq (f := |$\lambda$| _ |$\Rrightarrow$| x)
 \end{minted}
 
-\subsubsection*{Commutativity}
+\subsection*{Commutativity}
 This is the first of many properties that can be proved in an elegant manner by virtue of defining the equality type based on functions out of the interval. This property has many names, such as the commutativity of equality, the symmetry of equality, or the inversion of a path. Consider an equality between $\id{x}$ and $\id{y}$, we can think of the two terms as points, the equality itself can then be thought of as a continuous path between the two points. We think of the path as a directed path from $\id{x}$ to $\id{y}$. The commutativity of equality basically means that we are able to construct a path that goes in the opposite direction, in other words, we are able to invert the path. This is the intuition behind the following proof.
 
 %% Eq_comm : (x : ?t) ≡> (y : ?t) ≡> Eq x y -> Eq y x
@@ -543,7 +935,7 @@ Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := 
 \caption{A path from x to y along with its inversion}
 \end{figure}[H]
 
-\subsubsection*{Functional extensionality}
+\subsection*{Functional extensionality}
 The notion of functional extensionality implies that pointwise-equal functions are indeed equal. By postulating the existence of the $\id{Interval}$ type along with an equality type that's based on it, functional extensionality can be derived trivially as is illustrated by the below proof.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
@@ -567,7 +959,7 @@ TODO:\ Decide if the below is worth mentioning in some way \\
 Note: funExt is required to prove quotient effectiveness, though we will see that the existence of $\id{Quotient}$ implies $\id{funExt}$.
 
 %% FIXME: Should this come before the section on funext? probably
-\subsubsection*{Congruence of equality}
+\subsection*{Congruence of equality}
 This is a another typical property of equality that is proven with a `cubical' equality.
 
 %% Eq_cong : (x : ?A) => (y : ?A) =>
@@ -590,7 +982,7 @@ Eq_cong : (x y : ?A) |$\Rightarrow$| (f : (?A |$\rightarrow$| ?)) |$\rightarrow$
 Eq_cong f p i = f (p i)
 \end{minted}
 
-\subsubsection*{Transport}
+\subsection*{Transport}
 The transport operation (also known as {\id{cast}}) allows us to transport properties that are true for some type $\id{A}$ to another type $\id{B}$ if we have a proof that $\eqtype{\id{A}}{\id{B}}$.
 
 %% Eq_cast : (x : ?) ≡> (y : ?) ≡> (p : Eq x y) ≡> (f : ? -> ?)
@@ -627,7 +1019,7 @@ Eq_cast_refl A x = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$|
                             I_transp (A := |$\lambda$| _ |$\Rrightarrow$| A) (r := i) x)
 \end{minted}
 
-\subsubsection*{Transitivity}\label{subsubsection:eqtransitivity}
+\subsection*{Transitivity}\label{subsection:eqtransitivity}
 Continuing our analogy of equality proofs as paths, the transitivity property allows us to concatenate two paths. We join the right endpoint of the first path with the left endpoint of the second path, producing a new path. The proof of this theorem is as follows:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
@@ -672,12 +1064,12 @@ Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
 \caption{The concatenation of a path between x and y and a path between y and z to produce a new path between x and z.}
 \end{figure}
 
-\subsection{Limitations}
+\section{Limitations}
 We don't have primitives such as $hcomp$, what does this imply? Is there a certain class of proofs we are unable to construct? Or do we just suffer from some amount of inconvenience?
 
 
-\section{Quotient Rules}
-\subsection{Typing}
+\chapter{Quotient Rules}
+\section{Typing}
 We present the $\id{Quotient}$ primitives along with their typing rules.
 
 \begin{prooftree*}
@@ -718,7 +1110,7 @@ We present the $\id{Quotient}$ primitives along with their typing rules.
 \end{prooftree*}
 
 
-\subsection{Reductions}
+\section{Reductions}
 We present the computation rule for the elimination of quotients.
 
 \begin{prooftree*}
@@ -729,20 +1121,20 @@ We present the computation rule for the elimination of quotients.
 
 We see that during $\id{Quotient}$ elimination, the proof that the eliminator function respects the $\id{Quotient}$ is ignored. Instead, the function is applied directly to the underlying element of the base type.
 
-\section{Implementation}
+\chapter{Implementation}
 In this chapter, we describe how we added quotient types to Typer. Next, we describe the library that we provide to facilitate the usage of quotient types in the development of Typer programs and proofs.
 
-\subsection{Axioms}
+\section{Axioms}
 Quotient types are introduced in Typer in axiomatic manner, in other words, we postulate the existence of quotient types and define their behaviour axiomatically.
 
-\subsubsection*{Formation}
+\subsection*{Formation}
 The existence of the $\id{Quotient}$ type is postulated as follows
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Quotient : (A : Type) |$\rightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| Type
 \end{minted}
 
-\subsubsection*{Introduction}
+\subsection*{Introduction}
 Two axioms are added, corresponding to the two introduction rules of $\id{Quotient}$.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
@@ -751,7 +1143,7 @@ Quotient_eq : (A : Type) |$\Rrightarrow$| (R A |$\rightarrow$| A |$\rightarrow$|
               |$\rightarrow$| Eq (Quotient_in (R := R) a) (Quotient_in (R := R) a')
 \end{minted}
 
-\subsubsection*{Elimination}
+\subsection*{Elimination}
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Quotient_elim : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type)
@@ -761,15 +1153,15 @@ Quotient_elim : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarr
                 |$\Rrightarrow$| (q : Quotient A R) |$\rightarrow$| P q
 \end{minted}
 
-\subsection{Syntaxique sugar}
+\section{Syntaxique sugar}
 TODO: Add after things get figured out
 
-\section{Quotient Effectiveness}
+\chapter{Quotient Effectiveness}
 This only works for relations that are propositions and equivalence relations (i.e.\ reflexive, symmetric and transitive).
-\subsection{Propositional Extensionality}
+\section{Propositional Extensionality}
 We provide a `weaker' (or alternative? which is it?) version of propositional extensionality. With this, we prove (a weaker version) quotient effectiveness.
 
-\subsubsection{Representation of propositions}
+\subsection{Representation of propositions}
 TODO: Describe the $Erased$ type and a proof that $\id{isProp (Erased A)}$.
 
 Intuitively speaking, propositions are a type that contain no intrinsic data, it is their mere existence that counts. This is precisely the notion of proof irrelevance. In Typer, this notion is represented via erasability. We introduce a built-in data type that captures this idea.
@@ -808,7 +1200,7 @@ erasedIsProp t1 t2 =
 
 Typer does not offer the direct specialisation of $\kw{case}$ targets in branches. In other words, in the first case branch, we do not have a definitional equality between $\id{t1}$ and $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$. Instead, an equality proof between them is injected into the context, which can be accessed as the variable at deBruijn index 0. Now that we have the two equality proofs, in order to concatenate them \footnote{By considering equalities as path, the application of the transitivity property of equality is conceptually similar to concatenating two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and $\Funapp{\id{erased}}{(\earg{\_}{\id{e2}})}$ to be equal. A priori, the two terms are not equal as $\id{e1}$ and $\id{e2}$ are completely arbitrary. However, Typer ignores erasable terms when checking the convertibility of terms, this is a property that was proven to be sound in ??? (TODO: Cite ICC paper). This allows the concatenation to succeed and thus concludes the proof.
 
-\subsubsection{Axiom}
+\subsection{Axiom}
 Propositional extensionality essentially means that if two propositions that are logically equivalent, i.e.\ each proposition implies the other, then we can say that they are equal. And precisely because we are postulating a new equality constructor, we have to be very careful that the resulting equality proof is indeed proof irrelevant. In other words, we need this equality proof to not have any runtime relevance. This is principally because we insist that the transport operation to be a no-op during runtime. This is the motivation behind our choice to use the $\id{Erased}$ type to represent propositions, as it is a guarantee that such a type carries no useful runtime information. This implies that a transport operation from one $\id{Erased}$ type to another is simply a no-op.
 
 In a setting with univalence, propositional extensionality is simply a theorem that may be proven (TODO:\ Maybe cite something here). This is a result that is immediate as an equivalence between logically equivalent propositions is trivial. In the setting of Typer however, propositional extensionality is implemented as an axiom with the following type signature:
@@ -845,7 +1237,7 @@ axiom propext {a b : Prop} : (a @$\leftrightarrow$@ b) @$\rightarrow$@ a = b
 
 This is similar to what we have in Typer, except that proof irrelevance is enforced in a different manner.
 
-\subsection{Equivalence relation}
+\section{Equivalence relation}
 TODO: Explanation of relations should probably go elsewhere
 
 First, we state what we mean when we say `relation' to set the stage for the subsequent discussion. For our purposes, we conider binary relations, which are type formers that take two arguments of some type $\kw{A}$. Assuming that we call the relation $\kw{R}$ and its two arguments $\id{a}$ and $\id{a}'$ respectively, inhabitants of the type $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ are witnesses of this binary relation. The type signature of a binary relation has the below form:
@@ -866,7 +1258,7 @@ type isEquivRel (A : Type) (R : A -> A -> Type) : Type
                          -> R a b -> R b c -> R a c)
 \end{minted}
 
-\subsection{Proof}
+\section{Proof}
 Given two arbitrary elements $\id{a}$ and $\id{a}'$ of a base type $\kw{A}$, a quotient is said to be effective if given a proof that the injection of $\id{a}$ and $\id{a}'$ into the quotient are equal, then it must be the case that $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ is true, i.e.\ we are able to find an inhabitant of it. A sufficient condition for a quotient to be effective is that the underlying relation must be both a proposition and an equivalence relation.
 
 
@@ -914,10 +1306,10 @@ In this proof, we can see that all aspects of the sufficient condition are at pl
 
 Examples of usage of the above theorem are in Chapter XXX (TODO: Link to other section).
 
-\section{Examples}
+\chapter{Examples}
 The addition of quotient types to Typer allows to define certain constructs that are typically defined in set theory as quotient sets. In this chapter, we discuss some types that are now natively definable by taking the quotient of existing types in the system.
 
-\subsection{Rational numbers}
+\section{Rational numbers}
 To define the rational numbers as a quotient type, we have two obvious options for the base type.
 
 The first option is as follows:
@@ -942,7 +1334,7 @@ Given that the equivalence of rational numbers is captured by a relation, we do 
 
 Typer has a built-in $\kw{Integer}$ type. Behind the scenes, this is based on big integers in OCaml (TODO: Maybe some more elaboration here). Operations on the $\kw{Integer}$ type such as addition, multiplication etc are implemented as axioms. At runtime, the corresponding OCaml operations are invoked to carry out the necessary computations. So far, we are unable to reason about these operations in Typer as they are merely primitives that are implemented in the host language. In the following section, we propose the addition of several axioms that will allow us to prove certain properties of the built-in $\kw{Integer}$ type, this will be necessary when we start reasoning about operations on Rational numbers.
 
-\subsubsection*{Integer axioms}
+\subsection*{Integer axioms}
 We start off by axiomatising the associativity and commutativity of the addition and multiplication operations.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
@@ -999,7 +1391,7 @@ Another useful axiom to have is one that asserts that 0 is an absorbing element 
 Integer_*Lzero : (x : Integer) |$\rightarrow$| Eq (Integer_* 0 x) 0
 \end{minted}
 
-\subsubsection*{Integer theorems}\label{subsubsection:int-theorems}
+\subsection*{Integer theorems}\label{subsection:int-theorems}
 As stated in the subsequent section, we only added the `left' version of some axioms, as their `right' counterparts may be trivially proven as theorems based on the commutativity property of addition and multiplication.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
@@ -1055,7 +1447,7 @@ Integer_NegateDistL* x y =
   Integer_* (Integer_- 0 x) y |$\qed$|
 \end{minted}
 
-\subsubsection*{Implementation of Rationals}
+\subsection*{Implementation of Rationals}
 As stated before, the base type of our quotient type is essentially a pair of integers along with a proof that the second integer is non-zero. We decided to implement this as an inductive type with a single constructor.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
@@ -1248,11 +1640,11 @@ Rational_+Rinv q = Eq_trans (Rational_+-Comm q (Rational_negate q))
 
 For brevity, we do not describe the proofs for multiplication as they can be carried out in a similar fashion as the above. In Section ??? (TODO:\ add this), we explore the runtime cost of using this construction of the rational numbers.
 
-\subsection{Real numbers}
+\section{Real numbers}
 TODO:\ Explore the definition of Dedekind reals in Typer (by leveraging the definition of $\mathbb{R}$). At first sight, I'm not sure if we can do Cauchy reals, TBD
 
-\subsection{Multiset}
-\subsection{Propositional Truncation}
+\section{Multiset}
+\section{Propositional Truncation}
 
 We can encode propositional truncation as a quotient type. The required properties are:
 
@@ -1301,12 +1693,12 @@ propTruncRec prop f a = elimProp (R := @$\lambda$@ _ _ @$\rightarrow$@ Unit)
 
 By partially applying a proof that P is a proposition and a function of type $\id{A} \rightarrow \id{P}$ to $\id{propTruncRec}$, we obtain the second property. (TODO:\ This doesn't seem to imply that P is a subsingleton though!?)
 
-\subsection{Elimination (Special cases)}
+\section{Elimination (Special cases)}
 TODO\: Mention library that facilitates the elimination of more than one quotient expression at a time, eliminating to Prop, Set, Contr etc
 
 The elimination of quotients involves numerous proof obligations, and this quickly gets tedious especially if we are eliminating multiple quotient expressions at once. We provide a library that aims to reduce repetitive boilerplate in user code.
 
-\subsubsection*{rec2}
+\subsection*{rec2}
 We start off by describing \id{Quotient\_rec2}, which serves to eliminate two arbitrary quotient expressions.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
@@ -1349,7 +1741,7 @@ rec2 =
 
 The function itself does the only logical thing it could do, it uses \kw{Quotient\_rec} to eliminate the first quotient, and then it makes another nested call to \kw{Quotient\_rec} to eliminate the second one. Essentially, the result of the elimination of the first quotient is a function that takes another quotient as an argument and then eliminates that. This is the intution behind the requirement that the output type $\id{C}$ be a $\kw{Set}$. In other words, this enables us to prove that for two quotients of type $\id{Quotient A R}$, we are indeed producting two output functions that are equal. We also made use of $\id{elimProp}$, a function that we shall describe next.
 
-\subsubsection*{elimProp}
+\subsection*{elimProp}
 $\id{elimProp}$ is a function that simplifies the elimination of a quotient when the target type is a $\kw{Prop}$ (TODO:\ Link to other section that first introduced this notion). We will see that the nature of the function $\id{f}$ has no bearing on our proof obligations, as they can be discharged in a very systematic way by leveraging the fact that output type is a $\kw{Prop}$. First, we need to proof a lemma, $\id{toPathOver}$. Suppose that we have a type former $\id{A} : \id{I} \Rrightarrow \kw{Type}$ and two terms $\id{x}$ and $\id{y}$ of types $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ respectively, we get the following diagram.
 
 
@@ -1456,16 +1848,16 @@ elimProp2 = @$\lambda$@ _ _ _ _ _ A B R S P @$\Rrightarrow$@ @$\lambda$@ prop f 
 
 TODO\: Consider defining a macro that defines $\fn{elimProp}_n$, i.e.\ the general case.
 
-\section{Holy Trinity?}
+\chapter{Holy Trinity?}
 There is an intricate relationship between logic, programming (type theory) and category theory, as was proposed by Harper (TODO:\ link his article https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/). Everything that exists in each of these domains necessarily has an interesting analogue in the other two. In this chapter, we discuss quotients from the perspective of logic and category theory. In some cases, this will motivate the `discovery' of some interesting properties of the $\kw{Quotient}$ type.
 
-\subsection{Relationship to Logic}
+\section{Relationship to Logic}
 TODO:\ Figure out what could be informative to say here.
 
-\subsection{Relationship to Category Theory}
+\section{Relationship to Category Theory}
 Numerous constructs in type theory have equivalents in category theory. To set the stage for this, we shall do a very short primer on category theory. For a more detailed introduction, interested readers are directed to other works such as Awodey's textbook\cite{awodey-cattheory}.
 
-\subsubsection{Introduction}
+\subsection{Introduction}
 Category theory is built on merely a few foundational constructs, these alone give rise to a lot of interesting structures and properties. First, we postulate the existence of categories that contain objects. Next, we say that objects can be related to other objects via morphisms (also known as arrows, these two terms shall be used interchangeably in the following discussion). Assuming that readers are familiar with programming and/or type theory, one could think of categories as types, objects as terms of a particular type, and morphisms as functions. Every object has an identity arrow that relates it with itself.
 
 \begin{figure}[H]
@@ -1658,7 +2050,7 @@ However, we notice that this is far too general of a definition since it is like
 
 Another way of saying the above is that $\id{h}$ factorises $\id{p}$ and $\id{q}$. The universal product, if it exists, is unique up to isomorphism. Products are not guaranteed to exist in every category. In the category of sets, the universal product is none other than the Cartesian product.
 
-\subsubsection{Coequaliser}
+\subsection{Coequaliser}
 We now introduce the notion of a coequaliser. We shall see later that $\kw{Quotient}$ acts indeed as a coequaliser, or rather coequalisers are generalisation of quotients. For two arrows $\oftype{f, g}{A \rightarrow B}$, a coequaliser is an arrow $\oftype{q}{B \rightarrow Q}$ such that $qf = qg$ (we use juxtaposition to imply composition). The universal property of the coequaliser then dictates that for any other $Z$ and $\oftype{z}{B \rightarrow Z}$, if $zf = zg$, then there must exist a unique $\oftype{u}{Q \rightarrow Z}$ such that $uq = g$. This allows us to call $q$ \textbf{the} coequaliser of $f$ and $g$.
 
 \begin{figure}[H]
@@ -1840,12 +2232,12 @@ We can also phrase the universal property of $\kw{Quotient}$ in a type-theoretic
 
 This property may be proven within Typer itself. (TODO:\ Actually make this work and direct readers to it).
 
-\subsubsection{Initial object of quotient set algebras}
+\subsection{Initial object of quotient set algebras}
 
 Ok maybe let's scratch this, this isn't super interesting.
 
-\section{Related works}
-\subsection{HITs}
+\chapter{Related works}
+\section{HITs}
 Higher inductive types (HITs) are a generalisation of inductive types that has been popularized by homotopy type theory\cite{HoTTbook}. Aside from the usual definitions of constructors, HITs allow the definition of path constructors, i.e.\ equalities between terms of the inductive type. Additionally, we are allowed to define paths between paths.
 In other words, in a system that supports HITs, we could simply define quotient types as a HIT. For instance, here is how one might do it in Cubical Agda.
 
@@ -1905,7 +2297,7 @@ Pattern matching allows us to `do the job' more cleanly. Aside from that, we get
 
 TODO:\ Wanted to show an example of HIT-style elimination of a quotient, but I didn't find anything worth showing for now.
 
-\subsection{QITs and Quotient Haskell}
+\section{QITs and Quotient Haskell}
 Points:
 
 Quotient inductive types (QITs) are essentially HITs that are set-truncated. This essentially provides us with the full range of expressiveness of HITs without higher-dimensional paths. In other words, we are not allowed to define paths between paths. Indeed, such paths are not typically used in day-to-day programming tasks.
@@ -1915,7 +2307,7 @@ Compare to Quotient Haskell and cite examples of types that are convenient to de
 Requires significantly more work to accomplish, but approximately the same expressive power as quotient types (how true is this!?)? Or do we draw the line at ``in practice, it has comparable expressivity''?
 The implementation of QITs would negatively impact the modularity of inductive types.
 
-\subsection{Quotient by normalisation}
+\section{Quotient by normalisation}
 When we take the quotient of a type/set based on an equivalence relation, we are essentially partitioning the elements of the type into their respective equivalence classes. Elements of the same equivalence class are then identified in the resulting quotient type/set.
 
 \begin{figure}[H]
@@ -2015,10 +2407,35 @@ The proof itself is not very interesting, hence we do not describe it here. (TOD
 
 TODO: Mention how we could also have an NF of type $A \rightarrow B$, i.e. doesn't have to be the same type as the base type, but obviously this doesn't work with this precise construction.
 
+
+%%--------------%
+%%     index    %
+%%--------------%
+
+%% S'il y a lieu, décommenter la ligne pour mettre votre index
+
+%%\printindex
+
+%%------------------------------------------------- %
+%%         références --- bibliographie             %
+%%------------------------------------------------- %
+
+\def\bibname{References}
+\bibliography{main}
+\bibliographystyle{ieeetr}
+
+
+
+%%------------------------------------------------- %
+%%                  Annexe A                        %
+%%------------------------------------------------- %
+
+\anglais
 \appendix
 
-\section{Equational Reasoning}\label{section:eqreasoning}
-Equational reasoning provides us with a neat way of expressing proofs in Typer. With the help of some syntactic sugar, this allows us to build chains of equality proofs by using the transitivity property of equality as shown in Section~\ref{subsubsection:eqtransitivity}. This is something that is implemented in the libraries of most proof assistants, such as Agda, Lean, and Lean. This allows lengthy proofs to remain readable as intermediate steps are documented and are clearly seen.
+
+\chapter{Equational Reasoning}\label{section:eqreasoning}
+Equational reasoning provides us with a neat way of expressing proofs in Typer. With the help of some syntactic sugar, this allows us to build chains of equality proofs by using the transitivity property of equality as shown in Section~\ref{subsection:eqtransitivity}. This is something that is implemented in the libraries of most proof assistants, such as Agda, Lean, and Lean. This allows lengthy proofs to remain readable as intermediate steps are documented and are clearly seen.
 
 First, we introduce a helper function that simply invokes the transitivity property of equality proofs. This function carries out a single step of equational reasoning.
 
@@ -2070,7 +2487,7 @@ example x y z w p q r =
   w @$\qed$@
 \end{minted}
 
-For a more involved example, we rewrite the proof of \verb|Integer_*DistR+| that was shown in Section~\ref{subsubsection:int-theorems} by using equational reasoning.
+For a more involved example, we rewrite the proof of \verb|Integer_*DistR+| that was shown in Section~\ref{subsection:int-theorems} by using equational reasoning.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Integer_*DistR+ : (x : Integer) @$\rightarrow$@ (y : Integer) @$\rightarrow$@ (z : Integer)
@@ -2090,9 +2507,50 @@ Integer_*DistR+ x y z =
 
 TODO:\ Consider adding a discussion on additional macros and tactics that could be added to ease the development of such proofs, e.g.\ it would be nice to have rewrite tactics that Lean has to avoid having to invoke Eq\_cong that often
 
-\newpage
 
-\bibliography{main}
-\bibliographystyle{ieeetr}
+\chapter{Les différentes parties et leur ordre d'apparition}
+
+J'ajoute ici les différentes parties d'un mémoire ou d'une thèse ainsi
+que leur ordre d'apparition tel que décrit dans le guide de
+présentation des mémoires et des thèses de la Faculté des études
+supérieures.  Pour plus d'information, consultez le guide sur le site
+web de la facutlé (www.fes.umontreal.ca).
+
+\newcount\colnum
+\colnum=1
+\def\i{\number\colnum. \global\advance\colnum by 1\ignorespaces}
+\begin{table}[p]
+  \begin{center}
+    \begin{tabular}{|l|l|r|}\hline
+       \noindent\hfil
+         \textbf{\strut Ordre des éléments constitutifs du mémoire ou de la thèse}
+         \hfil\span\omit\span\omit\\\hline % \span\omit pour couvrir plus d'une
+                                           % case sans utiliser le package multirow ou autre
+      \i &  La page de titre & obligatoire\\\hline
+      \i &  La page d'identification des membres du jury & obligatoire\\\hline
+      \i &  Le résumé en français et les mots clés français\kern3em& obligatoires\\\hline
+      \i &  Le résumé en anglais et les mots clés anglais & obligatoires\\\hline
+      \i &  Le résumé dans une autre langue que l'anglais & obligatoire \\
+         &  ou le français (si le document est écrit dans &\\
+         &  une autre langue que l'anglais ou le français)&\\\hline
+      \i &  Le résumé de vulgarisation& facultatif\\\hline
+      \i &  La table des matières, la liste des tableaux,& obligatoires\\
+         &   la liste des figures ou autre &\\\hline
+      \i &  La liste des sigles et des abréviations& obligatoire\\\hline
+      \i &  La dédicace& facultative\\\hline
+      \i &  Les remerciements & facultatifs\\\hline
+      \i &  L'avant-propos & facultatif\\\hline
+      \i &  Le corps de l'ouvrage& obligatoire\\\hline
+      \i &  Les index& facultatif\\\hline
+      \i &  Les références bibliographiques & obligatoires\\\hline
+      \i &  Les annexes & facultatifs\\\hline
+      \i &  Les documents spéciaux & facultatifs\\\hline
+    \end{tabular}
+  \end{center}
+\end{table}
 
 \end{document}
+
+\endinput
+%%
+%% End of file `gabaritmem.tex'.
