@@ -246,7 +246,7 @@
 \newcommand\fn[1] {\texttt{#1}}
 \newcommand\latinphrase{\textit}
 
-\NewDocumentCommand{\bI}{}{\mathbb{I}} %% Bold Interval I
+\NewDocumentCommand{\bI}{}{\mathrm{I}} %% Bold Interval I
 \NewDocumentCommand{\ileft}{}{\id{i}_0} %% Interval i0
 \NewDocumentCommand{\iright}{}{\id{i}_1} %% Interval i1
 \NewDocumentCommand{\refl}{mg}{\IfValueTF{#2}{\kw{refl}_{#1} (#2)}{\kw{refl} (#1)}}
@@ -460,16 +460,12 @@ Contributions:
 %%% \def\plusun{\global\advance\abbrlist by 1\relax}
 %%% \def\colun{\plusun\the\abbrlist. }
 %%\def\coldeux{\relax}
+
+%% TODO: Find all the other abbreviations and add them here
+
 \begin{twocolumnlist}{.2\textwidth}{.7\textwidth}
-  KQ-Methode & Méthode des moindres carrés, de l'allemand
-      \textit{Methode der kleinsten Quadrate}\\
-  MCMC  & Monte Carlo par chaînes de Markov, de l'anglais
-      \textit{Markov Chain Monte Carlo} \\
-  MSE  &  Erreur quadratique moyenne, de l'anglais \textit{Mean Square Error}\\
-  NDR & Retract d'un voisinage, de l'anglais \textit{Neighbourhood Deformation Retract}\\
-  OLS  &  Moindres carrés ordinaires, de l'anglais \textit{Ordinary Least Square}\\
-  ZFC & Théorie des ensembles de Zermelo-Fraenkel avec l'axiome du choix\\
-  ETT & Extensional Type Theory
+  ETT & Extensional Type Theory\\
+  HoTT & Homotopy Type Theory\\
 \end{twocolumnlist}
 %% L'environnement <threecolumnlist> existe aussi pour trois colonnes.
 
@@ -542,7 +538,9 @@ guarantee that array accesses will never lead to a runtime error. Additionally,
 this could also allow us to skip runtime bounds-checking as the index is
 necessarily valid as long as the program is well-typed.
 
-
+Equality proofs are also used extensionally in the internal language of GHC as
+they form the backbone of features such as generalised algebraic data types,
+functional dependencies and associated types \cite{sulzmann2007systemfeq}.
 Another notable example of the usage of proofs in real world programs is the
 CompCert project that worked on the formal verification of a C compiler
 \cite{Leroy-Compcert-CACM}.
@@ -562,22 +560,21 @@ Eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\rightarrow$@ Type
 \end{minted}
 
 The $\kw{Eq}$ type former takes a type as input, along with two terms of that
-type that we wish to claim are equal. We could then construct the type that
-stipulates that the addition of natural numbers is commutative by using the
-$\kw{Eq}$ type former.
+type that we wish to claim are equal. \footnote{For aesthetic purposes, we shall
+use the operator $\equiv$ to represent the $\kw{Eq}$ type throughout the rest of
+the paper.} We could then construct the type that stipulates that the addition
+of natural numbers is commutative by using the $\kw{Eq}$ type former.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Nat+_comm : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ Eq (m + n) (n +
-m);
+Nat+_comm : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m;
 \end{minted}
 
-$\Funapp{\kw{Eq}}{(m + n)}{(n + m)}$ is merely a type and can be seen as a
-statement of the proposition that $m + n \equiv n + m$. In order to prove that
-the proposition is actually true, we would need to construct a term of this
-type. Such a term may be seen as a proof object that witnesses the validity of
-the proposition. Interested readers may find the complete proof of the
-commutativity of addition of natural numbers in the Appendix (TODO: Link
-appendix!).
+$m + n \equiv n + m$ is merely a type and can be seen as a statement of the
+proposition that $m + n$ and $n + m$ are equal. In order to prove that the
+proposition is actually true, we would need to construct a term of this type.
+Such a term may be seen as a proof object that witnesses the validity of the
+proposition. Interested readers may find the complete proof of the commutativity
+of addition of natural numbers in the Appendix (TODO: Link appendix!).
 
 %% SM: you could give examples of uses of equality, ideally examples
 %% of code rather than examples of proofs (Remember that your audience
@@ -592,8 +589,9 @@ length indexed vector:
 %% TODO: I used Agda syntax to simplify the presentation of this, maybe
 %% encode this in Typer later in the appendix?
 \begin{minted}[]{agda}
-data Vector (A : Type) : Nat → Type where Vnil : Vector A 0 Vcons : {n : Nat} →
-A → Vector A n → Vector A (suc n)
+data Vector (A : Type) : Nat → Type where
+    Vnil : Vector A 0
+    Vcons : {n : Nat} → → Vector A n → Vector A (suc n)
 \end{minted}
 
 As its name would suggest, the length of such a vector is found in its type
@@ -607,9 +605,8 @@ $\Funapp{\id{Vector}}{\id{A}}{(\id{m} + \id{n})}$ to one of type
 $\Funapp{\id{Vector}}{\id{A}}{(\id{n} + \id{m})}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Vlength-comm+ : (m n : Nat) @$\Rrightarrow$@ Vector ?A (m + n) → Vector ?A (n +
-m) Vlength-comm+ = lambda A m n @$\Rrightarrow$@ Eq_cast (p := Nat+_comm m n) (f
-:= Vector A)
+Vlength-comm+ : (m n : Nat) @$\Rrightarrow$@ Vector ?A (m + n) → Vector ?A (n + m)
+Vlength-comm+ = lambda A m n @$\Rrightarrow$@ Eq_cast (p := Nat+_comm m n) (f := Vector A)
 \end{minted}
 
 By making use of a proof that $m + n \equiv n + m$, we are able to perform type
@@ -624,7 +621,7 @@ question that ought to be answered is how are such terms introduced. The one and
 only constructor of the $\kw{Eq}$ type is the following:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Eq_refl : (x : ?A) @$\Rrightarrow$@ Eq x x;
+Eq_refl : (x : ?A) @$\Rrightarrow$@ x @$\equiv$@ x;
 \end{minted}
 
 Given a term $x$ of an arbitrary type $A$, we can trivially construct the proof that $x$ is equal to itself. This is known as the reflexive proof of equality.
@@ -751,13 +748,13 @@ constructs to facilitate the writing of proofs in general in Typer in the form
 of macros and axioms.
 
 \section{Notes and TODOs}
-- We have a proof of Hedberg's theorem (TODO: implement this!) to facilitate
-eliminations to `Sets'. After explaining why this is necessary, we can motivate
-the addition of the set truncation constructor for Quotients. If we can prove
-that $\mathbb{Z}$ is a set when defined inductively (with the aforementioned
-theorem), then it would be odd if the same cannot be done if $\mathbb{Z}$ was
-defined as a quotient of $\mathbb{N} \times \mathbb{N}$. Indeed, this entails
-bigger consequences (as mentioned in
+- We have a proof of Hedberg's theorem (TODO: describe this in the section of
+equality) to facilitate eliminations to `Sets'. After explaining why this is
+necessary, we can motivate the addition of the set truncation constructor for
+Quotients. If we can prove that $\mathbb{Z}$ is a set when defined inductively
+(with the aforementioned theorem), then it would be odd if the same cannot be
+done if $\mathbb{Z}$ was defined as a quotient of $\mathbb{N} \times
+\mathbb{N}$. Indeed, this entails bigger consequences (as mentioned in
 https://staff.math.su.se/anders.mortberg/papers/cubicalagda2.pdf section 2.4.1).
 (TODO: refer to my notes for a proof that Unit != Unit/R without the
 truncation).
@@ -786,7 +783,9 @@ have)
 
 \chapter{Cubical Equality}
 \section{Interval type}
-First, we provide the typical definition of the \id{Interval} type, subsequently we present our alternative formulation of the \id{Interval} type and show that it is equivalent to the traditional definition.
+First, we provide the typical definition of the \id{Interval} type, subsequently
+we present our alternative formulation of the \id{Interval} type and show that
+it is equivalent to the traditional definition.
 
 \begin{prooftree*}
    \infer0{\oftype{\ctx}{\bI}{Type}}
@@ -804,16 +803,22 @@ First, we provide the typical definition of the \id{Interval} type, subsequently
    \infer0{\oftype{\ctx}{seg}{\eqtype{i_0}{i_1}}}
 \end{prooftree*}
 
-We postulate the existence of the unit interval, along with the ends of the interval \id{$i_0$} and \id{$i_1$}. We also have \id{seg} which is a witness of a continuous path between \id{$i_0$} and \id{$i_1$}.
+We postulate the existence of the unit interval, along with the ends of the
+interval \id{$i_0$} and \id{$i_1$}. We also have \id{seg} which is a witness of
+a continuous path between \id{$i_0$} and \id{$i_1$}.
 
-Elimination of $\bI$ is similar to that of \id{Booleans} the only difference is that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected. The recursion principle of $\bI$ can thus be stated as follows:
+Elimination of $\bI$ is similar to that of \id{Booleans} the only difference is
+that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected.
+The recursion principle of $\bI$ can thus be stated as follows \footnote{When we
+say recursion principle, we refer to the definition as is employed in an
+introduction to the Coq proof assistant \cite{chlipala2022certified}.}:
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{A}{Type}}
    \hypo{\oftype{\ctx}{M}{A}}
    \hypo{\oftype{\ctx}{N}{A}}
    \hypo{\oftype{\ctx}{P}{\eqtype{M}{N}}}
-   \infer4{\oftype{\ctx, \oftype{i}{\bI}}{rec_{\bI} (\_.\ A, M, N, P, i)}{A}}
+   \infer4{\oftype{\ctx, \oftype{i}{\bI}}{rec_{\bI} (P, i)}{A}}
 \end{prooftree*}
 
 The recursion principle computes as follows:
@@ -821,10 +826,24 @@ The recursion principle computes as follows:
 \begin{align*}
   & rec_{\bI}(\_ . A, M, N, P, \ileft) = M \\
   & rec_{\bI}(\_ . A, M, N, P, \iright) = N \\
-  & \kw{cong}_{rec_{\bI}(\_ . A, M, N, P)}(\id{seg}) = P
+  & \kw{cong}_{rec_{\bI}(P)}(\id{seg}) = P
 \end{align*}
 
-We can expect the first two equations to hold definitionally. If we imagine that the first two computation rules were defined via pattern-matching, it would make sense for the equations to hold definitionally. However, more often than not, the third equation only holds propositionally, as is the case when such a type is defined in other type systems, e.g. Agda. (TODO:\ Might have to improve the phrasing, the entire thing might not be relevant at all, idk we'll see)
+\kw{cong} refers to the congruence property of equality and is explained in more
+detail in ??? (TODO: Link to other section). We can expect the first two
+equations to hold definitionally. If we imagine that the first two computation
+rules were defined via pattern-matching, it would make sense for these equations
+to hold definitionally. The third equation is a more curious case, it suggests
+that by congruence of equality, the application of the $\kw{Interval}$ recursor
+with the the equality proof $\id{P}$ to $\id{seg}$ should yield an equality
+proof between $\id{M}$ and $\id{N}$. More specifically, such an equality proof
+should be equal to $\id{P}$ itself. Equalities between equality proofs are only
+an important consideration in a proof relevant world, e.g.\ in the context of
+HoTT. In the world of Typer where we demand that equality proofs be erasable and
+play no role during computation, such considerations are not of huge importance.
+We mention nevertheless that in most cases, the third equation only holds
+propositionally, as is the case when it is defined as a user-defined datatype in
+other type systems such as Agda.
 
 TODO:\ The proof below requires depelim of Interval?
 
@@ -860,9 +879,24 @@ TODO:\ Add proof of $\kw{cong}_2$ and $\Sigma$ path characterisation in the appe
 For the sake of simplifying the proof of $\beta$, we assume the $\eta$-rule for dependent pairs. And with that, the proof is complete.
 
 \section{Justification}
-We have established that the equality type (also known as the identity type) is equivalent to a function out of the interval. We have also illustrated that such a function is expected to be constant on the unit interval. This `condition' is enforced by virtue of the fact that $\id{Interval}$ is defined as a higher inductive type with an identification of its two `points' (TODO:\ wording?). An alternate way of enforcing this is to use erasable functions out of a $\mathbbm{2}$-type. In other words, we can first define the $\id{Interval}$ type as a normal algebraic data type.
+We have established that the equality type (also known as the identity type) is
+equivalent to a function out of the interval. We have also illustrated that such
+a function is expected to be constant on the unit interval. This `condition' is
+enforced by virtue of the fact that $\id{Interval}$ is defined as a higher
+inductive type \cite{HoTTbook} with an identification of the two endpoints. The
+type system then enforces that all eliminations of the $\id{Interval}$ type be
+necessarily constant on the two endpoints. An alternate way of enforcing this is
+by using functions with erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a
+type with two distinct constructors that take no arguments, such as the Boolean
+type. An argument that is marked as erasable is one that has no computational
+role during runtime. Within the function body, such an argument may only be used
+in an `erasable' manner, for instance, it may be used in the computation of an
+expression that is passed as an erasable argument to yet another function. In
+other words, we can first define the $\id{Interval}$ type as a normal algebraic
+data type. Next, we can model the equality type as an erasable function out of
+the $\id{Interval}$ type. (FIXME: Abuse of terminology here? When I say erasable
+function I mean that the argument is erasable, not the function itself.)
 
-TODO:\ Define/explain erasable functions
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 type I
@@ -876,10 +910,15 @@ And then define a function with the following type:
 h : I @$\Rrightarrow$@ A
 \end{minted}
 
-Then, it is vacuously true that $\eqtype{h(i_0)}{h(i_1)}$. With that, we are able to postulate that
+In Typer, we use $\Rrightarrow$ to denote erasable arguments in function types.
+It is vacuously true that $\eqtype{h(i_0)}{h(i_1)}$ since what is returned by
+the function could not have been influenced by the argument that was passed to
+it by virtue of the fact that the argument is erasable. With that, we are able
+to postulate that
 
 \begin{align*}
-  & \bI \Rrightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}
+  & \bI \Rrightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} .
+  \eqtype{x}{y}
 \end{align*}
 
 The above shall be the basis of our new definition of identity types.
