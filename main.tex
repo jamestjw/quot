@@ -560,9 +560,9 @@ Eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\rightarrow$@ Type
 \end{minted}
 
 The $\kw{Eq}$ type former takes a type as input, along with two terms of that
-type that we wish to claim are equal. \footnote{For aesthetic purposes, we shall
+type that we wish to claim are equal\footnote{For aesthetic purposes, we shall
 use the operator $\equiv$ to represent the $\kw{Eq}$ type throughout the rest of
-the paper.} We could then construct the type that stipulates that the addition
+the paper.}. We could then construct the type that stipulates that the addition
 of natural numbers is commutative by using the $\kw{Eq}$ type former.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
@@ -809,9 +809,10 @@ a continuous path between \id{$i_0$} and \id{$i_1$}.
 
 Elimination of $\bI$ is similar to that of \id{Booleans} the only difference is
 that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected.
-The recursion principle of $\bI$ can thus be stated as follows \footnote{When we
+The recursion principle of $\bI$ can thus be stated as follows\footnote{When we
 say recursion principle, we refer to the definition as is employed in an
-introduction to the Coq proof assistant \cite{chlipala2022certified}.}:
+introduction to the Coq proof assistant \cite{chlipala2022certified}. This
+terminology has also been employed in the HoTT book\cite{HoTTbook}.}:
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{A}{Type}}
@@ -1246,16 +1247,23 @@ TODO: Either talk about hedberg's theorem here, or move this to another chapter.
 We don't have primitives such as $hcomp$, what does this imply? Is there a certain class of proofs we are unable to construct? Or do we just suffer from some amount of inconvenience?
 
 
-\chapter{Quotient Rules}
-\section{Typing}
+\chapter{Quotient Type}
+\section{Typing rules}
 We present the $\id{Quotient}$ primitives along with their typing rules.
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{A}}{\kw{Type}}}
    \hypo{\oftype{\ctx}{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}}}
-   \infer2[\kw{QUOT-FORMATION}]{\oftype{\ctx}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}
+   \infer2[\kw{QUOT-FORMATION}]{\oftype{\ctx}{\Funapp{\kw{Quotient}}{\id{A}}{\id{R}}}
                                              {\kw{Type}}}
 \end{prooftree*}
+
+We introduce the $\kw{Quotient}$ type former, which takes a base type $\id{A}$
+along with a relation $\id{R}$ as arguments. At this stage, we do not require
+the relation to be an equivalence relation, though in order to define a
+meaningful quotient type, the above requirement is often necessary. We also do
+not enforce that the relation be a mere proposition, however as we will see in
+\autoref{chap:quotient-effectiveness}, this is required in order for the quotient to be effective. (TODO: maybe link to more specific section instead of the chapter in general)
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{a}}{\id{A}}}
@@ -1265,20 +1273,30 @@ We present the $\id{Quotient}$ primitives along with their typing rules.
                                          {\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}}
 \end{prooftree*}
 
+$\id{Quotient\_in}$ is none other than a term former that injects a term of type
+$\id{A}$ into a quotient under some relation.
+
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{a}_1}{\id{A}}}
    \hypo{\oftype{\ctx}{\id{a}_2}{\id{A}}}
    \hypo{\oftype{\ctx}{\id{r}}{\Funapp{\id{R}}{\id{a}_1}}{\id{a}_2}}
-   \infer3[\kw{QUOT-INTRO-EQ}]{\oftype{\ctx}{\Funapp{\id{Quotient\_eq}}{\id{A}}{\id{R}}{\id{a}_1}{\id{a}_2}{\id{r}}}
-                                      {\Funapp{\id{Eq}}{(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}_1})}
-                                                       {(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}_2})}}}
+   \infer3[\kw{QUOT-INTRO-EQ}]{
+\oftype{\ctx}{\Funapp{\id{Quotient\_eq}}{\id{A}}{\id{R}}
+                                        {\id{a}_1}{\id{a}_2}{\id{r}}}
+             {\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}_1} \equiv \Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}_2}}}
+
 \end{prooftree*}
+
+By definition, given that two terms $\id{a}_1$ and $\id{a}_2$ of type $\id{A}$
+are related by some relation, then the injections of these two terms into a
+quotient under the aforementioned relation should be equal. $\id{Quotient\_eq}$
+is a witness of the above property.
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{P}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}} \rightarrow \kw{Type}}}
    \hypo{\oftype{\ctx}{\id{q}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}}
-   \infer[no rule]2{\oftype{\ctx}{\id{f}}{(\oftype{\id{a}}{\id{A}})
-                                    \rightarrow \Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}})}}}
+   \infer[no rule]2{\oftype{\ctx}{\id{f}}
+                           {(\oftype{\id{a}}{\id{A}}) \rightarrow \Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}})}}}
    \infer[no rule]1{\oftype{\ctx}{\id{h}}{(\oftype{\id{a}_1 \ \id{a}_2}{\id{A}})
                                           \rightarrow \Funapp{\id{R}}{\id{a}_1}{\id{a}_2}}
                                           \rightarrow \Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}_1})}
@@ -1287,8 +1305,20 @@ We present the $\id{Quotient}$ primitives along with their typing rules.
                                         {\Funapp{\id{P}}{\id{q}}}}
 \end{prooftree*}
 
+We would like to enable the dependent elimination of quotients, in other words
+we would like to be able to eliminate a term of some quotient type
+$\Funapp{\id{Quotient}}{\id{A}}{\id{R}}$ to some type family $\id{P}$ that is
+indexed by the quotient type itself. To that end, we require some function
+$\id{f}$ that takes some $\id{a}$ of the base type $\id{A}$ to
+$\Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}})}$. In a
+way, this implies that the function $\id{f}$ has the chance of `looking inside'
+the quotient, and thus we also require a proof that such a function $\id{f}$
+behaves consistently when applied to terms that are related by the underlying
+relation of the quotient. The usage of heterogenous equality here is necessary
+as $\Funapp{\id{f}}{\id{a}_1}$ and $\Funapp{\id{f}}{\id{a}_2}$ are not of the
+same type.
 
-\section{Reductions}
+\section{Reduction rules}
 We present the computation rule for the elimination of quotients.
 
 \begin{prooftree*}
@@ -1297,22 +1327,45 @@ We present the computation rule for the elimination of quotients.
              \rightsquigarrow \Funapp{\id{f}}{\id{a}}}
 \end{prooftree*}
 
-We see that during $\id{Quotient}$ elimination, the proof that the eliminator function respects the $\id{Quotient}$ is ignored. Instead, the function is applied directly to the underlying element of the base type.
+We note that during $\id{Quotient}$ elimination, the proof that the eliminator
+function respects the $\id{Quotient}$ is ignored. Instead, the function is
+applied directly to the underlying element of the base type. The fact that the
+proof that the elimination respects the quotient is unused during computation
+and is merely utilised during type-checking justifies our subsequent choice of
+making the proof an erasable argument of $\id{Quotient\_elim}$.
 
-\chapter{Implementation}
-In this chapter, we describe how we added quotient types to Typer. Next, we describe the library that we provide to facilitate the usage of quotient types in the development of Typer programs and proofs.
+It is also interesting to note that we are not able to derive a meaningful
+$\eta$-rule. If we wish to apply $\id{Quotient\_in}$ after applying
+$\id{Quotient\_elim}$ such that the composition amounts to the identity
+function, this would imply that $\id{Quotient\_elim}$ would need to called with
+a function $\id{f}$ that is itself the identity function. Unfortunately, in the
+general case this would not respect the underlying relation of the quotient.
+However, we could define an $\eta$-rule of sorts for quotients based on
+normalisation. (TODO: discuss and link)
 
-\section{Axioms}
-Quotient types are introduced in Typer in axiomatic manner, in other words, we postulate the existence of quotient types and define their behaviour axiomatically.
+\section{Implementation}
 
-\subsection*{Formation}
-The existence of the $\id{Quotient}$ type is postulated as follows
+In this section, we describe how the rules described above were added to Typer.
+Subsequently, we describe the library that we provide to facilitate the usage of
+quotient types in the development of Typer programs and proofs.
+
+\subsection{Axioms}
+
+Quotient types are introduced in Typer in axiomatic manner, i.e.\ the existence
+of the type former, terms formers and eliminators are simply postulated.
+However, the appropriate computational behaviour of the above constructs are
+also added to the system whenever necessary such that we do not find ourselves
+with stuck terms that adversely affect the computational properties of our
+system.
+
+\subsubsection*{Formation}
+The existence of the $\id{Quotient}$ type is postulated as follows:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Quotient : (A : Type) |$\rightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| Type
 \end{minted}
 
-\subsection*{Introduction}
+\subsubsection*{Introduction}
 Two axioms are added, corresponding to the two introduction rules of $\id{Quotient}$.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
@@ -1321,37 +1374,63 @@ Quotient_eq : (A : Type) |$\Rrightarrow$| (R A |$\rightarrow$| A |$\rightarrow$|
               |$\rightarrow$| Eq (Quotient_in (R := R) a) (Quotient_in (R := R) a')
 \end{minted}
 
-\subsection*{Elimination}
+TODO: In Quotient\_eq, debate the choice of not making R a a' erasable? I'm
+unsure if there are any benefits of having it as non-erasable
+
+As a constructor of equalities, $\id{Quotient\_eq}$ does not take part in
+computations. As such, no special reduction rules needed to be added for it.
+
+\subsubsection*{Elimination}
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Quotient_elim : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type)
-                |$\Rrightarrow$| (P : Quotient A R |$\rightarrow$| Type})
+Quotient_elim : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\Rrightarrow$| (P : Quotient A R |$\rightarrow$| Type)
                 |$\Rrightarrow$| ((a : A) |$\rightarrow$| P (Quotient_in a))
                 |$\rightarrow$| ((a a' : A) |$\rightarrow$| R a a' |$\rightarrow$| Heq (f a) (f a')
                 |$\Rrightarrow$| (q : Quotient A R) |$\rightarrow$| P q
 \end{minted}
 
-\section{Syntaxique sugar}
-TODO: Add after things get figured out
+As mentioned in the previous section, the appropriate $\beta$-reduction rule is
+added for the eliminator. When $\id{Quotient\_elim}$ is passed a term of the
+form $\Funapp{\id{Quotient\_in}}{\id{a}}$, the entire $\id{Quotient\_elim}$ term
+reduces to just $\Funapp{\id{f}}{\id{a}}$, ignoring the coherence proof that is
+passed to the function as it acts simply as a form of static information.
 
-\chapter{Quotient Effectiveness}
-This only works for relations that are propositions and equivalence relations (i.e.\ reflexive, symmetric and transitive).
+\subsection{Syntaxique sugar}
+TODO: Add more details after things get figured out
+
+TODO: Maybe mention experience of trying to encode QITs using syntaxic sugar,
+though unfortunately it didn't work out very well
+
+\chapter{Quotient Effectiveness}\label{chap:quotient-effectiveness}
+
+This only works for relations that are propositions and equivalence relations
+(i.e.\ reflexive, symmetric and transitive).
+
 \section{Propositional Extensionality}
-We provide a `weaker' (or alternative? which is it?) version of propositional extensionality. With this, we prove (a weaker version) quotient effectiveness.
+We provide a alternative version of propositional extensionality that is
+slightly weaker. Consequently, the version of quotient effectiveness that we
+prove is also weaker.
 
-\subsection{Representation of propositions}
-TODO: Describe the $Erased$ type and a proof that $\id{isProp (Erased A)}$.
+\subsection*{Representation of propositions}
 
-Intuitively speaking, propositions are a type that contain no intrinsic data, it is their mere existence that counts. This is precisely the notion of proof irrelevance. In Typer, this notion is represented via erasability. We introduce a built-in data type that captures this idea.
+Intuitively speaking, propositions are a type that contain no intrinsic data, it
+is their mere existence that counts. This is precisely the notion of proof
+irrelevance. In Typer, this notion is represented via erasability. We introduce
+a built-in data type that captures this idea.
 
 \begin{minted}{haskell}
 type Erased (T : Type)
   | erased (t ::: T)
 \end{minted}
 
-By ensuring that the witness $\id{t}$ of the type $\id{T}$ is erasable, this provides us with a guarantee that during elimination, the witness $\id{t}$ can only be used in an erasable, i.e.\ proof irrelevant manner.
+By ensuring that the witness $\id{t}$ of the type $\id{T}$ is erasable, this
+provides us with a guarantee that during elimination, the witness $\id{t}$ can
+only be used in an erasable, i.e.\ proof irrelevant manner.
 
-To convince ourselves that this type does indeed capture the essence of a proposition, we provide a proof of $\Funapp{\id{isProp}}{(\Funapp{\id{Erased}}{?\id{T}})}$. We state the definition of $\id{isProp}$:
+To convince ourselves that this type does indeed capture the essence of a
+proposition, we provide a proof of
+$\Funapp{\id{isProp}}{(\Funapp{\id{Erased}}{?\id{T}})}$. We first state the
+definition of $\id{isProp}$:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 isProp : (T : Type) |$\rightarrow$| Type
@@ -1376,55 +1455,109 @@ erasedIsProp t1 t2 =
                   Eq_trans (Eq_comm p1) p2
 \end{minted}
 
-Typer does not offer the direct specialisation of $\kw{case}$ targets in branches. In other words, in the first case branch, we do not have a definitional equality between $\id{t1}$ and $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$. Instead, an equality proof between them is injected into the context, which can be accessed as the variable at deBruijn index 0. Now that we have the two equality proofs, in order to concatenate them \footnote{By considering equalities as path, the application of the transitivity property of equality is conceptually similar to concatenating two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and $\Funapp{\id{erased}}{(\earg{\_}{\id{e2}})}$ to be equal. A priori, the two terms are not equal as $\id{e1}$ and $\id{e2}$ are completely arbitrary. However, Typer ignores erasable terms when checking the convertibility of terms, this is a property that was proven to be sound in ??? (TODO: Cite ICC paper). This allows the concatenation to succeed and thus concludes the proof.
+Typer does not offer the direct specialisation of $\kw{case}$ targets in
+branches. In other words, in the first case branch, we do not have a
+definitional equality between $\id{t1}$ and
+$\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$. Instead, an equality proof between
+them is injected into the context, which can be accessed as the variable at
+deBruijn index 0. Now that we have the two equality proofs, in order to
+concatenate them\footnote{By considering equalities as path, the application of
+the transitivity property of equality is conceptually similar to concatenating
+two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and
+$\Funapp{\id{erased}}{(\earg{\_}{\id{e2}})}$ to be equal. A priori, the two
+terms are not equal as $\id{e1}$ and $\id{e2}$ are completely arbitrary.
+However, Typer ignores erasable terms when checking the convertibility of terms,
+this is a property that was proven to be sound in \cite{barras2008implicit} as
+convertibility is tested on extracted terms. This allows the concatenation to
+succeed and thus concludes the proof.
 
-\subsection{Axiom}
-Propositional extensionality essentially means that if two propositions that are logically equivalent, i.e.\ each proposition implies the other, then we can say that they are equal. And precisely because we are postulating a new equality constructor, we have to be very careful that the resulting equality proof is indeed proof irrelevant. In other words, we need this equality proof to not have any runtime relevance. This is principally because we insist that the transport operation to be a no-op during runtime. This is the motivation behind our choice to use the $\id{Erased}$ type to represent propositions, as it is a guarantee that such a type carries no useful runtime information. This implies that a transport operation from one $\id{Erased}$ type to another is simply a no-op.
+\subsection*{Implementation details}
 
-In a setting with univalence, propositional extensionality is simply a theorem that may be proven (TODO:\ Maybe cite something here). This is a result that is immediate as an equivalence between logically equivalent propositions is trivial. In the setting of Typer however, propositional extensionality is implemented as an axiom with the following type signature:
+Propositional extensionality essentially means that if two propositions that are
+logically equivalent, i.e.\ each proposition implies the other, then we can say
+that they are equal. And precisely because we are postulating a new equality
+constructor, we have to be very careful that the resulting equality proof is
+indeed proof irrelevant. In other words, we need this equality proof to not have
+any runtime relevance. This is principally because we insist that the transport
+operation to be a no-op during runtime. This is the motivation behind our choice
+to use the $\id{Erased}$ type to represent propositions, as it is a guarantee
+that such a type carries no useful runtime information. This implies that a
+transport operation from one $\id{Erased}$ type to another is necessarily simply
+a no-op.
+
+In a setting with univalence, propositional extensionality is simply a theorem
+that may be proven, more specifically, it may be seen as a degenerate case of univalence\cite{sozeau2013univalence}. This is a result that is
+immediate as an equivalence between logically equivalent propositions is
+trivial. In the setting of Typer however, propositional extensionality is
+implemented as an axiom with the following type signature:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 propExt : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (Erased A @$\rightarrow$@ Erased B)
-           @$\rightarrow$@ (Erased B @$\rightarrow$@ Erased A) @$\rightarrow$@ Eq (Erased A) (Erased B)
+           @$\rightarrow$@ (Erased B @$\rightarrow$@ Erased A) @$\rightarrow$@ Erased A \equiv Erased B
 \end{minted}
 
-The above is a weaker notion of propositional extensionality compared to what is proposed in Cubical Agda, which has the following type signature:
+The above is a weaker notion of propositional extensionality compared to what is
+proposed in Cubical Agda, which has the following type signature:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{Agda}
 propExt : {A B : Type} @$\rightarrow$@ isProp A @$\rightarrow$@ isProp B @$\rightarrow$@ (A @$\rightarrow$@ B)
           @$\rightarrow$@ (B @$\rightarrow$@ A) @$\rightarrow$@ A @$\equiv$@ B
 \end{minted}
 
-However, this produces an equality proof that is not proof irrelevant, which we illustrate with a simple example. We define two instances of the unit type which are trivially `logically equivalent'.
+However, this produces an equality proof that is not proof irrelevant, as
+$\id{A}$ and $\id{B}$ are not necessarily the `same' type. We illustrate the
+above with a simple example. We define two instances of the unit type which are
+trivially `logically equivalent'.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{Agda}
-data Unit1 : Type where
-  unit1 : Unit1
+data Unit1 : Type where unit1 : Unit1
 
 data Unit2 : Type where
   unit2 : Unit2
 \end{minted}
 
-$\Funapp{\kw{isProp}}{\id{Unit1}}$ and $\Funapp{\kw{isProp}}{\id{Unit2}}$ are trivially true, as is the case for all $\mathbb{1}$ types. $\id{Unit1} \rightarrow \id{Unit2}$ and $\id{Unit2} \rightarrow \id{Unit1}$ are also inhabited. Propositional extensionality thus gives us a proof of $\id{Unit1} \equiv \id{Unit2}$. This implies that we should be able to use said proof to transport $\id{unit1}$ to $\id{unit2}$, but since the two terms do not have the same runtime value, this simply cannot be a no-op.
+$\Funapp{\kw{isProp}}{\id{Unit1}}$ and $\Funapp{\kw{isProp}}{\id{Unit2}}$ are
+trivially true, as is the case for all $\mathbb{1}$-types. $\id{Unit1}
+\rightarrow \id{Unit2}$ and $\id{Unit2} \rightarrow \id{Unit1}$ are also
+inhabited. Propositional extensionality thus gives us a proof of $\id{Unit1}
+\equiv \id{Unit2}$. This implies that we should be able to use said proof to
+transport $\id{unit1}$ to $\id{unit2}$, but since the two terms do not have the
+same runtime representation, this simply cannot be a no-op. This is in stark
+contrast to the version of propositional extensional that we are proposing in
+Typer that only accepts types that are boxed in the $\id{Erased}$ type. We would
+have no qualms about having a proof of equality between
+$\Funapp{\id{Erased}}{Unit1}$ and $\Funapp{\id{Erased}}{Unit2}$ as terms of
+these two types would essentially have the same runtime representation. It is
+also for this precise reason that our version of propositional extensionality is
+weaker, as we are constrained to construct an equality proof that is not
+computationally relevant.
 
-Another worthy comparison to make is with Lean, which has a $\kw{Prop}$ sort. Terms of this sort are not autorised to be used in a proof relevant manner. Its version of propositional extensionality has the following form:
+Another worthy comparison to make is with Lean, which has a $\kw{Prop}$ sort.
+Terms of this sort are not autorised to be used in a proof relevant manner. Its
+version of propositional extensionality has the following form:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{lean}
 axiom propext {a b : Prop} : (a @$\leftrightarrow$@ b) @$\rightarrow$@ a = b
 \end{minted}
 
-This is similar to what we have in Typer, except that proof irrelevance is enforced in a different manner.
+This is similar to what we have in Typer, except that proof irrelevance is
+enforced in a different manner.
 
 \section{Equivalence relation}
-TODO: Explanation of relations should probably go elsewhere
 
-First, we state what we mean when we say `relation' to set the stage for the subsequent discussion. For our purposes, we conider binary relations, which are type formers that take two arguments of some type $\kw{A}$. Assuming that we call the relation $\kw{R}$ and its two arguments $\id{a}$ and $\id{a}'$ respectively, inhabitants of the type $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ are witnesses of this binary relation. The type signature of a binary relation has the below form:
+First, we state what we mean when we say `relation' to set the stage for the
+subsequent discussion. For our purposes, we consider binary relations, which are
+type formers that take two arguments of some type $\kw{A}$. Assuming that we
+call the relation $\kw{R}$ and its two arguments $\id{a}$ and $\id{a}'$
+respectively, inhabitants of the type $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ are
+witnesses of this binary relation. The type signature of a binary relation has
+the below form:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 R : (A : Type) |$\Rrightarrow$| (a : A) |$\rightarrow$| (a' : A) |$\rightarrow$| Type
 \end{minted}
 
-For a quotient to be effective, its underlying relation has to be an equivalence relation, we shall use this property in the proof in the subsequent section. Recall that an equivalence relation implies that the relation is reflexive, symmetric and transitive. For it to be reflexive, it needs to be the case that given an arbitrary $\oftype{\id{a}}{\kw{A}}$, $\Funapp{\kw{R}}{\id{a}}{\id{a}}$ must be trivially inhabited. The symmetry of the relation implies that if we are given an arbitrary witness of $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$, we need to be able to transform that into an inhabitant of $\Funapp{\kw{R}}{\id{a}'}{\id{a}}$. The relation is transitive if we are able to transform witnesses of $\Funapp{\kw{R}}{\id{a}}{\id{b}}$ and $\Funapp{\kw{R}}{\id{b}}{\id{c}}$ into witnesses of $\Funapp{\kw{R}}{\id{a}}{\id{c}}$. \footnote{The equality type fulfills these criteria and is an equivalence relation.}
+For a quotient to be effective, its underlying relation has to be an equivalence relation, we shall use this property in the proof in the subsequent section. Recall that an equivalence relation implies that the relation is reflexive, symmetric and transitive. For it to be reflexive, it needs to be the case that given an arbitrary $\oftype{\id{a}}{\kw{A}}$, $\Funapp{\kw{R}}{\id{a}}{\id{a}}$ must be trivially inhabited. The symmetry of the relation implies that if we are given an arbitrary witness of $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$, we need to be able to transform that into an inhabitant of $\Funapp{\kw{R}}{\id{a}'}{\id{a}}$. The relation is transitive if we are able to transform witnesses of $\Funapp{\kw{R}}{\id{a}}{\id{b}}$ and $\Funapp{\kw{R}}{\id{b}}{\id{c}}$ into witnesses of $\Funapp{\kw{R}}{\id{a}}{\id{c}}$\footnote{The equality type fulfills these criteria and is an equivalence relation.}.
 
 In the built-in library, we define the following type as a witness that a certain relation is indeed an equivalence relation.
 
@@ -1480,12 +1613,30 @@ effective = lambda A |$\Rrightarrow$| lambda R equiv a b eq |$\rightarrow$|
 
 Compared to the more general version of the theorem we state before, here we insist that the quotient we consider be based on the erased version of some binary relation $\kw{R}$. And instead of proving that the base relation itself holds for some $\id{a}$ and $\id{b}$, we can only show that the erased version of this relation holds.
 
-In this proof, we can see that all aspects of the sufficient condition are at play. It is mainly used to prove that for arbitrary terms $\id{a}$, $\id{b}$ and $\id{c}$ of type $\kw{A}$, if it is the case that if $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{b}}{\id{c}})}$ is inhabited, then $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ $\iff$ $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$. Intuitively speaking this makes a lot of sense, $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{b}}{\id{c}})}$ implies that $\id{b}$ and $\id{c}$ are in the same equivalence class of the quotient. Hence, if we know that $\id{a}$ is in the same equivalence class as $\id{b}$, we should naturally be able to infer that $\id{a}$ and $\id{c}$ are also in the same equivalence class, and vice versa. Propositional extensionality takes us even further, by allowing us to prove that $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ and $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$ are in fact equal since they are both mere propositions.
+In this proof, we can see that all aspects of the sufficient condition are at
+play. It is mainly used to prove that for arbitrary terms $\id{a}$, $\id{b}$ and
+$\id{c}$ of type $\kw{A}$, if it is the case that if
+$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{b}}{\id{c}})}$ is inhabited, then
+$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ $\iff$
+$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$. Intuitively speaking
+this makes a lot of sense,
+$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{b}}{\id{c}})}$ implies that $\id{b}$
+and $\id{c}$ are in the same equivalence class of the quotient. Hence, if we
+know that $\id{a}$ is in the same equivalence class as $\id{b}$, we should
+naturally be able to infer that $\id{a}$ and $\id{c}$ are also in the same
+equivalence class, and vice versa. Propositional extensionality takes us even
+further, by allowing us to prove that
+$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ and
+$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$ are equal since they
+are both mere propositions.
 
 Examples of usage of the above theorem are in Chapter XXX (TODO: Link to other section).
 
 \chapter{Examples}
-The addition of quotient types to Typer allows to define certain constructs that are typically defined in set theory as quotient sets. In this chapter, we discuss some types that are now natively definable by taking the quotient of existing types in the system.
+The addition of quotient types to Typer allows us to define certain constructs
+that are typically defined in set theory as quotient sets. In this chapter, we
+discuss some types that are now natively definable by taking the quotient of
+existing types in the system.
 
 \section{Rational numbers}
 To define the rational numbers as a quotient type, we have two obvious options for the base type.
@@ -1506,11 +1657,44 @@ The second option is similar to the first:
   & (x_1 , y_1, \_) \sim_{\mathbb{Q}} (x_2 , y_2, \_) \ \coloneqq Eq \ (x_1 * y_2) \ (y_1 * x_2)
 \end{align*}
 
-In this definition, the base type of a quotient is a pair of integers, along with a proof that the denominator is non-zero. We chose to use this as the basis of our definition of the rationals, as it is more convenient to work with a pair of elements of the same type.
+In this definition, the base type of a quotient is a pair of integers, along
+with a proof that the denominator is non-zero. We chose to use this as the basis
+of our definition of the rationals, as it is more convenient to work with a pair
+of elements of the same type.
 
-Given that the equivalence of rational numbers is captured by a relation, we do not need to normalise our rational numbers after each computation, instead we prove that all of our operations respect the equivalence of rational numbers. This gives us good runtime efficiency, as opposed to more naive implementations.
+Given that the equivalence of rational numbers is captured by a relation, we do
+not need to normalise our rational numbers before or after each computation,
+instead we prove that all of our operations respect the equivalence of rational
+numbers. We hoped that this would give us better runtime efficiency, as opposed
+to more naives implementations. To make this clearer, we illustrate one possible
+naive implementation. To ensure that operations on the base type of the quotient
+type that we intend to use to represent the rational numbers respect the
+equivalence relation, we may be tempted to simply normalise the operands before
+actually carrying out any computation. This implies that if the operands were
+indeed equivalent, then the normalisation of the operands would have yielded two
+terms that are provably equal. Hence by the congruence property of equality, the
+operation would necessarily respect the underlying relation. However, it is
+clear that such an approach might possibly be expensive. In order to normalise
+the base type, which we could imagine to be a pair of integers, we would have to
+divide both integers by their greatest commmon divisor (GCD). The calculation of
+their GCD could in itself be more costly that the actual operation itself. Thus,
+this unnecessary normalisation could potentially adversely affect the runtime
+efficiency of our operations on rational numbers. Hence, our definitions of
+operations on the rational numbers do not rely on normalisation. However, this
+is not without its downsides as it entails heavier proof obligations, this is a
+topic that we shall discuss subsequently.
 
-Typer has a built-in $\kw{Integer}$ type. Behind the scenes, this is based on big integers in OCaml (TODO: Maybe some more elaboration here). Operations on the $\kw{Integer}$ type such as addition, multiplication etc are implemented as axioms. At runtime, the corresponding OCaml operations are invoked to carry out the necessary computations. So far, we are unable to reason about these operations in Typer as they are merely primitives that are implemented in the host language. In the following section, we propose the addition of several axioms that will allow us to prove certain properties of the built-in $\kw{Integer}$ type, this will be necessary when we start reasoning about operations on Rational numbers.
+Typer has a built-in $\kw{Integer}$ type. Behind the scenes, this is based on
+big integers in OCaml (TODO:\ Maybe some more elaboration here). Operations on
+the typer $\kw{Integer}$ type such as addition, multiplication etc are
+implemented as axioms. At runtime, the responsibilities of these functions are
+simply delegated to their corresponding OCaml functions to carry out the
+necessary computations. So far, we are unable to reason about these operations
+in Typer as they are merely primitives that are implemented in the host
+language. In the following section, we propose the addition of several axioms
+that serve as witnesses of certain properties of the built-in $\kw{Integer}$
+type, this will be crucial when we start reasoning about operations on rational
+numbers.
 
 \subsection*{Integer axioms}
 We start off by axiomatising the associativity and commutativity of the addition and multiplication operations.
@@ -1744,7 +1928,7 @@ We still need to show that the $\zpairplus$ function itself respects the underly
 @$\mathbb{Q}$+\_feqr@ = ?
 \end{minted}
 
-The proof of $\mathbb{Q}{+}\_\kw{feql}$ is long and uninteresting and thus will not described here.\footnote{Interested readers may find the proof at TODO:\ link}. However, once this has been proved, its counterpart is a trivial corollary by virtue of the commutativity of $\zpairplus$.
+The proof of $\mathbb{Q}{+}\_\kw{feql}$ is long and uninteresting and thus will not described here\footnote{Interested readers may find the proof at TODO:\ link}. However, once this has been proved, its counterpart is a trivial corollary by virtue of the commutativity of $\zpairplus$.
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
 @$\mathbb{Q}$+\_feqr@ a b b' p =
