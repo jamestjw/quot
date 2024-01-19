@@ -132,6 +132,9 @@
 \usepackage{tikz} %% For drawing diagrams
 
 \tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt
+
+\usepackage{booktabs} %% Nicer tables
+\usepackage{multirow} %% Combines rows and columns in tables
 %% Packages - END.
 
   % Enlever les commentaires du prochaine \hypersetup et
@@ -414,6 +417,9 @@ Contributions:
  % le recto, pour l'impression. On l'utilise ici
  % pour que TeX sache que la table des matières etc. soit
  % sur la page qui suit.
+
+\setcounter{tocdepth}{1} %% only part,chapters,sections in TOC
+
 %% TABLE DES MATIÈRES
 \cleardoublepage
 \pdfbookmark[chapter]{\contentsname}{toc}  % Crée un bouton sur
@@ -928,6 +934,13 @@ The above shall be the basis of our new definition of identity types.
 TODO:\ Mention transp
 
 \section{Manipulation of the Interval type}
+
+\subsection*{Negation}
+
+\subsection*{Meet}
+
+\subsection*{Join}
+
 TODO:\ Mention operators like $\!$, $\wedge$ and $\vee$.
 
 \section{Identity type}
@@ -2000,18 +2013,86 @@ Rational_+Rinv q = Eq_trans (Rational_+-Comm q (Rational_negate q))
 
 \end{minted}
 
-For brevity, we do not describe the proofs for multiplication as they can be carried out in a similar fashion as the above. In Section ??? (TODO:\ add this), we explore the runtime cost of using this construction of the rational numbers.
+For brevity, we do not describe the proofs for multiplication as they can be
+carried out in a similar fashion as above.
 
-\section{Real numbers}
-TODO:\ Explore the definition of Dedekind reals in Typer (by leveraging the definition of $\mathbb{R}$). At first sight, I'm not sure if we can do Cauchy reals, TBD
+\subsection{Benchmarks}
+
+%% TODO: If I end up running benchmarks for other examples as well, maybe then I
+%% should consider having a dedicated section for benchmarks
+
+In this section, we use our implementation of rational numbers to explore the
+runtime cost of using quotient types in Typer. Quotient types are nothing more
+than a means of using the type system to ensure that programmers respect a
+certain relation on a base type by means of proof obligations. Such proofs can
+be expected to be erased before the actual execution of a program, our intuition
+would then lead us to expect that the usage of quotient types to have a
+negligible runtime overhead. Hence, the tests in our benchmark were designed
+with the simple objective of verifying the above claim.
+
+Since the operations on rational numbers are essentially wrappers around
+operations on the base type $\zpair$, our benchmark simply compares the
+execution time of operations on $\zpair$ with their $\fn{Rational}$
+counterparts\footnote{The code for this may be found in the
+$\fn{rational\_benchmark.typer}$ file.}. We examine the runtime
+cost\footnote{The tests were executed on the author's 2018 Macbook Pro with a
+quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of
+$\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
+$\fn{Rational\_*}$.
+
+%% TODO: Column sizes aren't equal between zpair and Rational? How do I fix this?
+\begin{table}[H]
+\centering
+\begin{tabular}{ccccc}
+\hline
+\multirow{2}{*}{\textbf{Operation}} & \multicolumn{2}{c}{\textbf{Execution Time (seconds)}} & \multicolumn{2}{c}{\textbf{Overhead}} \\ \cline{2-5}
+                                    & \textbf{$\zpair$}          & \textbf{Rational}         & \textbf{seconds}     & \textbf{\%}    \\ \hline
+Negation       & 0.39 & 0.53 & 0.14 & 35.9 \\
+Addition       & 0.64 & 0.87 & 0.23 & 35.9 \\
+Subtraction    & 0.76 & 1.15 & 0.39 & 51.3 \\
+Multiplication & 0.50 & 0.80 & 0.30 & 60.0 \\ \hline
+\end{tabular}
+\caption{The runtime cost of operations on rational numbers with and without the
+  use of quotient types.}
+\label{tab:rational-benchmark}
+\end{table}
+
+We observe that there is indeed a non-negligible overhead caused by the usage of
+quotient types, which we will now try to justify. Without loss of generality, we
+discuss the addition operation. Once the $\zpairplus$ function that handles the
+addition of $\zpair$ and its $\fn{Rational}$ counterpart, $\fn{Rational\_+}$
+have undergone erasure, the resulting functions are extensionally equal. By
+definition of erasure\cite{monnier2019typer}, all erasable arguments are
+removed, hence all proof objects required by the quotient type will be absent in
+the erased versions of the above functions. The two erased functions are
+nevertheless not completely equal, as we shall see by examining the Elexp
+(erased lambda expression) \cite{delaunay2017implementation} of
+$\fn{Rational\_+}$:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{scheme}
+  (lambda (a) @$\rightarrow$@ (lambda (b) @$\rightarrow$@
+    (Quotient_rec2 (lambda (x) @$\rightarrow$@
+                       (lambda (y) @$\rightarrow$@
+                           (Quotient_in (@$\zpairplus$@ x y)))) a b)))
+\end{minted}
+
+Through a series of $\eta$-reductions and $\beta$-reductions, we can see that
+the above expression is equivalent to $\zpairplus$. This implies that with an
+appropriate optimisation phase, Elexps containing quotient primitives could be
+simplified to completely neutralise the overhead of quotient types. We leave
+this optimisation for a future work.
 
 \section{Multiset}
+
+TODO: Cook up an example of this
+
 \section{Propositional Truncation}
 
 We can encode propositional truncation as a quotient type. The required properties are:
 
 \begin{itemize}
-	\item $\id{A} \ \kw{true} \rightarrow \norm{A} \ \kw{true}$ and $\norm{A}$ is a subsingleton (exists unique)
+	\item $\id{A} \ \kw{true} \rightarrow \norm{A} \ \kw{true}$ and $\norm{A}$
+      is a subsingleton (exists unique)
 %% 	\item $\id{A}  \ $subsingleton$ \rightarrow (\norm{A} \ \kw{true} \rightarrow \id{A} \ \kw{true})$
 	\item For some P that is a subsingleton and some $f : \id{A} \rightarrow \kw{P}$, there exists a function $g : \norm{A} \rightarrow P$ s.t. $ \forall a : A \ . \ g(a^*) = f(a)$, where $a^* \in \norm{A}$.
 \end{itemize}
