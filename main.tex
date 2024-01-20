@@ -135,6 +135,7 @@
 
 \usepackage{booktabs} %% Nicer tables
 \usepackage{multirow} %% Combines rows and columns in tables
+\usepackage{mdframed} %% Nice frames
 %% Packages - END.
 
   % Enlever les commentaires du prochaine \hypersetup et
@@ -935,13 +936,104 @@ TODO:\ Mention transp
 
 \section{Manipulation of the Interval type}
 
+We introduce a few operations on the interval type whose usefulness will become
+clear after we introduce our version of the equality type that is based on the
+interval type.
+
+% TODO: Take some inspiration from
+% https://amelia.how/posts/cubical-type-theory.html
+
 \subsection*{Negation}
 
-\subsection*{Meet}
+The negation operator does what its name suggests, i.e.\ it simply negates
+endpoints of the Interval type. Unsurprisingly, it has the following type:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+I_not : I @$\rightarrow$@ I
+\end{minted}
+
+The negation operator computes as follows:
+
+\begin{mdframed}[innertopmargin=\baselineskip,innerbottommargin=\baselineskip]
+  \begin{center}
+    \begin{prooftree}
+        \infer0[I-NOT$_1$]{\Funapp{\fn{I\_not}}{i_0} \rightsquigarrow{} i_1}
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \infer0[I-NOT$_2$]{\Funapp{\fn{I\_not}}{i_1} \rightsquigarrow{} i_0}
+    \end{prooftree}
+
+    \hfill \break
+
+    \begin{prooftree}
+        \infer0[I-NOT-NOT]{\Funapp{\fn{I\_not}}{(\Funapp{\fn{I\_not}}{i})}
+            \rightsquigarrow{} i}
+    \end{prooftree}
+  \end{center}
+\end{mdframed}
+
+I-NOT-NOT is a special rule that states that the composition of \fn{I\_not} with
+itself is equal to the identity function. This is something that we could have
+proven propositionally, however, for our purposes it is crucial that this
+equality holds definitionally. (TODO:\ Actually wait, I have to check this
+claim. It's also possible that this is not entirely necessary, though it makes
+proofs that do indeed require this property a lot simpler and more elegant)
+
+\subsubsection*{Meet}
+
+The meet operator returns the minimum of two terms of the Interval type. The order of the Interval type is such that $i_0 \le i \le i_1, \forall i \in I$
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+I_meet : I @$\rightarrow$@ I @$\rightarrow$@ I
+\end{minted}
+
+It has the following reduction rules:
+
+\begin{mdframed}[innertopmargin=\baselineskip,innerbottommargin=\baselineskip]
+    \begin{center}
+        \begin{prooftree}
+            \infer0[I-MEET$_1$]{\Funapp{\fn{I\_meet}}{i_0}{i}
+                \rightsquigarrow{} i_0}
+        \end{prooftree}
+        \qquad
+        \begin{prooftree}
+            \infer0[I-MEET$_2$]{\Funapp{\fn{I\_meet}}{i_1}{i}
+                \rightsquigarrow{} i}
+        \end{prooftree}
+
+        \hfill \break
+
+        \begin{prooftree}
+            \infer0[I-MEET$_3$]{\Funapp{\fn{I\_meet}}{i}{i_0}
+                \rightsquigarrow{} i_0}
+        \end{prooftree}
+        \qquad
+        \begin{prooftree}
+            \infer0[I-MEET$_4$]{\Funapp{\fn{I\_meet}}{i}{i_1}
+                \rightsquigarrow{} i}
+        \end{prooftree}
+
+        \hfill \break
+
+        \begin{prooftree}
+            \infer0[I-MEET$_5$]{\Funapp{\fn{I\_meet}}{i}{i}
+                \rightsquigarrow{} i}
+        \end{prooftree}
+    \end{center}
+\end{mdframed}
+
+I-MEET$_1$ is valid as $i_0$ is lesser or equal to anything else. In a similar
+fashion, I-MEET$_2$ is justified as everything is lesser or equal to $i_1$.
+Since the operator is commutative, I-MEET$_3$ and I-MEET$_4$ are complementary
+to I-MEET$_1$ and I-MEET$_2$. The minimum of $\id{i}$ and $\id{i}$ is $\id{i}$
+itself, justifying the I-MEET$_5$ rule. Note that since the Interval type does
+not behave like a Boolean algebra, it is not the case the
+$\Funapp{\fn{I\_meet}}{i}{(\Funapp{I\_not}{i})} \rightsquigarrow{} i_0$.
 
 \subsection*{Join}
-
-TODO:\ Mention operators like $\!$, $\wedge$ and $\vee$.
+TODO: So far I haven't found a need for this operator. Do some investigation to
+see if this is a worthy addition
 
 \section{Identity type}
 
