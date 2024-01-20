@@ -248,6 +248,7 @@
 \newcommand\kw[1] {\textsf{#1}}
 \newcommand\id[1] {\textsl{#1}}
 \newcommand\fn[1] {\texttt{#1}}
+\newcommand\type[1] {\textsf{#1}} %% Type names
 \newcommand\latinphrase{\textit}
 
 \NewDocumentCommand{\bI}{}{\mathrm{I}} %% Bold Interval I
@@ -931,9 +932,6 @@ to postulate that
 
 The above shall be the basis of our new definition of identity types.
 
-\section{Elimination of the Interval type}
-TODO:\ Mention transp
-
 \section{Manipulation of the Interval type}
 
 We introduce a few operations on the interval type whose usefulness will become
@@ -1035,10 +1033,67 @@ $\Funapp{\fn{I\_meet}}{i}{(\Funapp{I\_not}{i})} \rightsquigarrow{} i_0$.
 TODO: So far I haven't found a need for this operator. Do some investigation to
 see if this is a worthy addition
 
+\section{Elimination of the Interval type}
+
+We present the one and only elimination rule of our \type{Interval} type. It is
+largely inspired by the (generalised) transport operation used in Cubical
+Agda\cite{vezzosi2021cubical}. It has the following typing rule:
+
+\begin{prooftree*}
+  \hypo{\oftype{\ctx}{\id{A}}{\id{I} \Rrightarrow \type{Type}}}
+  \hypo{\oftype{\ctx}{\id{r}}{\type{Interval}}}
+  \hypo{\oftype{\ctx}{\id{a}}{\Funapp{\id{A}}{(\earg{\id{i}_0})}}}
+  \infer3{\oftype{\ctx}
+                 {\Funapp{\id{I\_transp}}{\id{A}}{\id{r}}{\id{a}}}
+                 {\Funapp{\id{A}}{(\earg{\Funapp{\id{I\_not}}{\id{r}}})}}}
+\end{prooftree*}
+
+We claim that this is a generalised version of the transport operation as the
+argument \id{r} dictates when \id{I\_transp} should behave like the identity
+function. When $\id{r} = \id{i}_1$, then the type of
+$\Funapp{\id{I\_transp}}{\id{A}}{\id{r}}$ is $\Funapp{\id{A}}{(\earg{\id{i}_0})}
+\rightarrow \Funapp{\id{A}}{(\earg{\id{i}_0})}$, i.e. it behaves like the
+identity function. Since our version of $\id{I\_transp}$ is slightly different
+from that of Cubical Agda, we do not need the additional side condition that
+states that A needs to be a constant function when $\id{r} = \id{i}_1$ in order
+for the above expression to typecheck. This is primarily because the ultimate
+return type of the function is dependent on $\id{r}$ itself. When $\id{r} =
+\id{i}_0$, then the type of $\Funapp{\id{I\_transp}}{\id{A}}{\id{r}}$ is
+$\Funapp{\id{A}}{(\earg{\id{i}_0})} \rightarrow
+\Funapp{\id{A}}{(\earg{\id{i}_1})}$, this gives us a function that transports an
+expression of type $\Funapp{\id{A}}{(\earg{\id{i}_0})}$ to type
+$\Funapp{\id{A}}{(\earg{\id{i}_1})}$. We shall make use of this property
+subsequently to define the actual transport function. However, the other
+property of the $\id{I\_transp}$ function may appear bizarre at first sight, but
+in reality it ensures that $\Funapp{\id{I\_transp}}{\id{A}}{\id{r}}{\id{a}}$ is
+equal to $\id{a}$\footnote{This equality would be heteregenous as the two terms
+may not have the same type}.
+
+The computational behaviour of the function is as follows:
+
+\begin{prooftree*}
+  \infer0{\Funapp{\id{I\_transp}}{\id{A}}{\id{r}}{\id{a}} \rightsquigarrow \id{a}}
+\end{prooftree*}
+
+The function is implemented in Typer as a primitive with the following type
+signature:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (r : I) @$\Rrightarrow$@ A (_ := i0) @$\rightarrow$@ A (_ := I_not r)
+\end{minted}
+
+Its implementation is simple in that it simply returns the argument $\id{a}$
+untouched.
+
 \section{Identity type}
 
 \subsection{Heterogenous equality}
-With the above definition of $\bI$, we are now ready to introduce the notion of heterogenous equality. Such an equality type allows us to identify two terms that are not necessarily of the same type. The heterogenous equality type has the following type signature\footnote{Although not mentioned explicitly, functions involving the identity type are universe polymorphic in their arguments and return type.} and is implemented axiomatically.
+With the above definition of $\bI$, we are now ready to introduce the notion of
+heterogenous equality. Such an equality type allows us to identify two terms
+that are not necessarily of the same type. The heterogenous equality type has
+the following type signature\footnote{Although not mentioned explicitly,
+functions involving the identity type are universe polymorphic in their
+arguments and return type.} and is implemented axiomatically.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Heq : ?x @$\rightarrow$@ ?y @$\rightarrow$@ Type
@@ -1162,7 +1217,7 @@ Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := 
 \end{figure}
 
 \subsection*{Functional extensionality}
-The notion of functional extensionality implies that pointwise-equal functions are indeed equal. By postulating the existence of the $\id{Interval}$ type along with an equality type that's based on it, functional extensionality can be derived trivially as is illustrated by the below proof.
+The notion of functional extensionality implies that pointwise-equal functions are indeed equal. By postulating the existence of the $\type{Interval}$ type along with an equality type that's based on it, functional extensionality can be derived trivially as is illustrated by the below proof.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Eq_funExt : (f : (? |$\rightarrow$| ?)) |$\Rightarrow$| (g : (? |$\rightarrow$| ?))
