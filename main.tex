@@ -474,6 +474,7 @@ Contributions:
 \begin{twocolumnlist}{.2\textwidth}{.7\textwidth}
   ETT & Extensional Type Theory\\
   HoTT & Homotopy Type Theory\\
+  UIP & Uniqueness of Identity Types\\
 \end{twocolumnlist}
 %% L'environnement <threecolumnlist> existe aussi pour trois colonnes.
 
@@ -766,24 +767,6 @@ done if $\mathbb{Z}$ was defined as a quotient of $\mathbb{N} \times
 https://staff.math.su.se/anders.mortberg/papers/cubicalagda2.pdf section 2.4.1).
 (TODO: refer to my notes for a proof that Unit != Unit/R without the
 truncation).
-
-
-- Mention some caveats that we have, i.e. $cong \ id \ p \equiv p$ does not hold
-definitionally in Typer, unlike in Cubical Agda (also mentioned in `A model of
-type theory in cubical sets - Marc Bezem, Thierry Coquand, Simon Huber'). Of
-course, if we could add an eta rule to make this work if we really wanted to
-(TODO: Though how to add this without it being extremely ugly?).
-
-
-- Apparently if Eq\_uneq doesn't reduce directly to either endpoint of the path
-for concrete canonical values of I, then we can't derive funext directly. Not
-sure if this fun fact is worth mentioning. (TODO: Mention this after the
-reduction rules of Eq\_uneq)
-
-- Implementing quotients by interpreting the theory in a setoid models (as done
-by Nuo Li) results in a depelim that only works for Props (as opposed to what we
-have)
-
 
 %%------------------------------------------------- %
 %%                Chapters                          %
@@ -1085,7 +1068,7 @@ I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (r : I) @$\Rrightarrow
 Its implementation is simple in that it simply returns the argument $\id{a}$
 untouched.
 
-\section{Identity type}
+\section{Identity type}\label{sec:identity}
 
 \subsection{Heterogenous equality}
 With the above definition of $\bI$, we are now ready to introduce the notion of
@@ -1121,10 +1104,37 @@ Heq_uneq : (t : I @$\Rrightarrow$@ Type)
            @$\Rightarrow$@ (p : Heq x y) @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t (_ := i)
 \end{minted}
 
-The composition of $\id{Heq\_uneq}$ and  $\id{Heq\_eq}$ (modulo the implicit arguments) is equal to the identity function.
+The composition of $\id{Heq\_uneq}$ and $\id{Heq\_eq}$ (modulo the implicit
+arguments) is equal to the identity function, which gives us the
+$\eta$-equivalence for some $\fn{p:Heq ?x ?y}$:
+
+\begin{align*}
+  & \Funapp{\id{Heq\_eq}}{(\earg{f}{\lambda i \Rrightarrow
+      \Funapp{\id{Heq\_uneq}}{(\earg{p}{p})}{(\earg{i}{i})}})} = p
+\end{align*}
+
+\subsubsection*{Reduction rules}
+
+\begin{prooftree*}
+   \infer0[UNEQ-LEFT]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\ileft}
+                     \rightsquigarrow \id{x}}
+\end{prooftree*}
+
+\begin{prooftree*}
+   \infer0[UNEQ-RIGHT]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\iright}
+                       \rightsquigarrow \id{y}}
+\end{prooftree*}
+
+When $\fn{Heq\_uneq}$ is called with canonical values of $\bI$, it reduces to
+the corresponding endpoint of the equality proof. This is a crucial property
+that allows derive theorems such as functional extensionality in
+\autoref{subsec:funext}.
 
 \subsection{Homogenous equality}
-Homogenous equality is by far the more typical notion of equality. We are able to define it as a special case of heterogenous equality where the two terms $\id{x}$ and $\id{y}$ in $\Funapp{\id{Heq}}{\id{x}}{\id{y}}$ are of the same type.
+Homogenous equality is by far the more typical notion of equality. We are able
+to define it as a special case of heterogenous equality as a special case of of
+$\fn{Heq x y}$ where $\fn{x}$ and $\fn{y}$ are of the same
+type.
 
 %% TODO: Fix the alignment
 %% Eq_uneq : (l : TypeLevel) ≡> (t : Type_ l)
@@ -1146,18 +1156,6 @@ Eq_uneq : (t : Type) @$\Rrightarrow$@ (x : t) @$\Rightarrow$@ (y : t) @$\Rightar
           @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t
 Eq_uneq p i = Heq_uneq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (p := p) (i := i)
 \end{minted}
-
-\section{Reduction rules}
-
-\begin{prooftree*}
-   \infer0[UNEQ-LEFT]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\ileft}
-                     \rightsquigarrow \id{x}}
-\end{prooftree*}
-
-\begin{prooftree*}
-   \infer0[UNEQ-RIGHT]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\iright}
-                       \rightsquigarrow \id{y}}
-\end{prooftree*}
 
 \section{Examples}
 Common properties of the equality type remain true, some of them are easier to prove than with a traditional equality type.
@@ -1216,7 +1214,7 @@ Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := 
 \caption{A path from x to y along with its inversion}
 \end{figure}
 
-\subsection*{Functional extensionality}
+\subsection*{Functional extensionality}\label{subsec:funext}
 The notion of functional extensionality implies that pointwise-equal functions are indeed equal. By postulating the existence of the $\type{Interval}$ type along with an equality type that's based on it, functional extensionality can be derived trivially as is illustrated by the below proof.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
@@ -1226,22 +1224,38 @@ Eq_funExt p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| |$\lambda$| x |$\righta
                                    Eq_uneq (p := p x) (i := i))
 \end{minted}
 
-We note that the above proof makes use of the $\eta$-equivalence of functions, i.e. $\lambda \id{x} \rightarrow \Funapp{\id{f}}{\id{x}} \equiv \id{f}$. Another thing that is worth noting is that we interpret erasable functions out of $\bI$ themselves as an equality type, i.e.\ if we do without the $\id{Eq\_eq}$ constructor, and if we we think of $\id{Eq\_uneq}$ as the direct application of an expression of type $\bI$  to such a function, we obtain the following interpretation of $\id{Eq\_funExt}$.
+We note that the above proof makes use of the $\eta$-equivalence of functions,
+i.e. $\lambda \id{x} \rightarrow \Funapp{\id{f}}{\id{x}} \equiv \id{f}$. Another
+thing that is worth noting is that we interpret erasable functions out of $\bI$
+themselves as an equality type, i.e.\ if we do without the $\id{Eq\_eq}$
+constructor, and if we think of $\id{Eq\_uneq}$ as the direct application of an
+expression of type $\bI$ to such a function, we obtain the following
+interpretation of $\id{Eq\_funExt}$ as is the case in Cubical Agda.
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_funExt : (f : (? |$\rightarrow$| ?)) |$\Rightarrow$| (g : (? |$\rightarrow$| ?))
-            |$\Rightarrow$| (p : (x : ?) |$\rightarrow$| Eq (f x) (g x)) |$\rightarrow$| Eq f g
-Eq_funExt p i x = p x i
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
+funExt : |$\forall$| {A B : Type |$\ell$|} {f g: A |$\rightarrow$| B}
+         |$\rightarrow$| (p : (x : A) |$\rightarrow$| f x |$\equiv$| g x)
+         |$\rightarrow$| f |$\equiv$| g
+funExt p i x = p x i
 \end{minted}
 
-In this case, it becomes clear that $\id{Eq\_funExt}$ is a trivial function that does no more than swap the order of its two arguments. This is observed in several recent proof assistants that implement cubical type theory, such as Cubical Agda, coolTT and redTT.\@
+In this case, it becomes clear that $\fn{Eq\_funExt}$ is a trivial function that
+does no more than swap the order of its two arguments. This is observed in
+several recent proof assistants that implement cubical type theory, such as
+Cubical Agda as mentioned before, as well as coolTT and redTT.\@
 
-TODO:\ Decide if the below is worth mentioning in some way \\
-Note: funExt is required to prove quotient effectiveness, though we will see that the existence of $\id{Quotient}$ implies $\id{funExt}$.
+
+%% TODO: Link to the examples chapter after showing that Quot implies funExt
+Functional extensionality is an important property of the equality type, it will
+especially be required in order to prove the effectiveness of quotients in
+\autoref{ch:quotient-effectiveness}. However, as we shall see in ???, the
+existence of quotient types itself is actually sufficient to derive functional
+extensionality.
 
 %% FIXME: Should this come before the section on funext? probably
 \subsection*{Congruence of equality}
-This is a another typical property of equality that is proven with a `cubical' equality.
+This is a another typical property of equality whose proof is significantly
+simplified in a system with a cubical equality.
 
 %% Eq_cong : (x : ?A) => (y : ?A) =>
 %%           (f : ?A -> ?) -> (p : Eq x y)
@@ -1255,16 +1269,24 @@ Eq_cong f p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| f (Eq_uneq (p := p) (i 
 \end{minted}
 
 
-Like before, with a slight change of perspective, we see that the congruence of equality merely involves applying the function $\id{f}$ `inside' the equality.
+Like before, we examine the definition of the theorem in Cubical Agda for a
+change of perspective. We observe that the congruence of equality merely
+involves applying the function $\id{f}$ to the terms at both endpoints of the
+equality.
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_cong : (x y : ?A) |$\Rightarrow$| (f : (?A |$\rightarrow$| ?)) |$\rightarrow$| (p : Eq x y)
-          |$\rightarrow$| Eq (f x) (f y)
-Eq_cong f p i = f (p i)
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
+congS : |$\forall$| {A B : Type |$\ell$|} |$\rightarrow$| (f : A |$\rightarrow$| B) (p : x |$\equiv$| y) |$\rightarrow$| f x |$\equiv$| f y
+congS f p i = f (p i)
 \end{minted}
 
+By appealing to the $\eta$-equivalence of the equality type described in
+\autoref{sec:identity}, we also have that $\fn{Eq\_cong id p $\equiv$ p}$ holds
+definitionally.
+
 \subsection*{Transport}
-The transport operation (also known as {\id{cast}}) allows us to transport properties that are true for some type $\id{A}$ to another type $\id{B}$ if we have a proof that $\eqtype{\id{A}}{\id{B}}$.
+The transport operation (also known as {\id{cast}}) allows us to transport
+properties that are true for some type $\id{A}$ to another type $\id{B}$ if we
+have a proof that $\eqtype{\id{A}}{\id{B}}$.
 
 %% Eq_cast : (x : ?) ≡> (y : ?) ≡> (p : Eq x y) ≡> (f : ? -> ?)
 %%             ≡> f x -> f y
@@ -1398,10 +1420,58 @@ Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
 \end{figure}
 
 \section{Equality as a mere proposition}
-Although we say that our equality type is a proposition, it is by no means a mere proposition (HoTT book\cite{HoTTbook} Chapter 3.3). This implies that it is not a given that two proofs of the same equality are provably equal. In other words, when we ask ourselves the question  ``Is it the case that a = b'', we do not only care if the answer is yes or no, if they are indeed equal, we can interest ourselves in what ways exactly are they equal. This is in contrast to other systems where the uniquess of identity types (UIP) applies to all types. Notably, this is true of systems that admit axiom K \cite{streicher1993investigations} that states all identity proofs are equal to the reflexivity proof, and by extension all proofs of the same equality are equal. We will later show that UIP is a property that is true for a certain class of types in Typer.
+Although we say that our equality type is a proposition, it is by no means a
+mere proposition (HoTT book\cite{HoTTbook} Chapter 3.3). This implies that it is
+not a given that two proofs of the same equality are provably equal. In other
+words, when we ask ourselves the question ``Is it the case that a = b'', we do
+not only care if the answer is yes or no, if they are indeed equal, we can
+interest ourselves in what ways exactly are they equal. This is in contrast to
+other systems where the uniqueness of identity types (UIP) applies to all types.
+Notably, this is true of systems that admit axiom
+K\cite{streicher1993investigations} that states all identity proofs are equal to
+the reflexivity proof, and by extension all proofs of the same equality are
+equal. In the remainder of this section, we show that UIP is a property that is
+true for a certain class of types in Typer.
 
-TODO: Either talk about hedberg's theorem here, or move this to another chapter. Probably should just mention it in this chapter.
+\subsection{Hedberg's theorem}
 
+To set the stage, we provide a few definitions. A type is said to be
+\textbf{decidable} if we are able to decide whether the type is inhabited or
+not. In the case where it is inhabited, we must also have a witness of such an
+inhabitant. In Typer, decidability can be represented by the following inductive
+type.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+type Dec (A : Type)
+  | yes A
+  | no (A -> False)
+\end{minted}
+
+A type is said to be \textbf{collapsed} if any two inhabitants of the type may
+be proved to be equal, this corresponds directly the notion of a mere
+proposition. The two definitions that we just stated may also be used in the
+context of identity types. If we have say that a type has decidable equality,
+this implies that for any two terms of this type, we can decide whether or not
+they are equal. On top of that, if the type has collapsed identity types, then
+for any pair of terms of this type, any two proofs that they are equal are also
+equal. The notion of collapsible identity types corresponds to the notion of a
+$\kw{Set}$ or h-set in HoTT.
+
+\begin{theo}[Hedberg's theorem\cite{hedberg1998coherence}]
+If a type \fn{A} has decidable equality, then \fn{A} has collapsed identity
+types.
+\end{theo}
+
+In this work, we provide a proof of this theorem in the form of Typer code. We
+present the type of the function without going into the details of its
+implementation\footnote{The actual implementation may be found in the attached \fn{samples/hedberg.typer} file}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+dici : (di : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ Dec (x @$\equiv$@ y))
+       @$\rightarrow$@ (a : ?A) @$\rightarrow$@ (b : ?A)
+       @$\rightarrow$@ (u : a @$\equiv$@ b) @$\rightarrow$@ (v : a @$\equiv$@ b)
+       @$\rightarrow$@ u @$\equiv$@ v
+\end{minted}
 
 \section{Limitations}
 We don't have primitives such as $hcomp$, what does this imply? Is there a certain class of proofs we are unable to construct? Or do we just suffer from some amount of inconvenience?
@@ -1423,7 +1493,7 @@ along with a relation $\id{R}$ as arguments. At this stage, we do not require
 the relation to be an equivalence relation, though in order to define a
 meaningful quotient type, the above requirement is often necessary. We also do
 not enforce that the relation be a mere proposition, however as we will see in
-\autoref{chap:quotient-effectiveness}, this is required in order for the quotient to be effective. (TODO: maybe link to more specific section instead of the chapter in general)
+\autoref{ch:quotient-effectiveness}, this is required in order for the quotient to be effective. (TODO: maybe link to more specific section instead of the chapter in general)
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{a}}{\id{A}}}
@@ -1476,7 +1546,10 @@ the quotient, and thus we also require a proof that such a function $\id{f}$
 behaves consistently when applied to terms that are related by the underlying
 relation of the quotient. The usage of heterogenous equality here is necessary
 as $\Funapp{\id{f}}{\id{a}_1}$ and $\Funapp{\id{f}}{\id{a}_2}$ are not of the
-same type.
+same type. We note as well that our dependent elimination of quotients is not
+limited to motives that are \type{Props}, as opposed to when quotient types are
+added to a theory interpreted in a setoid model as proposed by
+Li\cite{li2015quotient}.
 
 \section{Reduction rules}
 We present the computation rule for the elimination of quotients.
@@ -1561,7 +1634,7 @@ TODO: Add more details after things get figured out
 TODO: Maybe mention experience of trying to encode QITs using syntaxic sugar,
 though unfortunately it didn't work out very well
 
-\chapter{Quotient Effectiveness}\label{chap:quotient-effectiveness}
+\chapter{Quotient Effectiveness}\label{ch:quotient-effectiveness}
 
 This only works for relations that are propositions and equivalence relations
 (i.e.\ reflexive, symmetric and transitive).
