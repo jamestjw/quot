@@ -136,6 +136,8 @@
 \usepackage{booktabs} %% Nicer tables
 \usepackage{multirow} %% Combines rows and columns in tables
 \usepackage{mdframed} %% Nice frames
+\usepackage{cite}
+
 %% Packages - END.
 
   % Enlever les commentaires du prochaine \hypersetup et
@@ -421,6 +423,8 @@ Contributions:
  % sur la page qui suit.
 
 \setcounter{tocdepth}{1} %% only part,chapters,sections in TOC
+%% Only chapters in the appendix appear in the TOC
+\appto\appendix{\addtocontents{toc}{\protect\setcounter{tocdepth}{0}}}
 
 %% TABLE DES MATIÈRES
 \cleardoublepage
@@ -504,27 +508,38 @@ Contributions:
 
 \chapter*{Introduction}
 
-%% TODO: Fix this
-%% SM: You could cite "System F with Type Equality Coercions", which
-%% basically describes GHC's internal language.
-
 The `propositions as types' paradigm states that proofs are analogous to
 programs. Writing programs in the form of code is equivalent to writing
-mathematical proofs (TODO: it might be cool to show some examples of props as
-types, show some simple examples of conjunctions, disjunctions and
-implications.). However, in order to do anything meaningful, we would need a way
+mathematical proofs. For instance, a function of the type \fn{A $\rightarrow$ B}
+is analogous to an implication \fn{A $\supset$ B}. If we think of the types
+\fn{A} and \fn{B} as propositions, then such a function transforms all proofs of
+\fn{A} to proofs of \fn{B}\footnote{We only consider total functions.}. Such a
+function corresponds directly to our intuition of `A implies B', its existence
+is thus a proof of \fn{A $\supset$ B}. A conjunction \fn{A $\wedge$ B} is
+represented by a pair \fn{A $\times$ B}. In order to prove that \fn{A} and
+\fn{B} are both true, we need a proof of \fn{A} and \fn{B} respectively, which
+is precisely what we need a construct the pair \fn{A $\times$ B}. In the same
+vein, a disjunction \fn{A $\vee$ B} is interpreted as a sum type \fn{A + B}. A
+sum type has two constructors, one of them requires a proof of \fn{A} while the
+other requires a proof of \fn{B}, this corresponds to our interpretation of
+\fn{A $\vee$ B} that either \fn{A} or \fn{B} is true.
+
+
+However, in order to do anything meaningful, we would need a way
 to express the notion equality, i.e. a crucial ingredient in expressing
-mathematical truths. In other words we require a type (TODO: ok might need to
-improve the phrasing here) that plays the role of equality in mathematical
-proofs. For instance, we might want to state the theorem that the addition of
-natural numbers is commutative, i.e. $\forall xy. x + y \equiv y + x$. To this
-end, our system requires an equality type (TODO: mention in footnotes other
-names of this type. Also, I should choose a name and stick to it in the paper)
-that allows us to make statements such as the above. Such a type provides us
-with a proof object that can be manipulated like any other. This implies that we
-can manipulate it with other operations such as logical negation, conjunction,
-disjunction etc. This is in stark contrast to judgemental equality which only
-exists in the metatheory and cannot be manipulated directly in programs.
+mathematical truths. Since equalities are mathematical propositions, we require
+a type that plays the role of equality in mathematical proofs. For instance, we
+might want to state the theorem that the addition of natural numbers is
+commutative, i.e. $\forall xy. x + y \equiv y + x$. To this end, our system
+requires an equality type\footnote{In this paper, we shall use the terms
+`equality type', `identity type' and sometimes `path' interchangeably. (TODO:
+Could be a bad idea, maybe I should choose one and stick to it, in which case
+I'm leaning towards `equality type'.)} that allows us to make statements such as
+the above. Such a type provides us with a proof object that can be manipulated
+like any other. This implies that we can manipulate it with other operations
+such as logical negation, conjunction, disjunction etc. This is in stark
+contrast to judgemental equality which only exists in the metatheory and cannot
+be manipulated directly in programs.
 
 %% TODO: I could add one more example if something good comes to mind.
 %% SM: A bit of motivation for why we care about proofs in programs
@@ -547,12 +562,12 @@ guarantee that array accesses will never lead to a runtime error. Additionally,
 this could also allow us to skip runtime bounds-checking as the index is
 necessarily valid as long as the program is well-typed.
 
-Equality proofs are also used extensionally in the internal language of GHC as
-they form the backbone of features such as generalised algebraic data types,
-functional dependencies and associated types \cite{sulzmann2007systemfeq}.
-Another notable example of the usage of proofs in real world programs is the
-CompCert project that worked on the formal verification of a C compiler
-\cite{Leroy-Compcert-CACM}.
+Equality proofs are also used extensionally in the internal language of the
+Glasgow Haskell Compiler (GHC) as they form the backbone of features such as
+generalised algebraic data types, functional dependencies and associated
+types\cite{sulzmann2007systemfeq}. Another notable example of the usage of
+proofs in real world programs is the CompCert project that worked on the formal
+verification of a C compiler\cite{Leroy-Compcert-CACM}.
 
 \section{Equality}
 
@@ -583,7 +598,7 @@ proposition that $m + n$ and $n + m$ are equal. In order to prove that the
 proposition is actually true, we would need to construct a term of this type.
 Such a term may be seen as a proof object that witnesses the validity of the
 proposition. Interested readers may find the complete proof of the commutativity
-of addition of natural numbers in the Appendix (TODO: Link appendix!).
+of addition of natural numbers in \autoref{app:other-proofs}.
 
 %% SM: you could give examples of uses of equality, ideally examples
 %% of code rather than examples of proofs (Remember that your audience
@@ -595,12 +610,14 @@ of addition of natural numbers in the Appendix (TODO: Link appendix!).
 To see how such a proof may be utilised, consider the following definition of a
 length indexed vector:
 
-%% TODO: I used Agda syntax to simplify the presentation of this, maybe
-%% encode this in Typer later in the appendix?
+%% TODO: I used Agda/Haskell-like syntax to simplify the presentation of this,
+%% maybe encode this in Typer later, i.e. in the spirit of ''System F with type
+%% equality coercions`? Is it a bit heavy to do it here? I could do it in the
+%% Appendix maybe? Decisions, decisions...
 \begin{minted}[]{agda}
 data Vector (A : Type) : Nat → Type where
     Vnil : Vector A 0
-    Vcons : {n : Nat} → → Vector A n → Vector A (suc n)
+    Vcons : {n : Nat} → A → Vector A n → Vector A (suc n)
 \end{minted}
 
 As its name would suggest, the length of such a vector is found in its type
@@ -726,14 +743,14 @@ are indeed treated equally. This problem is remedied by quotienting pairs of
 integers by an appropriate equivalence relation.
 
 We also show that there exists a class of quotients that can be defined without
-the addition of a new type former, i.e. quotients that are characterised by a
-normalisation function (TODO: mention Nuo Li and Courtieu). For these quotients,
-it is possible to elect a canonical representative for each equivalence class.
-In the rest of the paper, we first describe the typing and reduction rules of
-the introduced type, and then we discuss the library that was implemented to
-faciliate the usage of quotient types in Typer. Finally, we illustrate how the
-quotient type may be used by providing examples in the form of code along with
-commentary.
+the addition of a new type former, i.e.\ quotients that are characterised by a
+normalisation function\cite{li2015quotient,courtieu-normalizedtypes}. For these
+quotients, it is possible to elect a canonical representative for each
+equivalence class. In the rest of the paper, we first describe the typing and
+reduction rules of the introduced type, and then we discuss the library that was
+implemented to faciliate the usage of quotient types in Typer. Finally, we
+illustrate how the quotient type may be used by providing examples in the form
+of code along with commentary.
 
 \section{Contributions}
 
@@ -744,29 +761,31 @@ easier to realise by providing a library of theorems regarding the equality
 type. We also introduce the notion of heterogenous equality, making it possible
 to identify terms of different types. This is necessary to enable the dependent
 elimination of quotient types, notably because this enables the representation
-of pathovers (TODO: explain/cite from somewhere). We also implemented a proof of
-Hedberg's theorem \cite{hedberg1998coherence} in Typer. The theorem states that
-if a type has decidable equalities, then its equalities are necessarily trivial.
-Next, we introduced quotient types to Typer. This work then explores the
-usability and convenience of quotient types in programming tasks. To facilitate
-the use of quotients, we developed a library of convenience functions, macros,
-and also theorems regarding quotient types. We also investigate the runtime cost
-of the utilisation of quotient types. This is the first work that has attempted
-to develop a substantial number of proofs in Typer. We introduce several
-constructs to facilitate the writing of proofs in general in Typer in the form
-of macros and axioms.
+of pathovers\cite{licata2015cubical} (TODO: The paper's definition of Heq has
+the proof alpha that both types are equal, this concerns me a little bit as our
+version doesn't have that, is this justifiable or should I adapt to their
+version instead?). We also implemented a proof of Hedberg's
+theorem\cite{hedberg1998coherence} in Typer. The theorem states that if a type
+has decidable equalities, then its equalities are necessarily trivial. Next, we
+introduced quotient types to Typer. This work then explores the usability and
+convenience of quotient types in programming tasks. To facilitate the use of
+quotients, we developed a library of convenience functions, macros, and also
+theorems regarding quotient types. We also investigate the runtime cost of the
+utilisation of quotient types. This is the first work that has attempted to
+develop a substantial number of proofs in Typer. We introduce several constructs
+to facilitate the writing of proofs in general in Typer in the form of macros
+and axioms.
 
 \section{Notes and TODOs}
-- We have a proof of Hedberg's theorem (TODO: describe this in the section of
-equality) to facilitate eliminations to `Sets'. After explaining why this is
-necessary, we can motivate the addition of the set truncation constructor for
-Quotients. If we can prove that $\mathbb{Z}$ is a set when defined inductively
-(with the aforementioned theorem), then it would be odd if the same cannot be
-done if $\mathbb{Z}$ was defined as a quotient of $\mathbb{N} \times
-\mathbb{N}$. Indeed, this entails bigger consequences (as mentioned in
-https://staff.math.su.se/anders.mortberg/papers/cubicalagda2.pdf section 2.4.1).
-(TODO: refer to my notes for a proof that Unit != Unit/R without the
-truncation).
+- We have a proof of Hedberg's theorem to facilitate eliminations to `Sets'.
+After explaining why this is necessary, we can motivate the addition of the set
+truncation constructor for Quotients. If we can prove that $\mathbb{Z}$ is a set
+when defined inductively (with the aforementioned theorem), then it would be odd
+if the same cannot be done if $\mathbb{Z}$ was defined as a quotient of
+$\mathbb{N} \times \mathbb{N}$. Indeed, this entails bigger consequences (as
+mentioned in https://staff.math.su.se/anders.mortberg/papers/cubicalagda2.pdf
+section 2.4.1). (TODO: refer to my notes for a proof that Unit $\ne$ Unit/R
+without the truncation).
 
 %%------------------------------------------------- %
 %%                Chapters                          %
@@ -1076,7 +1095,14 @@ heterogenous equality. Such an equality type allows us to identify two terms
 that are not necessarily of the same type. The heterogenous equality type has
 the following type signature\footnote{Although not mentioned explicitly,
 functions involving the identity type are universe polymorphic in their
-arguments and return type.} and is implemented axiomatically.
+arguments and return type.} and is implemented axiomatically. Usually, when we
+define an axiom in type theory, we simply claim that it is an inhabitant of some
+type without saying anything about its behaviour. However, in our case we also
+supplement it with the appropriate reduction rules so it has the right
+computational behaviour. In the absence of this, e.g. if we were to define the
+computation rules for axioms in the form of propositional equalities, then the
+usage of these axioms suffers greatly as programs and proofs tend to be clumsy
+and inelegant.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Heq : ?x @$\rightarrow$@ ?y @$\rightarrow$@ Type
@@ -1433,7 +1459,7 @@ the reflexivity proof, and by extension all proofs of the same equality are
 equal. In the remainder of this section, we show that UIP is a property that is
 true for a certain class of types in Typer.
 
-\subsection{Hedberg's theorem}
+\subsection{Hedberg's theorem}\label{subsec:hedberg}
 
 To set the stage, we provide a few definitions. A type is said to be
 \textbf{decidable} if we are able to decide whether the type is inhabited or
@@ -1474,7 +1500,9 @@ dici : (di : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ Dec (x @$\equiv$@
 \end{minted}
 
 \section{Limitations}
-We don't have primitives such as $hcomp$, what does this imply? Is there a certain class of proofs we are unable to construct? Or do we just suffer from some amount of inconvenience?
+We don't have primitives such as $hcomp$, what does this imply? Is there a
+certain class of proofs we are unable to construct? Or do we just suffer from
+some amount of inconvenience?
 
 
 \chapter{Quotient Type}
@@ -2518,6 +2546,10 @@ There is an intricate relationship between logic, programming (type theory) and 
 TODO:\ Figure out what could be informative to say here.
 
 \section{Relationship to Category Theory}
+%% TODO: Maybe I should reconsider how much value is added by having this here
+%% honestly, I'm starting to have second thoughts... If this can inspire a few
+%% interesting theorems out about Quotient types it'd be more interesting
+
 Numerous constructs in type theory have equivalents in category theory. To set the stage for this, we shall do a very short primer on category theory. For a more detailed introduction, interested readers are directed to other works such as Awodey's textbook\cite{awodey-cattheory}.
 
 \subsection{Introduction}
@@ -3096,7 +3128,6 @@ TODO: Mention how we could also have an NF of type $A \rightarrow B$, i.e. doesn
 \anglais
 \appendix
 
-
 \chapter{Equational Reasoning}\label{section:eqreasoning}
 Equational reasoning provides us with a neat way of expressing proofs in Typer. With the help of some syntactic sugar, this allows us to build chains of equality proofs by using the transitivity property of equality as shown in Section~\ref{subsection:eqtransitivity}. This is something that is implemented in the libraries of most proof assistants, such as Agda, Lean, and Lean. This allows lengthy proofs to remain readable as intermediate steps are documented and are clearly seen.
 
@@ -3170,8 +3201,53 @@ Integer_*DistR+ x y z =
 
 TODO:\ Consider adding a discussion on additional macros and tactics that could be added to ease the development of such proofs, e.g.\ it would be nice to have rewrite tactics that Lean has to avoid having to invoke Eq\_cong that often
 
+\chapter{Other proofs}\label{app:other-proofs}
+
+\section{Commutativity of addition of natural numbers}
+
+We first define the type of natural numbers along with the addition operation
+the usual way.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Nat : Type
+
+type Nat
+  | zero
+  | succ Nat
+
+_+_ : Nat @$\rightarrow$@ Nat @$\rightarrow$@ Nat
+_+_ x y = case x
+  | zero @$\Rightarrow$@ y
+  | succ m @$\Rightarrow$@ succ (m + y)
+\end{minted}
+
+We then define two lemmas that we ultimately use to prove the commutativity of
+addition.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Nat+_zero : (m : Nat) @$\rightarrow$@ Eq (m + zero) m
+Nat+_zero m =
+  case m return Eq (m + zero) m
+         | zero @$\Rightarrow$@ Eq_refl
+         | succ n @$\Rightarrow$@ Eq_cong succ (Nat+_zero n)
+
+Nat+_succ : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ Eq (m + succ n) (succ (m + n))
+Nat+_succ m n =
+  case m return Eq (m + succ n) (succ (m + n))
+         | zero @$\Rightarrow$@ Eq_refl
+         | succ m' @$\Rightarrow$@ Eq_cong succ (Nat+_succ m' n)
+
+Nat+_comm : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ Eq (m + n) (n + m)
+Nat+_comm m n =
+  case n return Eq (m + n) (n + m)
+         | zero @$\Rightarrow$@ Nat+_zero m
+         | succ n' @$\Rightarrow$@ Eq_trans (Nat+_succ m n')
+                               (Eq_cong succ (Nat+_comm m n'))
+\end{minted}
 
 \chapter{Les différentes parties et leur ordre d'apparition}
+
+%% TODO: Don't forget to ultimately remove this!
 
 J'ajoute ici les différentes parties d'un mémoire ou d'une thèse ainsi
 que leur ordre d'apparition tel que décrit dans le guide de
