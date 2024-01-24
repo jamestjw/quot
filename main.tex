@@ -115,6 +115,11 @@
 \usepackage[labelfont=bf, width=\linewidth]{caption}
 
 \usepackage{mathpartir,mdframed,empheq}
+%% Config for mdframed
+\mdfsetup{%
+  innertopmargin=\baselineskip,
+  innerbottommargin=\baselineskip,
+  skipabove=\baselineskip}
 \usepackage{mathtools}
 \usepackage{ebproof}
 \usepackage{braket} % Easy angle-bracket notation
@@ -135,7 +140,6 @@
 
 \usepackage{booktabs} %% Nicer tables
 \usepackage{multirow} %% Combines rows and columns in tables
-\usepackage{mdframed} %% Nice frames
 \usepackage{cite}
 
 %% Packages - END.
@@ -759,10 +763,11 @@ equality type in Typer by one that is based on the Interval type. We also
 demonstrate that proofs regarding the equality type are consequently generally
 easier to realise by providing a library of theorems regarding the equality
 type. We also introduce the notion of heterogenous equality, making it possible
-to identify terms of different types. This is necessary to enable the dependent
-elimination of quotient types, notably because this enables the representation
-of pathovers\cite{licata2015cubical} (TODO: The paper's definition of Heq has
-the proof alpha that both types are equal, this concerns me a little bit as our
+to identify terms of different types\footnote{To identify A and B is to claim
+that they are equal.}. This is necessary to enable the dependent elimination of
+quotient types, notably because this enables the representation of
+pathovers\cite{licata2015cubical} (TODO:\ The paper's definition of Heq has the
+proof alpha that both types are equal, this concerns me a little bit as our
 version doesn't have that, is this justifiable or should I adapt to their
 version instead?). We also implemented a proof of Hedberg's
 theorem\cite{hedberg1998coherence} in Typer. The theorem states that if a type
@@ -784,7 +789,7 @@ when defined inductively (with the aforementioned theorem), then it would be odd
 if the same cannot be done if $\mathbb{Z}$ was defined as a quotient of
 $\mathbb{N} \times \mathbb{N}$. Indeed, this entails bigger consequences (as
 mentioned in https://staff.math.su.se/anders.mortberg/papers/cubicalagda2.pdf
-section 2.4.1). (TODO: refer to my notes for a proof that Unit $\ne$ Unit/R
+section 2.4.1). (TODO:\ refer to my notes for a proof that Unit $\ne$ Unit/R
 without the truncation).
 
 %%------------------------------------------------- %
@@ -841,22 +846,20 @@ The recursion principle computes as follows:
 \end{align*}
 
 \kw{cong} refers to the congruence property of equality and is explained in more
-detail in ??? (TODO: Link to other section). We can expect the first two
-equations to hold definitionally. If we imagine that the first two computation
-rules were defined via pattern-matching, it would make sense for these equations
-to hold definitionally. The third equation is a more curious case, it suggests
-that by congruence of equality, the application of the $\kw{Interval}$ recursor
-with the the equality proof $\id{P}$ to $\id{seg}$ should yield an equality
-proof between $\id{M}$ and $\id{N}$. More specifically, such an equality proof
-should be equal to $\id{P}$ itself. Equalities between equality proofs are only
-an important consideration in a proof relevant world, e.g.\ in the context of
-HoTT. In the world of Typer where we demand that equality proofs be erasable and
-play no role during computation, such considerations are not of huge importance.
-We mention nevertheless that in most cases, the third equation only holds
-propositionally, as is the case when it is defined as a user-defined datatype in
-other type systems such as Agda.
-
-TODO:\ The proof below requires depelim of Interval?
+detail in \autoref{subsec:congruence-eq}. We can expect the first two equations
+to hold definitionally. If we imagine that the first two computation rules were
+defined via pattern-matching, it would make sense for these equations to hold
+definitionally. The third equation is a more curious case, it suggests that by
+congruence of equality, the application of the $\kw{Interval}$ recursor with the
+the equality proof $\id{P}$ to $\id{seg}$ should yield an equality proof between
+$\id{M}$ and $\id{N}$. More specifically, such an equality proof should be equal
+to $\id{P}$ itself. Equalities between equality proofs are only an important
+consideration in a proof relevant world, e.g.\ in the context of HoTT. In the
+world of Typer where we demand that equality proofs be erasable and play no role
+during computation, such considerations are not of huge importance. We mention
+nevertheless that in most cases, the third equation only holds propositionally,
+as is the case when it is defined as a user-defined datatype in other type
+systems such as Agda.
 
 \section{Motivation}
 We show that a function out of the interval into some type \id{A} is equivalent to a path between two terms of type \id{A}, in other words, we show the following
@@ -865,7 +868,12 @@ We show that a function out of the interval into some type \id{A} is equivalent 
   & \bI \rightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}
 \end{align*}
 
-We take equivalence to mean what it means in the HoTT book (TODO:\ rephrase this). To prove the above, we define a function \id{f} and its inverse \id{g} as such:
+We proof this equivalence by proving that $\fn{g}$ is a quasi-inverse of
+$\fn{f}$ as described in chapter 2 of the HoTT book\cite{HoTTbook}. To this end,
+we define a function \id{f} and its inverse \id{g} as such:
+
+%% TODO: I glossed over this detail, but the $rec_{\bI}$ actually carries out a
+%% depelim which I haven't introduced yet.
 
 \begin{align*}
   & f : (\bI \rightarrow A) \rightarrow \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y} \\
@@ -876,7 +884,12 @@ We take equivalence to mean what it means in the HoTT book (TODO:\ rephrase this
 
 Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
 
-TODO:\ Add proof of $\kw{cong}_2$ and $\Sigma$ path characterisation in the appendix or something (sketch is in Interval.lagda.md)
+%% TODO: Add proof of $\kw{cong}_2$ and $\Sigma$ path characterisation in the
+%% appendix or something (sketch is in Interval.lagda.md)
+
+%% Note: 23 Jan - Why did I bother to mention $\kw{cong}_2$ here? I can't
+%% remember. Before I forget, $\Sigma$ path characterisation would explain why
+%% $\beta$ is proven the way it is below.
 
 \begin{align*}
   & \id{$\alpha$-helper} : (\oftype{h}{\bI \rightarrow A}) \rightarrow (\oftype{i}{Interval}) \rightarrow \eqtype{(g (f \ h)) \ i}{h \ i} \\
@@ -894,7 +907,7 @@ We have established that the equality type (also known as the identity type) is
 equivalent to a function out of the interval. We have also illustrated that such
 a function is expected to be constant on the unit interval. This `condition' is
 enforced by virtue of the fact that $\id{Interval}$ is defined as a higher
-inductive type \cite{HoTTbook} with an identification of the two endpoints. The
+inductive type\cite{HoTTbook} with an identification of the two endpoints. The
 type system then enforces that all eliminations of the $\id{Interval}$ type be
 necessarily constant on the two endpoints. An alternate way of enforcing this is
 by using functions with erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a
@@ -940,9 +953,6 @@ We introduce a few operations on the interval type whose usefulness will become
 clear after we introduce our version of the equality type that is based on the
 interval type.
 
-% TODO: Take some inspiration from
-% https://amelia.how/posts/cubical-type-theory.html
-
 \subsection*{Negation}
 
 The negation operator does what its name suggests, i.e.\ it simply negates
@@ -954,7 +964,7 @@ I_not : I @$\rightarrow$@ I
 
 The negation operator computes as follows:
 
-\begin{mdframed}[innertopmargin=\baselineskip,innerbottommargin=\baselineskip]
+\begin{mdframed}[nobreak=true]
   \begin{center}
     \begin{prooftree}
         \infer0[I-NOT$_1$]{\Funapp{\fn{I\_not}}{i_0} \rightsquigarrow{} i_1}
@@ -980,7 +990,7 @@ equality holds definitionally. (TODO:\ Actually wait, I have to check this
 claim. It's also possible that this is not entirely necessary, though it makes
 proofs that do indeed require this property a lot simpler and more elegant)
 
-\subsubsection*{Meet}
+\subsubsection*{Meet}\label{subsubsec:interval-meet}
 
 The meet operator returns the minimum of two terms of the Interval type. The order of the Interval type is such that $i_0 \le i \le i_1, \forall i \in I$
 
@@ -990,7 +1000,7 @@ I_meet : I @$\rightarrow$@ I @$\rightarrow$@ I
 
 It has the following reduction rules:
 
-\begin{mdframed}[innertopmargin=\baselineskip,innerbottommargin=\baselineskip]
+\begin{mdframed}[nobreak=true]
     \begin{center}
         \begin{prooftree}
             \infer0[I-MEET$_1$]{\Funapp{\fn{I\_meet}}{i_0}{i}
@@ -1029,7 +1039,7 @@ Since the operator is commutative, I-MEET$_3$ and I-MEET$_4$ are complementary
 to I-MEET$_1$ and I-MEET$_2$. The minimum of $\id{i}$ and $\id{i}$ is $\id{i}$
 itself, justifying the I-MEET$_5$ rule. Note that since the Interval type does
 not behave like a Boolean algebra, it is not the case the
-$\Funapp{\fn{I\_meet}}{i}{(\Funapp{I\_not}{i})} \rightsquigarrow{} i_0$.
+$\Funapp{\fn{I\_meet}}{i}{(\Funapp{\fn{I\_not}}{i})} \rightsquigarrow{} i_0$.
 
 \subsection*{Join}
 TODO: So far I haven't found a need for this operator. Do some investigation to
@@ -1265,11 +1275,13 @@ funExt : |$\forall$| {A B : Type |$\ell$|} {f g: A |$\rightarrow$| B}
 funExt p i x = p x i
 \end{minted}
 
-In this case, it becomes clear that $\fn{Eq\_funExt}$ is a trivial function that
-does no more than swap the order of its two arguments. This is observed in
-several recent proof assistants that implement cubical type theory, such as
-Cubical Agda as mentioned before, as well as coolTT and redTT.\@
-
+The proof $\id{p}$ that the functions are extensionally equal may be seen to
+have the type $\id{A} \rightarrow \bI \rightarrow B$, on other hand, a proof
+that the functions are equal would have the type $\bI \rightarrow (A \rightarrow
+B)$. In this case, it becomes clear that a proof of functional extensionality
+merely needs to swap the order of its two arguments. This is observed in several
+recent proof assistants that implement cubical type theory, such as Cubical Agda
+as mentioned before, as well as coolTT and redTT.\@
 
 %% TODO: Link to the examples chapter after showing that Quot implies funExt
 Functional extensionality is an important property of the equality type, it will
@@ -1278,8 +1290,8 @@ especially be required in order to prove the effectiveness of quotients in
 existence of quotient types itself is actually sufficient to derive functional
 extensionality.
 
-%% FIXME: Should this come before the section on funext? probably
-\subsection*{Congruence of equality}
+%% FIXME: Should this come before the section on funext? maybe, maybe not
+\subsection*{Congruence of equality}\label{subsec:congruence-eq}
 This is a another typical property of equality whose proof is significantly
 simplified in a system with a cubical equality.
 
@@ -1348,8 +1360,22 @@ Eq_cast_refl A x = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$|
                             I_transp (A := |$\lambda$| _ |$\Rrightarrow$| A) (r := i) x)
 \end{minted}
 
-\subsection*{J-rule}
-The sole term former of the $\kw{Eq}$ only allows the construction of reflexive equalities, at first sight this leads us to believe that not much can actually be done with the $\kw{Eq}$ type. After all, if all we had were proofs of the form $x = x$, it would be difficult to imagine achieving anything with them. The true magic of the equality type lies in it's elimination principle. Traditionally, the equality type comes with an elimination principle known as the J-rule. This was first introduced by Per Martin-Löf in \cite{martin1975intuitionistic}, although it had not been given this particular name when the rule first made its appearance. (TODO:\ Where was the name J first introduced?) Suppose that we have a type family $C$ that is parametrised by two terms $x$ and $y$ of some type $A$ as well as a proof that $x$ and $y$ are equal, i.e. of type $\Funapp{\kw{Eq}}{x}{y}$. If we have have a proof term $p$ that witnesses the equality of two arbitrary terms $a$ and $b$ of type $A$, and we wish to produce a term of type $\Funapp{C}{a}{b}{p}$, then the J-rule says that it suffices for us to provide a means of producing for all $\oftype{x}{A}$ a term of type $\Funapp{C}{x}{x}{(\Funapp{\kw{refl}}{x})}$. We now state the type of the J-rule:
+\subsection*{J-rule}\label{subsec:j-rule}
+The sole term former of the $\kw{Eq}$ only allows the construction of reflexive
+equalities, at first sight this leads us to believe that not much can actually
+be done with the $\kw{Eq}$ type. After all, if all we had were proofs of the
+form $x = x$, it would be difficult to imagine achieving anything with them. The
+true magic of the equality type lies in it's elimination principle.
+Traditionally, the equality type comes with an elimination principle known as
+the J-rule. This was first introduced by Per Martin-Löf
+in\cite{martin1975intuitionistic}. Suppose that we have a type family $C$ that
+is parametrised by two terms $x$ and $y$ of some type $A$ as well as a proof
+that $x$ and $y$ are equal, i.e.\ of type $\Funapp{\kw{Eq}}{x}{y}$. If we have
+have a proof term $p$ that witnesses the equality of two arbitrary terms $a$ and
+$b$ of type $A$, and we wish to produce a term of type $\Funapp{C}{a}{b}{p}$,
+then the J-rule says that it suffices for us to provide a means of producing for
+all $\oftype{x}{A}$ a term of type $\Funapp{C}{x}{x}{(\Funapp{\kw{refl}}{x})}$.
+We now state the type of the J-rule:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 J : (C : (x : ?A) -> (y : ?A) -> Eq x y -> Type)
@@ -1358,7 +1384,14 @@ J : (C : (x : ?A) -> (y : ?A) -> Eq x y -> Type)
     -> C x y p;
 \end{minted}
 
-This rule is essentially saying that in order to know what to do with an equality between an arbitrary $x$ and $y$, we merely need to know how to handle the case where we are dealing a reflexivity proof. Now, given the fact that the reflexivity constructor is the only constructor of the $\kw{Eq}$ type, one might think that the above elimination principle is well justified. Recall that elimination principle of an inductively defined datatype (that satisfies the positivity check, TODO: ideally I cite something here to not have to elaborate on this) can usually be derived based on the constructors of the datatype itself. For instance, consider the below inductive definition of the Peano natural numbers.
+This rule is essentially saying that in order to know what to do with an
+equality between an arbitrary $x$ and $y$, we merely need to know how to handle
+the case where we are dealing a reflexivity proof. Now, given the fact that the
+reflexivity constructor is the only constructor of the $\kw{Eq}$ type, one might
+think that the above elimination principle is well justified. Recall that
+elimination principle of strictly positive types\cite{abbott2005containers} can
+usually be derived based on the constructors of the datatype itself. For
+instance, consider the below inductive definition of the Peano natural numbers.
 
 \begin{minted}{haskell}
 type Nat
@@ -1374,31 +1407,53 @@ Nat_elim : (P : Nat @$\rightarrow$@ Type)
            @$\rightarrow$@ (n : Nat) @$\rightarrow$@ P n;
 \end{minted}
 
-First, we need to define what needs to be done if the natural number we are trying to eliminate is $\id{zero}$. Next, if the natural number we want to eliminate is something of the form $\Funapp{succ}{n}$, then we can imagine making a recursive call to the eliminator to produce a result for $\Funapp{succ}{n}$ for $n$, and now we need a means of transforming a proof of $\Funapp{P}{n}$ to one of $\Funapp{P}{(\Funapp{succ}{n})}$. Indeed, the elimination principle of natural numbers is just mathematical induction. Hence, it is reasonable to say that in order to eliminate an equality proof, it suffices for us define what needs to be odne for reflexivity proofs. However, as was mentioned before, we are not able to prove that all equality proofs are in fact equal to the reflexivity proof. Regardless, attempts have been made to justify the elimination principle of the equality type, although we opt not to elaborae on this here. (TODO: consider linking something on this topic here or discuss it elsewhere on the in appendix. Also, check the alternative yoneda justification to see if its worth mentioning p216 HoTT-book)
+First, we need to define what needs to be done if the natural number we are
+trying to eliminate is $\id{zero}$. Next, if the natural number we want to
+eliminate is something of the form $\Funapp{succ}{n}$, then we can imagine
+making a recursive call to the eliminator to produce a result for
+$\Funapp{succ}{n}$ for $n$, and now we need a means of transforming a proof of
+$\Funapp{P}{n}$ to one of $\Funapp{P}{(\Funapp{succ}{n})}$. Indeed, the
+elimination principle of natural numbers is just mathematical induction. Hence,
+it is reasonable to say that in order to eliminate an equality proof, it
+suffices for us define what needs to be done for reflexivity proofs.
 
-However in Typer, the elimination rule for the $\kw{Eq}$ type is not provided in the form of the J-rule, instead we have the means of using the equality proof to perform a cast. This operation is also known commonly known as `transport'. The type of the cast function is descriptive of what it does.
-
-It is possible to derive $\kw{Eq\_cast}$ from the J-rule. The natural question that we should now ask ourselves is whether the J-rule can be derived from $\kw{Eq\_cast}$, in other words we would like to know if the two elimination principles are equivalent. It turns out that one way of doing it hinges upon whether we are able to inhabit the following type:
+In Typer, the elimination rule for the $\kw{Eq}$ type was not provided in the
+form of the J-rule prior to this work, instead a cast function was provided as
+mentioned in a previous section. It is possible to derive $\kw{Eq\_cast}$ from
+the J-rule. The natural question that we should now ask ourselves is whether the
+J-rule can be derived from $\kw{Eq\_cast}$, in other words we would like to know
+if the two elimination principles are equivalent. It turns out that one way of
+doing it hinges upon whether we are able to inhabit the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 eqUnique : (A : Type) @$\Rrightarrow$@ (a b : A) (p : Eq a b)
            @$\rightarrow$@ Eq (t := Sigma A (lambda a' -> Eq a a'))
-                              (sigma A Eq_refl) (sigma b p);
+                               (sigma a Eq_refl) (sigma b p);
 \end{minted}
 
-We provide more details of this in the appendix (TODO: actually do this).
+This can be seen as a justification of the J-rule, by fixing one endpoint of an
+equality proof to be $\fn{a}$, it is provable that any equality proof between
+$\fn{a}$ and some other arbitrary $\fn{b}$ may be proved to be equal to the
+reflexivity proof at $\fn{a}$. We provide more details of this in the appendix
+(TODO:\ actually do this).
 
-- TODO: If want to be able to prove that J can be derived from cast, we need to
+- TODO:\ If want to be able to prove that J can be derived from cast, we need to
 leverage the fact that $(x , refl) = (y , p)$, check notes for more details.
 
-In Typer and in intensional type theory in general, we need to explicitly invoke a cast function of some sort, this is in contrast with extensional type theory (ETT)\cite{martin1982constructive} where equality proofs in the context are automatically used by the typechecker to carry out casts whenever necessary. This is shown by the following judgement in ETT that states that equality proofs can be converted to judgemental equalities.
+In Typer and in intensional type theory in general, we need to explicitly invoke
+a cast function of some sort, this is in contrast with extensional type theory
+(ETT)\cite{martin1982constructive} where equality proofs in the context are
+automatically used by the typechecker to carry out casts whenever necessary.
+This is shown by the following judgement in ETT that states that equality proofs
+can be converted to judgemental equalities.
 
 \begin{prooftree*}
   \hypo{\oftype{\ctx}{t}{\Funapp{\kw{Eq}}{a}{b}}}
   \infer1{\ctx \vdash a \equiv b}
 \end{prooftree*}
 
-This is also the reason why typechecking is not decidable in ETT as the necessity to invoke the above rule is not syntax directed.
+This is also the reason why typechecking is not decidable in ETT as the
+necessity to invoke the above rule is not syntax directed.
 
 \subsection*{Transitivity}\label{subsection:eqtransitivity}
 Continuing our analogy of equality proofs as paths, the transitivity property allows us to concatenate two paths. We join the right endpoint of the first path with the left endpoint of the second path, producing a new path. The proof of this theorem is as follows:
@@ -1445,19 +1500,125 @@ Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
 \caption{The concatenation of a path between x and y and a path between y and z to produce a new path between x and z.}
 \end{figure}
 
+\subsection*{Connections}
+
+The operations that we defined on the Interval correspond to
+connections\cite{cohen2016cubical} that are typically drawn as squares. Such
+connections allow us construct squares from paths by adding degeneracies.
+
+\subsubsection*{Meet}
+
+Suppose that we have some proof $\fn{p}$ between terms $\fn{a}$ and $\fn{b}$,
+the interval meet operation allows us to construct a square that corresponds to
+the following expression:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+sq = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i j)))
+\end{minted}
+
+In this square, the $\fn{i}$ direction goes from left to right and the the
+$\fn{j}$ direction goes from bottom to up. Each side of the square corresponds
+to some equality proof. The top and right sides of the square are simply the
+original proof $\fn{p}$. The left and bottom sides of the square are fixed to be
+constant paths to and from the left endpoint of the proof $\fn{p}$. In other
+words, they can be seen to be reflexivity proofs of $\fn{a}$. This is precisely
+what we meant earlier by degeneracies as such paths are trivial.
+
+%% FIXME: Bad alignment
+\begin{center}
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da5901241884786586]
+\draw    (280.24,210.16) -- (280.24,82.66) ;
+\draw [shift={(280.24,80.66)}, rotate = 90] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da7023100749425399]
+\draw    (430.35,210.41) -- (430.35,82.74) ;
+\draw [shift={(430.35,80.74)}, rotate = 90] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da5268427848389134]
+\draw    (290.56,70.17) -- (418.62,70.17) ;
+\draw [shift={(420.62,70.17)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da001913191488255972]
+\draw    (290.56,220.6) -- (417.94,220.6) ;
+\draw [shift={(419.94,220.6)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (275.39,61.32) node [anchor=north west][inner sep=0.75pt]   [align=left] {a};
+% Text Node
+\draw (274.93,211.14) node [anchor=north west][inner sep=0.75pt]   [align=left] {a};
+% Text Node
+\draw (425.64,62.29) node [anchor=north west][inner sep=0.75pt]   [align=left] {b};
+% Text Node
+\draw (425.64,210.47) node [anchor=north west][inner sep=0.75pt]   [align=left] {a};
+% Text Node
+\draw (175.25,141.25) node [anchor=north west][inner sep=0.75pt]  [font=\scriptsize] [align=left] {eq ($\displaystyle \lambda $ j $\displaystyle \Rrightarrow $uneq p $\displaystyle i_{0}$)};
+% Text Node
+\draw (347.5,57) node [anchor=north west][inner sep=0.75pt]  [font=\scriptsize] [align=left] {p};
+% Text Node
+\draw (436.75,134.75) node [anchor=north west][inner sep=0.75pt]  [font=\scriptsize] [align=left] {p};
+% Text Node
+\draw (308.25,133) node [anchor=north west][inner sep=0.75pt]  [font=\tiny] [align=left] {eq ($\displaystyle \lambda $ i $\displaystyle \Rrightarrow $eq \ ($\displaystyle \ \lambda $ j $\displaystyle \Rrightarrow $\\	uneq p ($\displaystyle i\ \land \ j$) )\\\\};
+% Text Node
+\draw (306.75,226.75) node [anchor=north west][inner sep=0.75pt]  [font=\scriptsize] [align=left] {eq ($\displaystyle \lambda $ i $\displaystyle \Rrightarrow $uneq p $\displaystyle i_{0}$)};
+
+\end{tikzpicture}
+
+\end{center}
+
+To illustrate why the given square corresponds to the expression given above, we
+shall examine each side of the square. Recalling the dimensions of the squares,
+on the left side of the square, the dimension $\fn{i}$ is $i_0$. So we if we fix
+$\fn{i}$ to be $i_0$ in $\fn{sq}$, the resulting expression is the following,
+which we can reduce to the constant path on $\fn{a}$ by using the reduction
+rules of $\fn{I\_meet}$ defined in \autoref{subsubsec:interval-meet}:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet @$i_0$@ j))
+\end{minted}
+
+For the bottom side, we fix $\fn{j}$ to be $i_0$ to obtain the below expression,
+which is once again a constant path on $\fn{a}$.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i @$i_0$@))
+\end{minted}
+
+The right side requires us to fix $\fn{i}$ to be $i_1$, giving us the below
+expression which simply reduces to $\fn{p}$.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet @$i_1$@ j))
+\end{minted}
+
+By fixing $\fn{j}$ to be $i_1$, we get the expression that corresponds to the top side, which also reduces to $\fn{p}$.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i @$i_1$@))
+\end{minted}
+
+The construction of such a square is precisely what is required in order to
+prove the $\fn{eqUnique}$ property mentioned in \autoref{subsec:j-rule}.
+
+\subsubsection*{Join}
+
+TODO:\ TBD if I want to do this. Joins could be used to build the same square
+that we saw as above, the only difference is that the added degeneracy would be
+a refl path on $b$ instead of $a$.
+
+
 \section{Equality as a mere proposition}
 Although we say that our equality type is a proposition, it is by no means a
 mere proposition (HoTT book\cite{HoTTbook} Chapter 3.3). This implies that it is
-not a given that two proofs of the same equality are provably equal. In other
-words, when we ask ourselves the question ``Is it the case that a = b'', we do
-not only care if the answer is yes or no, if they are indeed equal, we can
-interest ourselves in what ways exactly are they equal. This is in contrast to
-other systems where the uniqueness of identity types (UIP) applies to all types.
-Notably, this is true of systems that admit axiom
-K\cite{streicher1993investigations} that states all identity proofs are equal to
-the reflexivity proof, and by extension all proofs of the same equality are
-equal. In the remainder of this section, we show that UIP is a property that is
-true for a certain class of types in Typer.
+not a given that two proofs of the same equality are provably
+equal\cite{hofmann1998groupoid}. In other words, when we ask ourselves the
+question ``Is it the case that a = b'', we do not only care if the answer is yes
+or no, if they are indeed equal, we can interest ourselves in what ways exactly
+are they equal. This is in contrast to other systems where the Uniqueness of
+Identity Proofs principle (UIP) applies to all types. Notably, this is true of
+systems that admit axiom K\cite{streicher1993investigations} that states all
+identity proofs are equal to the reflexivity proof, and by extension all proofs
+of the same equality are equal. In the remainder of this section, we show that
+UIP is a property that is true for a certain class of types in Typer.
 
 \subsection{Hedberg's theorem}\label{subsec:hedberg}
 
@@ -1521,7 +1682,8 @@ along with a relation $\id{R}$ as arguments. At this stage, we do not require
 the relation to be an equivalence relation, though in order to define a
 meaningful quotient type, the above requirement is often necessary. We also do
 not enforce that the relation be a mere proposition, however as we will see in
-\autoref{ch:quotient-effectiveness}, this is required in order for the quotient to be effective. (TODO: maybe link to more specific section instead of the chapter in general)
+\autoref{ch:quotient-effectiveness}, this is required in order for the quotient
+to be effective.
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{a}}{\id{A}}}
@@ -1602,7 +1764,7 @@ function, this would imply that $\id{Quotient\_elim}$ would need to called with
 a function $\id{f}$ that is itself the identity function. Unfortunately, in the
 general case this would not respect the underlying relation of the quotient.
 However, we could define an $\eta$-rule of sorts for quotients based on
-normalisation. (TODO: discuss and link)
+normalisation. (TODO:\ discuss and link)
 
 \section{Implementation}
 
@@ -1635,7 +1797,7 @@ Quotient_eq : (A : Type) |$\Rrightarrow$| (R A |$\rightarrow$| A |$\rightarrow$|
               |$\rightarrow$| Eq (Quotient_in (R := R) a) (Quotient_in (R := R) a')
 \end{minted}
 
-TODO: In Quotient\_eq, debate the choice of not making R a a' erasable? I'm
+TODO:\ In Quotient\_eq, debate the choice of not making R a a' erasable? I'm
 unsure if there are any benefits of having it as non-erasable
 
 As a constructor of equalities, $\id{Quotient\_eq}$ does not take part in
@@ -1657,9 +1819,9 @@ reduces to just $\Funapp{\id{f}}{\id{a}}$, ignoring the coherence proof that is
 passed to the function as it acts simply as a form of static information.
 
 \subsection{Syntaxique sugar}
-TODO: Add more details after things get figured out
+TODO:\ Add more details after things get figured out
 
-TODO: Maybe mention experience of trying to encode QITs using syntaxic sugar,
+TODO:\ Maybe mention experience of trying to encode QITs using syntaxic sugar,
 though unfortunately it didn't work out very well
 
 \chapter{Quotient Effectiveness}\label{ch:quotient-effectiveness}
@@ -1672,7 +1834,7 @@ We provide a alternative version of propositional extensionality that is
 slightly weaker. Consequently, the version of quotient effectiveness that we
 prove is also weaker.
 
-\subsection*{Representation of propositions}
+\subsection*{Representation of propositions}\label{subsec:mere-propositions}
 
 Intuitively speaking, propositions are a type that contain no intrinsic data, it
 is their mere existence that counts. This is precisely the notion of proof
@@ -1891,7 +2053,7 @@ $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ and
 $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$ are equal since they
 are both mere propositions.
 
-Examples of usage of the above theorem are in Chapter XXX (TODO: Link to other section).
+Examples of usage of the above theorem are in Chapter XXX (TODO:\ Link to eventual proof of discreteness of Rationals, if I elect to do it that is.).
 
 \chapter{Examples}
 The addition of quotient types to Typer allows us to define certain constructs
@@ -1946,16 +2108,15 @@ is not without its downsides as it entails heavier proof obligations, this is a
 topic that we shall discuss subsequently.
 
 Typer has a built-in $\kw{Integer}$ type. Behind the scenes, this is based on
-big integers in OCaml (TODO:\ Maybe some more elaboration here). Operations on
-the typer $\kw{Integer}$ type such as addition, multiplication etc are
-implemented as axioms. At runtime, the responsibilities of these functions are
-simply delegated to their corresponding OCaml functions to carry out the
-necessary computations. So far, we are unable to reason about these operations
-in Typer as they are merely primitives that are implemented in the host
-language. In the following section, we propose the addition of several axioms
-that serve as witnesses of certain properties of the built-in $\kw{Integer}$
-type, this will be crucial when we start reasoning about operations on rational
-numbers.
+big integers in OCaml, leveraging the Zarith library. Operations on the typer
+$\kw{Integer}$ type such as addition, multiplication etc are implemented as
+axioms. At runtime, the responsibilities of these functions are simply delegated
+to their corresponding OCaml functions to carry out the necessary computations.
+So far, we are unable to reason about these operations in Typer as they are
+merely primitives that are implemented in the host language. In the following
+section, we propose the addition of several axioms that serve as witnesses of
+certain properties of the built-in $\kw{Integer}$ type, this will be crucial
+when we start reasoning about operations on rational numbers.
 
 \subsection*{Integer axioms}
 We start off by axiomatising the associativity and commutativity of the addition and multiplication operations.
@@ -2189,7 +2350,10 @@ We still need to show that the $\zpairplus$ function itself respects the underly
 @$\mathbb{Q}$+\_feqr@ = ?
 \end{minted}
 
-The proof of $\mathbb{Q}{+}\_\kw{feql}$ is long and uninteresting and thus will not described here\footnote{Interested readers may find the proof at TODO:\ link}. However, once this has been proved, its counterpart is a trivial corollary by virtue of the commutativity of $\zpairplus$.
+The proof of $\mathbb{Q}{+}\_\kw{feql}$ is long and uninteresting and thus will
+not described here\footnote{Interested readers may find the proof at
+TODO:\ link}. However, once this has been proved, its counterpart is a trivial
+corollary by virtue of the commutativity of $\zpairplus$.
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
 @$\mathbb{Q}$+\_feqr@ a b b' p =
@@ -2210,7 +2374,11 @@ Rational_- : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational
 Rational_- a b = Rational_+ a (Rational_negate b)
 \end{minted}
 
-$\kw{Quotient\_rec2}$ is a library function that allows us to simultaneously eliminate two quotient expressions, more details are given in Section ??? (TODO:\ Add this). Finally, we want to prove that negation of a rational produces its additive inverse. We define $\kw{Rational\_0}$ to be the additive identity using a trivial representative of its equivalence class.
+$\kw{Quotient\_rec2}$ is a library function that allows us to simultaneously
+eliminate two quotient expressions, more details are given in
+\autoref{subsec:rec2}. Finally, we want to prove that negation of a rational
+produces its additive inverse. We define $\kw{Rational\_0}$ to be the additive
+identity using a trivial representative of its equivalence class.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 @$\zpairplus$@-Linv : (a : @$\zpair$@) @$\rightarrow$@ Eq (t := Rational)
@@ -2382,14 +2550,18 @@ propTruncRec prop f a = elimProp (R := @$\lambda$@ _ _ @$\rightarrow$@ Unit)
                                  f a
 \end{minted}
 
-By partially applying a proof that P is a proposition and a function of type $\id{A} \rightarrow \id{P}$ to $\id{propTruncRec}$, we obtain the second property. (TODO:\ This doesn't seem to imply that P is a subsingleton though!?)
+By partially applying a proof that P is a proposition and a function of type
+$\id{A} \rightarrow \id{P}$ to $\id{propTruncRec}$, we obtain the second
+property.
 
 \section{Elimination (Special cases)}
-TODO\: Mention library that facilitates the elimination of more than one quotient expression at a time, eliminating to Prop, Set, Contr etc
 
-The elimination of quotients involves numerous proof obligations, and this quickly gets tedious especially if we are eliminating multiple quotient expressions at once. We provide a library that aims to reduce repetitive boilerplate in user code.
+The elimination of quotients involves numerous proof obligations, and this
+quickly gets tedious especially if we are eliminating multiple quotient
+expressions at once. We provide a library that aims to reduce repetitive
+boilerplate in user code.
 
-\subsection*{rec2}
+\subsection*{rec2}\label{subsec:rec2}
 We start off by describing \id{Quotient\_rec2}, which serves to eliminate two arbitrary quotient expressions.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
@@ -2433,7 +2605,16 @@ rec2 =
 The function itself does the only logical thing it could do, it uses \kw{Quotient\_rec} to eliminate the first quotient, and then it makes another nested call to \kw{Quotient\_rec} to eliminate the second one. Essentially, the result of the elimination of the first quotient is a function that takes another quotient as an argument and then eliminates that. This is the intution behind the requirement that the output type $\id{C}$ be a $\kw{Set}$. In other words, this enables us to prove that for two quotients of type $\id{Quotient A R}$, we are indeed producting two output functions that are equal. We also made use of $\id{elimProp}$, a function that we shall describe next.
 
 \subsection*{elimProp}
-$\id{elimProp}$ is a function that simplifies the elimination of a quotient when the target type is a $\kw{Prop}$ (TODO:\ Link to other section that first introduced this notion). We will see that the nature of the function $\id{f}$ has no bearing on our proof obligations, as they can be discharged in a very systematic way by leveraging the fact that output type is a $\kw{Prop}$. First, we need to proof a lemma, $\id{toPathOver}$. Suppose that we have a type former $\id{A} : \id{I} \Rrightarrow \kw{Type}$ and two terms $\id{x}$ and $\id{y}$ of types $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ respectively, we get the following diagram.
+$\id{elimProp}$ is a function that simplifies the elimination of a quotient when
+the target type is a $\kw{Prop}$ as was introduced in
+\autoref{subsec:mere-propositions}. We will see that the nature of the function
+$\id{f}$ has no bearing on our proof obligations, as they can be discharged in a
+very systematic way by leveraging the fact that output type is a $\kw{Prop}$.
+First, we need to proof a lemma, $\id{toPathOver}$. Suppose that we have a type
+former $\id{A} : \id{I} \Rrightarrow \kw{Type}$ and two terms $\id{x}$ and
+$\id{y}$ of types $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and
+$\Funapp{\id{A}}{(\earg{\_}{\iright})}$ respectively, we get the following
+diagram.
 
 
 \begin{center}
@@ -2543,7 +2724,8 @@ TODO\: Consider defining a macro that defines $\fn{elimProp}_n$, i.e.\ the gener
 There is an intricate relationship between logic, programming (type theory) and category theory, as was proposed by Harper (TODO:\ link his article https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/). Everything that exists in each of these domains necessarily has an interesting analogue in the other two. In this chapter, we discuss quotients from the perspective of logic and category theory. In some cases, this will motivate the `discovery' of some interesting properties of the $\kw{Quotient}$ type.
 
 \section{Relationship to Logic}
-TODO:\ Figure out what could be informative to say here.
+TODO:\ Figure out what could be informative to say here. If this doesn't work
+out, then ditch this section and rename the chapter or something
 
 \section{Relationship to Category Theory}
 %% TODO: Maybe I should reconsider how much value is added by having this here
@@ -2953,8 +3135,13 @@ data @$S^1$@ : Type where
   loop : base @$\equiv$@ base
 \end{minted}
 
-%% TODO: I think I need to find a good place to define the word `identify'
-The $S^1$ type is a synthetic way of representing a circle (also known as a 1-sphere). A reasonable way of describing a circle would be to say that it consists of a base point and a continuous line that joins the base point to itself. In this HIT, we have the $\id{base}$ as a normal constructor of the type. But more curiously, we also have a path constructor $\id{loop}$ that identifies $\id{base}$ with itself. By visualising the type, we see that it indeed ressembles a circle.
+The $S^1$ type is a synthetic way of representing a circle (also known as a
+1-sphere). A reasonable way of describing a circle would be to say that it
+consists of a base point and a continuous line that joins the base point to
+itself. In this HIT, we have the $\id{base}$ as a normal constructor of the
+type. But more curiously, we also have a path constructor $\id{loop}$ that
+identifies $\id{base}$ with itself. By visualising the type, we see that it
+indeed ressembles a circle.
 
 \begin{figure}[H]
   \centering
@@ -2988,7 +3175,8 @@ double (loop i) = (loop @$\cdot$@ loop) i
 \end{minted}
 
 %% TODO: Improve wording here
-Pattern matching allows us to `do the job' more cleanly. Aside from that, we get defitional equalities even for path constructors.
+Elimination is done in cleaner manner when done using pattern matching. Aside
+from that, we get defitional equalities even for path constructors.
 
 TODO:\ Wanted to show an example of HIT-style elimination of a quotient, but I didn't find anything worth showing for now.
 
@@ -3053,7 +3241,22 @@ Qnorm_eq : (a a' : ?A) @$\rightarrow$@ Eq (nf a) (nf a') @$\rightarrow$@ Eq (Qno
 Qnorm_eq a a' eq = Quotient_eq (a := a') (a' = a') eq
 \end{minted}
 
-We could have alternatively introduced quotients to Typer by implementing the above as a built-in construct instead of what we have implemented currently. However, as we have demonstrated above, this flavour of quotients is a strict subset of our implementation. Implying that this is less expressive and flexible compared to our implementation. Indeed, it is not always possible to define a normalisation function for a certain equivalence relation (TODO:\ Construct a convincing example). However, this approach also has its advantages, notably in Courtieu's system \cite{courtieu-normalizedtypes}, $\Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})} \Rightarrow \Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})}$ actually deals with definitional equivalences instead of propositional equivalences as is done with $Qnorm\_eq$.
+We could have alternatively introduced quotients to Typer by implementing the
+above as a built-in construct instead of what we have implemented currently.
+However, as we have demonstrated above, this flavour of quotients is a strict
+subset of our implementation. Implying that this is less expressive and flexible
+compared to our implementation. Indeed, it is not always possible to define a
+normalisation function for a certain equivalence relation. Consider the Multiset
+example that was presented in ???, if we would like to normalise a set of
+elements, a reasonable approach would be to sort them, but this is not ideal as
+this would imply that the base type of the set needs to have some sort of order.
+However, this approach also has its advantages, notably in Courtieu's
+system\cite{courtieu-normalizedtypes},
+$\Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}
+\Rightarrow
+\Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})}$
+actually deals with definitional equivalences instead of propositional
+equivalences as is done with $Qnorm\_eq$.
 
 Quotients based on normalisation may actually be represented in Typer without extending the language. Indeed, this can be done in any language that supports coproducts, as is suggested in \cite{HoTTbook}. Similarly, Courtieu's implementation may also be translated to the Calculus of Inductive Constructions \cite{werner-cic}. We now describe the aforementioned construction in Typer, and then provide a proof that it fulfils the universal property of a quotient.
 
@@ -3100,7 +3303,7 @@ Finally, we can also show that $\kw{Qnorm}$ fulfils the universal property of a 
 
 The proof itself is not very interesting, hence we do not describe it here. (TODO:\ Link to proof). We note however that the reverse direction of this equivalence gives us a means of eliminating $\kw{Qnorm}$, as was the case for $\kw{Quotient}$.
 
-TODO: Mention how we could also have an NF of type $A \rightarrow B$, i.e. doesn't have to be the same type as the base type, but obviously this doesn't work with this precise construction.
+TODO:\ Mention how we could also have an NF of type $A \rightarrow B$, i.e.\ doesn't have to be the same type as the base type, but obviously this doesn't work with this precise construction.
 
 
 %%--------------%
