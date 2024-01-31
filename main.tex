@@ -376,6 +376,14 @@
 \anglais
 \chapter*{Abstract}
 
+%% SM: As an "abstract" it's much too dry/detailed/technical, of course.
+%%   It's OK if some of your audience won't understand all of the abstract,
+%%   but they should all be able to understand at least about half of your
+%%   abstract.
+%% SM: As a set of contributions, try to "structure" the presentation
+%%   to give a feeling for how the different parts relate to each other,
+%%   and the relative importance of each one.
+
 Contributions:
 
 - Modified the Eq type by basing it on an Interval type
@@ -411,6 +419,9 @@ Contributions:
 %%------------------------------------------------- %
 %%        page v --- Table de matieres              %
 %%------------------------------------------------- %
+
+%% SM: IIRC to write your mémoire in English, you have to fill a form
+%%   to "ask for permission".  It's a formality but don't forget to do it.
 
  % Pour un mémoire en anglais, changer pour
  % \anglais. Noter qu'il faut une permission
@@ -512,6 +523,7 @@ Contributions:
 
 \chapter*{Introduction}
 
+%% SM: I'd use `\emph` rather than quotes.
 The `propositions as types' paradigm states that proofs are analogous to
 programs. Writing programs in the form of code is equivalent to writing
 mathematical proofs. For instance, a function of the type \fn{A $\rightarrow$ B}
@@ -528,20 +540,26 @@ sum type has two constructors, one of them requires a proof of \fn{A} while the
 other requires a proof of \fn{B}, this corresponds to our interpretation of
 \fn{A $\vee$ B} that either \fn{A} or \fn{B} is true.
 
-
+%% SM: The spacing is wrong after "i.e." because TeX thinks it's a full stop.
 However, in order to do anything meaningful, we would need a way
-to express the notion equality, i.e. a crucial ingredient in expressing
+to express the notion of equality, i.e. a crucial ingredient in expressing
 mathematical truths. Since equalities are mathematical propositions, we require
 a type that plays the role of equality in mathematical proofs. For instance, we
 might want to state the theorem that the addition of natural numbers is
 commutative, i.e. $\forall xy. x + y \equiv y + x$. To this end, our system
+%% SM: Yes, you should choose one and stick to it.  But it's good
+%% to mention somewhere like here that it has other names.
 requires an equality type\footnote{In this paper, we shall use the terms
 `equality type', `identity type' and sometimes `path' interchangeably. (TODO:
 Could be a bad idea, maybe I should choose one and stick to it, in which case
 I'm leaning towards `equality type'.)} that allows us to make statements such as
 the above. Such a type provides us with a proof object that can be manipulated
+%% SM: Hmm... we're not going to pass the proof to "conjunction", since
+%% "conjunction" takes two *types* as arguments.
 like any other. This implies that we can manipulate it with other operations
 such as logical negation, conjunction, disjunction etc. This is in stark
+%% SM: The reader probably doesn't know what is "judgemental equality"
+%% nor "metatheory".
 contrast to judgemental equality which only exists in the metatheory and cannot
 be manipulated directly in programs.
 
@@ -549,6 +567,9 @@ be manipulated directly in programs.
 %% SM: A bit of motivation for why we care about proofs in programs
 %% would be welcome.
 
+%% SM: Maybe rather than "proofs are not executed during runtime" I'd go
+%% with "we don't want proofs to be executed during runtime" (i.e. it
+%% takes extra efforts to make sure this is the case).
 Not only can we write mathematical proofs, we may also prove properties about
 our programs. In general, proofs are not executed during runtime, they are
 merely verified at compile time, or more precisely, during type-checking. This
@@ -560,20 +581,41 @@ accesses the i-th element of an array with the below type:
 arrayGet : (a : Array A) @$\rightarrow$@ (i : Nat) @$\rightarrow$@ i < length a @$\rightarrow$@ A
 \end{minted}
 
+%% SM: Here, you need to "read the type aloud" for the readers.
+%% Presume they're mostly familiar with say Python or Java.  It's an
+%% opportunity to describe the notation (including ":") you use, as well
+%% as explain that this is a dependent type and what that means.
+
 In order to invoke this function, the user would need to provide a proof that
 the index $\id{i}$ is indeed within the bounds of the array. This gives us a
 guarantee that array accesses will never lead to a runtime error. Additionally,
 this could also allow us to skip runtime bounds-checking as the index is
 necessarily valid as long as the program is well-typed.
 
+%% SM: The next paragraph says "also" but is not really connected to the
+%% previous one.
+%% SM: "extensionally" => "extensively".
+%% SM: The way you wrote this may give the impression that it's used
+%%   only in GHC (and maybe CompCert).  Try to write it to convey the idea
+%%   that these are just some of the many places where it's used.
+%%   Equality is used all over the place when you have more refined types.
 Equality proofs are also used extensionally in the internal language of the
 Glasgow Haskell Compiler (GHC) as they form the backbone of features such as
+%% SM: I recommend the Oxford comma.
 generalised algebraic data types, functional dependencies and associated
 types\cite{sulzmann2007systemfeq}. Another notable example of the usage of
 proofs in real world programs is the CompCert project that worked on the formal
 verification of a C compiler\cite{Leroy-Compcert-CACM}.
 
+%% SM: This gets number "0.1" but 0 is usually shunned in section
+%% numbers, so maybe avoid sections in the intro or remove the "*"
+%% from `\chapter`?
 \section{Equality}
+
+%% SM: This gets technical very quickly.  I think some of it may not
+%% belong in the intro.  E.g. I think we can skip the definition of Vector
+%% and just state that we somehow have a type `Vector α n`.  The definition
+%% of Vector can/will probably appear later, but not in the intro.
 
 For two terms $x$ and $y$ of the same type $A$, we would like to be able to
 state the proposition that the two terms are equal. For now, we merely consider
@@ -587,15 +629,24 @@ signature.
 Eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\rightarrow$@ Type
 \end{minted}
 
+%% SM: Like before, you need to "read aloud" for the readers.  A bit
+%% faster than last time, but still.  And acknowledge that it's a
+%% "function" that takes and returns types rather than "values".
+
 The $\kw{Eq}$ type former takes a type as input, along with two terms of that
 type that we wish to claim are equal\footnote{For aesthetic purposes, we shall
 use the operator $\equiv$ to represent the $\kw{Eq}$ type throughout the rest of
+%% SM: This is not a "paper".
+%% SM: Maybe it's still worthwhile at this point to remind them that
+%% "the type" can be read as "the proposition".
 the paper.}. We could then construct the type that stipulates that the addition
 of natural numbers is commutative by using the $\kw{Eq}$ type former.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Nat+_comm : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m;
 \end{minted}
+
+%% SM: read aloud.
 
 $m + n \equiv n + m$ is merely a type and can be seen as a statement of the
 proposition that $m + n$ and $n + m$ are equal. In order to prove that the
@@ -614,6 +665,9 @@ of addition of natural numbers in \autoref{app:other-proofs}.
 To see how such a proof may be utilised, consider the following definition of a
 length indexed vector:
 
+%% SM: It's OK to take liberties with the code and syntax to hide details
+%% under the rug, but don't introduce additional new syntax.  IOW, use
+%% a simplified/idealized Typer syntax, rather than Haskell/Agda syntax.
 %% TODO: I used Agda/Haskell-like syntax to simplify the presentation of this,
 %% maybe encode this in Typer later, i.e. in the spirit of ''System F with type
 %% equality coercions`? Is it a bit heavy to do it here? I could do it in the
@@ -624,8 +678,18 @@ data Vector (A : Type) : Nat → Type where
     Vcons : {n : Nat} → A → Vector A n → Vector A (suc n)
 \end{minted}
 
+%% SM: Read aloud.
+
 As its name would suggest, the length of such a vector is found in its type
 itself. Since we are able to prove that the addition of natural numbers is
+%% SM: I think most programmers would not like to be able to say this.
+%% Instead, they'd probably take it for granted that the type checker must know
+%% that those two types are obviously the same.  So you first have to explain
+%% that the type checkers are usually so dumb that they will not consider
+%% that a vector of one type can be passed to a function expecting the other
+%% type.  So, even though the programmers don't want to state this
+%% equality, they end up needing to do it to convince the damn type checker
+%% to accept their "obviously correct" program.
 commutative, we would like to be able to say something regarding the types
 $\Funapp{\id{Vector}}{\id{A}}{(\id{m} + \id{n})}$ and
 $\Funapp{\id{Vector}}{\id{A}}{(\id{n} + \id{m})}$. Since we expect that it
@@ -639,12 +703,17 @@ Vlength-comm+ : (m n : Nat) @$\Rrightarrow$@ Vector ?A (m + n) → Vector ?A (n 
 Vlength-comm+ = lambda A m n @$\Rrightarrow$@ Eq_cast (p := Nat+_comm m n) (f := Vector A)
 \end{minted}
 
+%% SM: I think you know what you need to do it, here.
+
 By making use of a proof that $m + n \equiv n + m$, we are able to perform type
 casting on a vector of type $\Funapp{\id{Vector}}{\id{A}}{(\id{m} + \id{n})}$ to
 produce one of the desired type. This makes use of the fact that the equality
 type satisfies substitution, i.e. if two terms are equal, then if a predicate is
 true of the first term, then it is necessarily also true for the second term.
+%% SM: Mention Leibniz.
 
+%% SM: Another example where equality is needed and that's usually easy
+%% to grasp is the matrix product to ensure the matrices are compatible.
 
 Now that we have seen how equality proofs may be used in programs, the next
 question that ought to be answered is how are such terms introduced. The one and
@@ -675,7 +744,16 @@ Given a term $x$ of an arbitrary type $A$, we can trivially construct the proof 
 
 %% This implies that the definition of $\kw{Eq}$ necessitates the use of the $\kw{Eq}$ type itself and we get a definition that is unpleasant to use.
 
+%% SM: You're switching here to a different (sub)section, I suggest you
+%% mark that somehow.  Until the end of this section, you're talking about
+%% the fact that there are various different ways to introduce this notion
+%% of equality, and you're also talking about erasure.  I suggest you
+%% take those two one at a time.  Currently it's all mushed up in a single
+%% somewhat breathless paragraph.
 
+%% SM: I recommend you test-run this paragraph(subsection) by passing it to
+%% some programmer friend of yours (someone not familiar with topology),
+%% to see how much they understand.
 Recent advances in type theory inspired from topology propose a different
 approach to represent equality proofs by modelling them as functions out of a
 unit interval to some type A. In this alternative formulation of equality
@@ -702,9 +780,11 @@ type, all while retaining the runtime irrelevance of equality proofs.
 
 \section{Quotients}
 
+%% SM: Give a simple example of a quotient set early on, such as the
+%% naturals modulo 256, or something.
 In keeping with the theme of equality, we shall discuss the implementation of
 quotient types in Typer. Quotient types allow us to redefine the equality of a
-type, usually on the basis of an equivalence relaton on the type. This is
+type, usually on the basis of an equivalence relation on the type. This is
 inspired by quotients in set theory, where if we are given a set A and an
 equivalence relation $\sim$ on A, then we can construct the quotient set of A by
 $\sim$, which we denote as $A / \sim$. Equivalent elements in A are considered
@@ -718,7 +798,19 @@ partitioning the set into equivalence classes, implying that we can regard a
 quotient set as simply the set of equivalence classes induced by the equivalence
 relation.
 
-
+%% SM: Define "inductive type" (tho, actually, here you can simply
+%% remove "inductive").
+%% SM: Another way to look at it is to say that, as programmers we
+%% often end up defining types that allow several different representations
+%% of the same thing (like syntax with names instead of deBruijn indices,
+%% or binary trees, where any rotation preserves the "meaning").  Usually
+%% this is not expressed formally in the code (or its type), but often
+%% we want to hide those details, typically using abstraction barriers;
+%% and as programmers we need to convince ourselves that the exposed API
+%% doesn't end up accidentally revealing internal details.
+%% Quotient types let you define explicitly what information is "exposed"
+%% vs what information is "internal details" and have the type checker
+%% verify that your abstraction doesn't leak.
 Quotient types often provide us with alternative ways of defining inductive
 types that are familiar to us. Some of these definitions could potentially be
 better than the original formulations depending on the use cases of the
@@ -746,8 +838,14 @@ the rationals as pairs of integers does nothing to ensure that equal rationals
 are indeed treated equally. This problem is remedied by quotienting pairs of
 integers by an appropriate equivalence relation.
 
+%% SM: "We also show..."?
 We also show that there exists a class of quotients that can be defined without
 the addition of a new type former, i.e.\ quotients that are characterised by a
+%% SM: I think the Miranda article also fits here.
+%% That article might also be a good way to motivate your work: quotients
+%% were introduced early on in FP, but they didn't catch on, and you can
+%% argue that it's maybe because they couldn't manipulate proofs, so now
+%% the time is ripe for the second coming.
 normalisation function\cite{li2015quotient,courtieu-normalizedtypes}. For these
 quotients, it is possible to elect a canonical representative for each
 equivalence class. In the rest of the paper, we first describe the typing and
@@ -758,11 +856,19 @@ of code along with commentary.
 
 \section{Contributions}
 
+%% SM: As mentioned in the abstract: add structure.
+%% Usually I recommend the use of a few (typically 3-5) bullet points here.
 Inspired by cubical type theory, we replace the existing implementation of the
 equality type in Typer by one that is based on the Interval type. We also
 demonstrate that proofs regarding the equality type are consequently generally
 easier to realise by providing a library of theorems regarding the equality
 type. We also introduce the notion of heterogenous equality, making it possible
+%% SM: I think heterogenous equality might deserve a tiny bit more
+%% explanation (too much for this section, so you'll need to talk about
+%% it earlier), to explain that of course, "in reality" the two types are
+%% equal.  You can give an example such as equality between
+%% `x : Vector a (n + m)` and `y : Vector b (m + n)`.
+%% SM: The footnote is very appreciated.
 to identify terms of different types\footnote{To identify A and B is to claim
 that they are equal.}. This is necessary to enable the dependent elimination of
 quotient types, notably because this enables the representation of
