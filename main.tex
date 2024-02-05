@@ -1890,7 +1890,7 @@ two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and
 $\Funapp{\id{erased}}{(\earg{\_}{\id{e2}})}$ to be equal. A priori, the two
 terms are not equal as $\id{e1}$ and $\id{e2}$ are completely arbitrary.
 However, Typer ignores erasable terms when checking the convertibility of terms,
-this is a property that was proven to be sound in \cite{barras2008implicit} as
+this is a property that was proven to be sound in\cite{barras2008implicit} as
 convertibility is tested on extracted terms. This allows the concatenation to
 succeed and thus concludes the proof.
 
@@ -2452,9 +2452,9 @@ execution time of operations on $\zpair$ with their $\fn{Rational}$
 counterparts\footnote{The code for this may be found in the
 $\fn{rational\_benchmark.typer}$ file.}. We examine the runtime
 cost\footnote{The tests were executed on the author's 2018 Macbook Pro with a
-quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of
-$\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
-$\fn{Rational\_*}$.
+quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of executing the
+functions $\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
+$\fn{Rational\_*}$ on 500000 pairs of rational numbers.
 
 %% TODO: Column sizes aren't equal between zpair and Rational? How do I fix this?
 \begin{table}[H]
@@ -2463,14 +2463,13 @@ $\fn{Rational\_*}$.
 \hline
 \multirow{2}{*}{\textbf{Operation}} & \multicolumn{2}{c}{\textbf{Execution Time (seconds)}} & \multicolumn{2}{c}{\textbf{Overhead}} \\ \cline{2-5}
                                     & \textbf{$\zpair$}          & \textbf{Rational}         & \textbf{seconds}     & \textbf{\%}    \\ \hline
-Negation       & 0.39 & 0.53 & 0.14 & 35.9 \\
-Addition       & 0.64 & 0.87 & 0.23 & 35.9 \\
-Subtraction    & 0.76 & 1.15 & 0.39 & 51.3 \\
-Multiplication & 0.50 & 0.80 & 0.30 & 60.0 \\ \hline
+Negation       & 1.82 & 2.53 & 0.71 & 39.0 \\
+Addition       & 3.18 & 4.82 & 1.64 & 51.6 \\
+Subtraction    & 4.10 & 6.26 & 2.16 & 52.7 \\
+Multiplication & 2.97 & 4.59 & 1.62 & 54.5 \\ \hline
 \end{tabular}
 \caption{The runtime cost of operations on rational numbers with and without the
-  use of quotient types.}
-\label{tab:rational-benchmark}
+  use of quotient types.}\label{tab:rational-benchmark}
 \end{table}
 
 We observe that there is indeed a non-negligible overhead caused by the usage of
@@ -2482,7 +2481,7 @@ definition of erasure\cite{monnier2019typer}, all erasable arguments are
 removed, hence all proof objects required by the quotient type will be absent in
 the erased versions of the above functions. The two erased functions are
 nevertheless not completely equal, as we shall see by examining the Elexp
-(erased lambda expression) \cite{delaunay2017implementation} of
+(erased lambda expression)\cite{delaunay2017implementation} of
 $\fn{Rational\_+}$:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
@@ -2496,11 +2495,165 @@ Through a series of $\eta$-reductions and $\beta$-reductions, we can see that
 the above expression is equivalent to $\zpairplus$. This implies that with an
 appropriate optimisation phase, Elexps containing quotient primitives could be
 simplified to completely neutralise the overhead of quotient types. We leave
-this optimisation for a future work.
+this optimisation for a future work. We also note that addition and
+multiplication unsurprisingly have a similar constant overhead due to how
+similarly they are defined. Since negation is a unary operation operation, it
+was defined directly using $\fn{Quotient\_rec}$ and thus has a lesser overhead
+than the other binary operations. We also defined subtraction on the basis of
+addition combined with subtraction, so its greater overhead is well justified.
 
-\section{Multiset}
+\section{Multiset}\label{sec:multiset}
 
-TODO: Cook up an example of this
+A multiset is an abstract data type that may be seen as a generalisation of
+sets. In sets, multiple occurrences of the `same' item are ignored, whereas
+multisets keep track of repeated occurrences of items. One way of defining such
+a data type (albeit not a very efficient one) is by taking a quotient of the
+list data type with an equivalence relation such that all permutations of a
+given list are equivalent.
+
+To that end, we wish to define a relation $\fn{ListPerm $l_1$ $l_2$}$ such that
+$\fn{$l_1$}$ and $\fn{$l_2$}$ are permutations of each other. The relation would
+thus need a constructor of the following form:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+swapPerm : (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ (l : List A)
+           @$\rightarrow$@ ListPerm ?A (cons (y (cons x l))) (cons x (cons y l))
+\end{minted}
+
+The relation is symmetric as it is, however, for it to be an equivalence
+relation, we also require the relation to be reflexive and transitive. We thus
+need to complement it with additional constructors, this is analogous to
+constructing the reflexive and transitive closure of a relation.
+
+For the relation to be reflexive, we would require the following constructors
+such that $\fn{ListPerm}$ is closed under the base constructors of the List
+datatype.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+nilPerm : ListPerm ?A nil nil
+
+consPerm : (x : ?A) @$\rightarrow$@ (l1 : List ?A) @$\rightarrow$@ (l2 : List ?A)
+           @$\rightarrow$@ (ListPerm ?A l1 l2) @$\rightarrow$@ (ListPerm ?A (cons x l1) (cons x l2))
+\end{minted}
+
+Finally, the following addition makes the relation transitive:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+transPerm : (l1 : List ?A) @$\rightarrow$@ (l2 : List ?A) @$\rightarrow$@ (l3 : List ?A)
+            @$\rightarrow$@ (ListPerm ?A l1 l2) @$\rightarrow$@ (ListPerm ?A l2 l3)
+            @$\rightarrow$@ (ListPerm ?A l1 l3)
+\end{minted}
+
+The manner in which the $\fn{ListPerm}$ relation has been presented so far suggests
+that it would most appropriately be defined as a GADT. Typer does not have built-in
+support for GADTs, however, we draw inspiration from\cite{sulzmann2007systemfeq} to
+encode such a GADT as an inductive type with explicit equality proofs.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+ListPerm : (A : Type_ ?) @$\rightarrow$@ List A @$\rightarrow$@ List A @$\rightarrow$@ Type_ ?
+type ListPerm (l ::: TypeLevel) (A : Type_ l) (l1 : List A) (l2 : List A) : Type_ l
+  | nilPerm (p1 :: Eq l1 nil) (p2 :: Eq l2 nil)
+  | consPerm (x : A) (l1' : List A) (l2' : List A) (ListPerm A l1' l2')
+             (p1 :: Eq l1 (cons x l1')) (p2 :: Eq l2 (cons x l2'))
+  | swapPerm (x : A) (y : A) (l : List A)
+             (p1 :: Eq l1 (cons x (cons y l)))
+             (p2 :: Eq l2 (cons y (cons x l)))
+  | transPerm (l1' : List A) (l2' : List A) (l3' : List A)
+              (ListPerm A l1' l2') (ListPerm A l2' l3')
+              (p1 :: Eq l1 l1') (p2 :: Eq l2 l3')
+\end{minted}
+
+With that, we may now define the $\fn{Multiset}$ type former.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Multiset : Type_ ? @$\rightarrow$@ Type_ ?
+Multiset A = Quotient (List A) (ListPerm A)
+\end{minted}
+
+An empty multiset is simply the injection of the $\fn{nil}$ List into the
+Quotient.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Multiset_empty : Multiset ?A
+Multiset_empty = Quotient_in nil
+\end{minted}
+
+Insertion is merely the application of the $\fn{cons}$ constructor of List with the help
+of $\fn{consPerm}$ that we previously defined.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Multiset_cons : ?A @$\rightarrow$@ Multiset ?A @$\rightarrow$@ Multiset ?A
+Multiset_cons = lambda _ A @$\Rrightarrow$@ lambda a s @$\rightarrow$@
+  qcase (s : List A / ListPerm A)
+    | Quotient_in l @$\Rightarrow$@ Quotient_in (R := ListPerm A) (cons a l)
+    | Quotient_eq l l' r @$\Rightarrow$@ Quotient_eq (R := ListPerm A)
+                                        (a := cons a l)
+                                        (a' := cons a l')
+                                        (consPerm a l l' r (_ := Eq_refl)
+                                                           (_ := Eq_refl))
+\end{minted}
+
+Other useful operations on the Multiset datatype may be defined, such as
+$\fn{Multiset\_append}$, $\fn{Multiset\_length}$, $\fn{Multiset\_mem}$ etc. The
+first two may be defined in a routine manner, hence we briefly describe the
+definition $\fn{Multiset\_mem}$ as it is more interesting. This function
+determines if a certain term of type $\fn{A}$ is a member of a multiset. Its
+type is as follows:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Multiset_mem : (A : Type) @$\Rrightarrow$@ Discrete A @$\rightarrow$@ A @$\rightarrow$@ Multiset A @$\rightarrow$@ Bool
+\end{minted}
+
+In order for this function to work, the underlying type $\fn{A}$ must be
+discrete, i.e.\ the equality between two terms of this type must be decidable.
+We define $\fn{Any}$ to be a witness that a certain predicate is valid for some
+element in a given list. We then define a predicate $\fn{isMember}$ such that
+$\fn{isMember a l}$ means that $\fn{a}$ is a member of the list $\fn{l}$.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Any : (A : Type) -> (P : (a : A) -> Type) -> List A -> Type
+type Any (A : Type) (P : ((a : A) -> Type)) (l : List A) : Type
+  | here (x : A) (xs : List A) (p ::: P x) (eq ::: Eq l (cons x xs))
+  | there (x : A) (xs : List A) (@$\neg$@p ::: Not (P x)) (Any A P xs)
+          (eq ::: Eq l (cons x xs))
+
+isMember : (A : Type) => A -> List A -> Type
+isMember = lambda A => lambda x l -> Any A (lambda x' -> Eq x x') l
+\end{minted}
+
+We need to prove a lemma that says that if $\fn{isMember a $l_1$}$ is valid,
+then for some other $\fn{$l_2$}$ that is a permutation of $\fn{$l_1$}$,
+$\fn{isMember a $l_2$}$ is also valid, we omit this proof (TODO:\ Consider
+putting this in the appendix, it's long). Next, we just need to define
+$\fn{isMemberDec}$, whose details we shall once again omit. Finally, we may
+proceed to define $\fn{Multiset\_mem}$.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+isMemberDec : (A : Type) @$\Rightarrow$@ Discrete A @$\rightarrow$@ (a : A) @$\rightarrow$@ (l : List A)
+              @$\rightarrow$@ Decidable (isMember a l)
+isMemberDec = ...
+
+Multiset_mem : (A : Type) @$\Rightarrow$@ Discrete A @$\rightarrow$@ A @$\rightarrow$@ Multiset A @$\rightarrow$@ Bool;
+Multiset_mem disc a s =
+  let
+    Dec2Bool : Decidable ?A @$\rightarrow$@ Bool
+    Dec2Bool d = case d
+      | yes => true
+      | no => false
+
+    compat : (l1 : List A) @$\rightarrow$@ (l2 : List A) @$\rightarrow$@ ListPerm A l1 l2
+             @$\rightarrow$@ Eq (Dec2Bool (isMemberDec disc a l1))
+                   (Dec2Bool (isMemberDec disc a l2))
+    compat l1 l2 r = ...
+  in
+    qcase (x : List A / ListPerm A)
+        | Quotient_in l @$\Rightarrow$@ Dec2Bool (isMemberDec disc a l)
+        | Quotient_eq a a' r @$\Rightarrow$@ compat a a' r
+\end{minted}
+
+Although this has not be done in this work, another operation that one may find
+useful to have is one that counts how many elements of the multiset are equal to
+a certain term of type $\fn{A}$.
 
 \section{Propositional Truncation}
 
@@ -3247,11 +3400,11 @@ However, as we have demonstrated above, this flavour of quotients is a strict
 subset of our implementation. Implying that this is less expressive and flexible
 compared to our implementation. Indeed, it is not always possible to define a
 normalisation function for a certain equivalence relation. Consider the Multiset
-example that was presented in ???, if we would like to normalise a set of
-elements, a reasonable approach would be to sort them, but this is not ideal as
-this would imply that the base type of the set needs to have some sort of order.
-However, this approach also has its advantages, notably in Courtieu's
-system\cite{courtieu-normalizedtypes},
+example that was presented in \autoref{sec:multiset}, if we would like to
+normalise a set of elements, a reasonable approach would be to sort them, but
+this is not ideal as this would imply that the base type of the set needs to
+have some sort of order. However, this approach also has its advantages, notably
+in Courtieu's system\cite{courtieu-normalizedtypes},
 $\Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}
 \Rightarrow
 \Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})}$
