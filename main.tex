@@ -384,37 +384,33 @@
 %%   to give a feeling for how the different parts relate to each other,
 %%   and the relative importance of each one.
 
-Contributions:
-
-- Modified the Eq type by basing it on an Interval type
-
-  - Somewhat different version of transp that seems to still do the job
-
-- Demonstrate that a `cubical' equality makes it easier to manipulate equality proofs
-
-  - Some proofs are clearer and are more intuitive
-
-- Add heterogenous equality, required to make depelim of quotients possible
-
-    - Notably this allows us to represent path overs
-
-- Added quotient types to Typer
-
-- Explored the usability and convenenience of Typer's quotients for programming tasks
-
-    - Demonstrate also that such quotients have little to no runtime cost
-
-- Developed a library to facilitate the usage of quotients
-
-    - Convenience functions, macros etc
-
-- Explore the writing of proofs in Typer, this is the first ever attempt to really write a substantial amount of proofs in Typer
-
-- Added some constructs that facilitate the writing of proofs in general in Typer
-
-    - Macros such as equational reasoning
-
-    - Integer axioms
+This work describes the introduction of quotients types to Typer, a dependently
+typed programming language. Quotient types allow programmers to construct new
+types on the basis of existing types by identifying (FIXME: The word `identify'
+is the most appropriate word, but only if the reader understands it, hopefully I
+can find an alternative.) certain terms of the base type. This is typically
+based on equivalence relations defined on the base type; related terms are thus
+treated as equal in the resulting quotient type. For instance, rational numbers
+may be defined as the quotient of pairs of integers under an appropriate
+equivalence relation. To better accomodate the introduction of quotient types to
+Typer, we revamped the built-in equality type by drawing inspiration from
+cubical type theory and proof assistants that implement it. As such, Typer's new
+equality type is based on functions out of a new interval primitive. Such an
+equality type is more powerful and expressive, it notably lends itself well to
+the writing of proofs related to quotient types. In this work, we also
+investigate the practicality of the usage of quotient types in a language such
+as Typer, both in terms of runtime efficiency and developer-friendliness.
+Quotient types do not exist in most modern dependently typed languages,
+principally because their usage entails burdensome proof obligations. To
+facilitate the usage of quotient types, we provide a library that helps simplify
+the manipulation of quotient types. We also leverage this new addition to the
+language to introduce new built-in types, such as rational numbers,
+propositional truncation, etc. Finally, this work also explores the development
+of proofs in Typer, to our knowledge this is the first attempt to really write a
+substantial amount of proofs using the language since the language is primarily
+intended to be a general use programming language. We describe our experience
+and the challenges faced in the process. Additionally, we introduce several
+constructs to streamline proof development in Typer.
 
 %%------------------------------------------------- %
 %%        page v --- Table de matieres              %
@@ -521,18 +517,18 @@ Contributions:
 %%                                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter*{Introduction}
+\chapter{Introduction}
 
 %% SM: I'd use `\emph` rather than quotes.
-The `propositions as types' paradigm states that proofs are analogous to
+The \emph{propositions as types} paradigm states that proofs are analogous to
 programs. Writing programs in the form of code is equivalent to writing
 mathematical proofs. For instance, a function of the type \fn{A $\rightarrow$ B}
 is analogous to an implication \fn{A $\supset$ B}. If we think of the types
 \fn{A} and \fn{B} as propositions, then such a function transforms all proofs of
 \fn{A} to proofs of \fn{B}\footnote{We only consider total functions.}. Such a
-function corresponds directly to our intuition of `A implies B', its existence
-is thus a proof of \fn{A $\supset$ B}. A conjunction \fn{A $\wedge$ B} is
-represented by a pair \fn{A $\times$ B}. In order to prove that \fn{A} and
+function corresponds directly to our intuition of \emph{A implies B}, its
+existence is thus a proof of \fn{A $\supset$ B}. A conjunction \fn{A $\wedge$ B}
+is represented by a pair \fn{A $\times$ B}. In order to prove that \fn{A} and
 \fn{B} are both true, we need a proof of \fn{A} and \fn{B} respectively, which
 is precisely what we need a construct the pair \fn{A $\times$ B}. In the same
 vein, a disjunction \fn{A $\vee$ B} is interpreted as a sum type \fn{A + B}. A
@@ -540,76 +536,69 @@ sum type has two constructors, one of them requires a proof of \fn{A} while the
 other requires a proof of \fn{B}, this corresponds to our interpretation of
 \fn{A $\vee$ B} that either \fn{A} or \fn{B} is true.
 
-%% SM: The spacing is wrong after "i.e." because TeX thinks it's a full stop.
-However, in order to do anything meaningful, we would need a way
-to express the notion of equality, i.e. a crucial ingredient in expressing
-mathematical truths. Since equalities are mathematical propositions, we require
-a type that plays the role of equality in mathematical proofs. For instance, we
-might want to state the theorem that the addition of natural numbers is
-commutative, i.e. $\forall xy. x + y \equiv y + x$. To this end, our system
-%% SM: Yes, you should choose one and stick to it.  But it's good
-%% to mention somewhere like here that it has other names.
-requires an equality type\footnote{In this paper, we shall use the terms
-`equality type', `identity type' and sometimes `path' interchangeably. (TODO:
-Could be a bad idea, maybe I should choose one and stick to it, in which case
-I'm leaning towards `equality type'.)} that allows us to make statements such as
-the above. Such a type provides us with a proof object that can be manipulated
-%% SM: Hmm... we're not going to pass the proof to "conjunction", since
-%% "conjunction" takes two *types* as arguments.
-like any other. This implies that we can manipulate it with other operations
-such as logical negation, conjunction, disjunction etc. This is in stark
-%% SM: The reader probably doesn't know what is "judgemental equality"
-%% nor "metatheory".
-contrast to judgemental equality which only exists in the metatheory and cannot
-be manipulated directly in programs.
+However, in order to do anything meaningful, we would need a way to express the
+notion of equality, i.e.\ a crucial ingredient in expressing mathematical
+truths. Since equalities are mathematical propositions, we require a type that
+plays the role of equality in mathematical proofs. For instance, we might want
+to state the theorem that the addition of natural numbers is commutative, i.e.
+$\forall xy. \ x + y \equiv y + x$. To this end, our system requires an equality
+type\footnote{In the literature paper, the terms `equality type', `identity
+type' and `path' are used interchangeably. For our purposes, we shall employ the
+term `equality type', though occassionally we shall use the term `path' to draw
+an analogy with HoTT.} that allows us to make statements such as the above. Such
+a type provides us with a proposition that can be manipulated like any other.
+This implies that we can manipulate it with other operations such as logical
+negation, conjunction, disjunction etc. What we have just described is what is
+commonly known as \emph{propositional equality}.
 
 %% TODO: I could add one more example if something good comes to mind.
 %% SM: A bit of motivation for why we care about proofs in programs
 %% would be welcome.
 
-%% SM: Maybe rather than "proofs are not executed during runtime" I'd go
-%% with "we don't want proofs to be executed during runtime" (i.e. it
-%% takes extra efforts to make sure this is the case).
 Not only can we write mathematical proofs, we may also prove properties about
-our programs. In general, proofs are not executed during runtime, they are
-merely verified at compile time, or more precisely, during type-checking. This
-allows us to prove that our programs have the right behaviour, and this is
-achieved without incurring additional runtime cost. Consider a function that
-accesses the i-th element of an array with the below type:
+our programs. In general, it is desirable for proofs to not be executed during
+runtime, i.e.\ we only want them to be verified at compile time, or more
+precisely, during type-checking. This allows us to prove that our programs have
+the right behaviour, and this is achieved without incurring additional runtime
+cost. This is mainly achieved through a certain feature of Typer that allows
+certain terms to be marked as erasable, a point that we shall came back to
+later. Consider a function that accesses the i-th element of an array with the
+below type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 arrayGet : (a : Array A) @$\rightarrow$@ (i : Nat) @$\rightarrow$@ i < length a @$\rightarrow$@ A
 \end{minted}
 
-%% SM: Here, you need to "read the type aloud" for the readers.
-%% Presume they're mostly familiar with say Python or Java.  It's an
-%% opportunity to describe the notation (including ":") you use, as well
-%% as explain that this is a dependent type and what that means.
+The above is a type declaration which says that the variable $\fn{arrayGet}$ has
+what is on the right of the colon as its type. $\rightarrow$ is a constructor of
+function types. For instance, $\fn{A $\rightarrow$ B}$ is a type of a function
+that accepts an argument of the type $\fn{A}$ and returns something of type
+$\fn{B}$. $\fn{arrayGet}$ may thus be seen as a function of three parameters.
+The first parameter is an array $\fn{a}$ of type $\fn{Array A}$, i.e.\ an array
+that contains elements of type $\fn{A}$. The reason why it is given a specific
+name $\fn{a}$ is because subsequent parameters may depend on it as Typer is a
+dependently typed language. The second parameter $\fn{i}$ is a natural number
+--- the index of the element we wish to retrieve from the array. The last
+parameter is a proof that the index $\id{i}$ is indeed within the bounds of the
+array. Dependent types are at play here as the type $\fn{i < length a}$ depends
+on the terms $\fn{i}$ and $\fn{length a}$. When the function is called with all
+three arguments, it then returns something of type $\fn{A}$ --- the element of
+the array that we are trying to retrieve. This gives us a guarantee that array
+accesses will never lead to a runtime error. Additionally, this could also allow
+us to skip runtime bounds-checking as the index is necessarily valid as long as
+the program is well-typed.
 
-In order to invoke this function, the user would need to provide a proof that
-the index $\id{i}$ is indeed within the bounds of the array. This gives us a
-guarantee that array accesses will never lead to a runtime error. Additionally,
-this could also allow us to skip runtime bounds-checking as the index is
-necessarily valid as long as the program is well-typed.
+In general, proofs improve the reliability of programs by allowing more errors
+to be detected at compile-time by making use of the type system to impose
+constraints on programs. A notable example of the usage of proofs in real world
+programs is the CompCert project that worked on the formal verification of a C
+compiler\cite{Leroy-Compcert-CACM}. Equality proofs may also be used as the
+backbone of more sophisticated features that improve the expressivity of a
+language. For instance, they are used extensively in the internal language of
+the Glasgow Haskell Compiler (GHC) as they form the backbone of features such as
+generalised algebraic data types, functional dependencies, and associated
+types\cite{sulzmann2007systemfeq}.
 
-%% SM: The next paragraph says "also" but is not really connected to the
-%% previous one.
-%% SM: "extensionally" => "extensively".
-%% SM: The way you wrote this may give the impression that it's used
-%%   only in GHC (and maybe CompCert).  Try to write it to convey the idea
-%%   that these are just some of the many places where it's used.
-%%   Equality is used all over the place when you have more refined types.
-Equality proofs are also used extensionally in the internal language of the
-Glasgow Haskell Compiler (GHC) as they form the backbone of features such as
-%% SM: I recommend the Oxford comma.
-generalised algebraic data types, functional dependencies and associated
-types\cite{sulzmann2007systemfeq}. Another notable example of the usage of
-proofs in real world programs is the CompCert project that worked on the formal
-verification of a C compiler\cite{Leroy-Compcert-CACM}.
-
-%% SM: This gets number "0.1" but 0 is usually shunned in section
-%% numbers, so maybe avoid sections in the intro or remove the "*"
-%% from `\chapter`?
 \section{Equality}
 
 %% SM: This gets technical very quickly.  I think some of it may not
@@ -1011,7 +1000,7 @@ For the sake of simplifying the proof of $\beta$, we assume the $\eta$-rule for 
 \section{Justification}
 We have established that the equality type (also known as the identity type) is
 equivalent to a function out of the interval. We have also illustrated that such
-a function is expected to be constant on the unit interval. This `condition' is
+a function is expected to be constant on the unit interval. This condition is
 enforced by virtue of the fact that $\id{Interval}$ is defined as a higher
 inductive type\cite{HoTTbook} with an identification of the two endpoints. The
 type system then enforces that all eliminations of the $\id{Interval}$ type be
@@ -1020,8 +1009,8 @@ by using functions with erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a
 type with two distinct constructors that take no arguments, such as the Boolean
 type. An argument that is marked as erasable is one that has no computational
 role during runtime. Within the function body, such an argument may only be used
-in an `erasable' manner, for instance, it may be used in the computation of an
-expression that is passed as an erasable argument to yet another function. In
+in an \emph{erasable} manner, for instance, it may be used in the computation of
+an expression that is passed as an erasable argument to yet another function. In
 other words, we can first define the $\id{Interval}$ type as a normal algebraic
 data type. Next, we can model the equality type as an erasable function out of
 the $\id{Interval}$ type. (FIXME: Abuse of terminology here? When I say erasable
@@ -2034,9 +2023,9 @@ propExt : {A B : Type} @$\rightarrow$@ isProp A @$\rightarrow$@ isProp B @$\righ
 \end{minted}
 
 However, this produces an equality proof that is not proof irrelevant, as
-$\id{A}$ and $\id{B}$ are not necessarily the `same' type. We illustrate the
-above with a simple example. We define two instances of the unit type which are
-trivially `logically equivalent'.
+$\id{A}$ and $\id{B}$ are not necessarily the \emph{same} type. We illustrate
+the above with a simple example. We define two instances of the unit type which
+are trivially \emph{logically equivalent}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{Agda}
 data Unit1 : Type where unit1 : Unit1
@@ -2074,9 +2063,9 @@ enforced in a different manner.
 
 \section{Equivalence relation}
 
-First, we state what we mean when we say `relation' to set the stage for the
-subsequent discussion. For our purposes, we consider binary relations, which are
-type formers that take two arguments of some type $\kw{A}$. Assuming that we
+First, we state what we mean when we say \emph{relation} to set the stage for
+the subsequent discussion. For our purposes, we consider binary relations, which
+are type formers that take two arguments of some type $\kw{A}$. Assuming that we
 call the relation $\kw{R}$ and its two arguments $\id{a}$ and $\id{a}'$
 respectively, inhabitants of the type $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ are
 witnesses of this binary relation. The type signature of a binary relation has
@@ -2282,7 +2271,9 @@ Integer_*Lzero : (x : Integer) |$\rightarrow$| Eq (Integer_* 0 x) 0
 \end{minted}
 
 \subsection*{Integer theorems}\label{subsection:int-theorems}
-As stated in the subsequent section, we only added the `left' version of some axioms, as their `right' counterparts may be trivially proven as theorems based on the commutativity property of addition and multiplication.
+As stated in the subsequent section, we only added the `left' version of some
+axioms, as their `right' counterparts may be trivially proven as theorems based
+on the commutativity property of addition and multiplication.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Integer_+Rid : (x : Integer) |$\rightarrow$| Eq (Integer_+ x 0) x
@@ -3127,7 +3118,18 @@ To conclude our short introduction to category theory, we would like to present 
 
 \end{figure}
 
-However, we notice that this is far too general of a definition since it is likely that there are many objects that fulfil these criteria. Here, we introduce the notion of a universal property which allows us to identify `the best product'. The best product is the one that is not too general, and yet not too restrictive, it is `just right'. More formally, the product of $\id{A}$ and $\id{B}$ is an object $\id{A} \times \id{B}$ with the morphisms $\pi_1 : \id{A} \times \id{B} \rightarrow A$ and $\pi_2 : \id{A} \times \id{B} \rightarrow B$. Additionally, for any other object $\id{C}$ with morphisms $\id{p} : \id{C} \rightarrow \id{A}$ and $\id{q} : \id{C} \rightarrow \id{B}$, there exists a unique morphism $\id{f}$ such that $\id{p} = \pi_1 \circ \id{f}$ and $\id{q} = \pi_2 \circ \id{f}$. In other words, we require that the following diagram commute:
+However, we notice that this is far too general of a definition since it is
+likely that there are many objects that fulfil these criteria. Here, we
+introduce the notion of a universal property which allows us to identify
+\emph{the best product}. The best product is the one that is not too general,
+and yet not too restrictive, it is \emph{just right}. More formally, the product
+of $\id{A}$ and $\id{B}$ is an object $\id{A} \times \id{B}$ with the morphisms
+$\pi_1 : \id{A} \times \id{B} \rightarrow A$ and $\pi_2 : \id{A} \times \id{B}
+\rightarrow B$. Additionally, for any other object $\id{C}$ with morphisms
+$\id{p} : \id{C} \rightarrow \id{A}$ and $\id{q} : \id{C} \rightarrow \id{B}$,
+there exists a unique morphism $\id{f}$ such that $\id{p} = \pi_1 \circ \id{f}$
+and $\id{q} = \pi_2 \circ \id{f}$. In other words, we require that the following
+diagram commute:
 
 \begin{figure}[H]
 \centering
@@ -3440,6 +3442,8 @@ from that, we get defitional equalities even for path constructors.
 TODO:\ Wanted to show an example of HIT-style elimination of a quotient, but I didn't find anything worth showing for now.
 
 \section{QITs and Quotient Haskell}
+TODO:\ Finish this!!
+
 Points:
 
 Quotient inductive types (QITs) are essentially HITs that are set-truncated. This essentially provides us with the full range of expressiveness of HITs without higher-dimensional paths. In other words, we are not allowed to define paths between paths. Indeed, such paths are not typically used in day-to-day programming tasks.
