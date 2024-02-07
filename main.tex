@@ -252,7 +252,7 @@
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
 
 \newcommand\kw[1] {\textsf{#1}}
-\newcommand\id[1] {\textsl{#1}}
+\newcommand\id[1] {\texttt{#1}}
 \newcommand\fn[1] {\texttt{#1}}
 \newcommand\type[1] {\textsf{#1}} %% Type names
 \newcommand\latinphrase{\textit}
@@ -542,12 +542,12 @@ truths. Since equalities are mathematical propositions, we require a type that
 plays the role of equality in mathematical proofs. For instance, we might want
 to state the theorem that the addition of natural numbers is commutative, i.e.
 $\forall xy. \ x + y \equiv y + x$. To this end, our system requires an equality
-type\footnote{In the literature paper, the terms `equality type', `identity
-type' and `path' are used interchangeably. For our purposes, we shall employ the
-term `equality type', though occassionally we shall use the term `path' to draw
-an analogy with HoTT.} that allows us to make statements such as the above. Such
-a type provides us with a proposition that can be manipulated like any other.
-This implies that we can manipulate it with other operations such as logical
+type\footnote{In the literature, the terms `equality type', `identity type' and
+`path' are used interchangeably. For our purposes, we shall employ the term
+`equality type', though occassionally we shall use the term `path' to draw an
+analogy with HoTT.} that allows us to make statements such as the above. Such a
+type provides us with a proposition that can be manipulated like any other. This
+implies that we can manipulate it with other operations such as logical
 negation, conjunction, disjunction etc. What we have just described is what is
 commonly known as \emph{propositional equality}.
 
@@ -606,43 +606,45 @@ types\cite{sulzmann2007systemfeq}.
 %% and just state that we somehow have a type `Vector α n`.  The definition
 %% of Vector can/will probably appear later, but not in the intro.
 
+%% TODO: ^ Revisit this soon
+
 For two terms $x$ and $y$ of the same type $A$, we would like to be able to
 state the proposition that the two terms are equal. For now, we merely consider
 equality between terms of the same type. This gives us a type former that takes
 a type as input, along with two terms of that type. In Typer, equality between
-terms is represented by the $\kw{Eq}$ type former\footnote{A type former can be
-thought of as a constructor that constructs a Type.} which has the below type
-signature.
+terms is represented by the $\kw{Eq}$ type former.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\rightarrow$@ Type
 \end{minted}
 
-%% SM: Like before, you need to "read aloud" for the readers.  A bit
-%% faster than last time, but still.  And acknowledge that it's a
-%% "function" that takes and returns types rather than "values".
+Just like $\id{arrayGet}$, $\id{Eq}$ is a function. However, instead of
+returning values, it returns types. Since this type of function constructs
+types, it is also known as a type former. $\id{Eq}$ takes as arguments a type
+$\id{A}$ and two terms $\id{x}$ and $\id{y}$ of type $\id{A}$. The usage of
+$\Rrightarrow$ indicates that the parameter $\id{A}$ is implicit and erasable,
+this is explained in greater detail in \autoref{sec:eq-justification}. Recall
+that types may be seen as propositions, the type $\fn{Eq x y}$\footnote{For
+aesthetic purposes, we shall use the operator $\equiv$ to represent the
+$\kw{Eq}$ type throughout the rest of this work, i.e.\ we write $\fn{Eq x y}$ as
+$\fn{x $\equiv$ y}$.} is thus a proposition that $\fn{x}$ and $\fn{y}$ are
+equal, and its terms are proofs of this proposition.
 
-The $\kw{Eq}$ type former takes a type as input, along with two terms of that
-type that we wish to claim are equal\footnote{For aesthetic purposes, we shall
-use the operator $\equiv$ to represent the $\kw{Eq}$ type throughout the rest of
-%% SM: This is not a "paper".
-%% SM: Maybe it's still worthwhile at this point to remind them that
-%% "the type" can be read as "the proposition".
-the paper.}. We could then construct the type that stipulates that the addition
-of natural numbers is commutative by using the $\kw{Eq}$ type former.
+We could then construct the type that stipulates that the addition of natural
+numbers is commutative by using the $\kw{Eq}$ type former.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Nat+_comm : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m;
+Nat+_comm : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m
 \end{minted}
 
-%% SM: read aloud.
-
-$m + n \equiv n + m$ is merely a type and can be seen as a statement of the
-proposition that $m + n$ and $n + m$ are equal. In order to prove that the
-proposition is actually true, we would need to construct a term of this type.
-Such a term may be seen as a proof object that witnesses the validity of the
-proposition. Interested readers may find the complete proof of the commutativity
-of addition of natural numbers in \autoref{app:other-proofs}.
+$\fn{Nat+\_comm}$ takes 2 natural numbers $\fn{m}$ and $\fn{n}$ as arguments and
+returns a proof that \fn{m + n $\equiv$ n + m}. \fn{m + n $\equiv$ n + m} is
+merely a type and can be seen as a statement of the proposition that \fn{m + n}
+and \fn{n + m} are equal. In order to prove that the proposition is actually
+true, we would need to construct a term of this type. Such a term may be seen as
+a proof object that witnesses the validity of the proposition. Interested
+readers may find the complete proof of the commutativity of addition of natural
+numbers in \autoref{app:other-proofs}.
 
 %% SM: you could give examples of uses of equality, ideally examples
 %% of code rather than examples of proofs (Remember that your audience
@@ -651,55 +653,58 @@ of addition of natural numbers in \autoref{app:other-proofs}.
 %% and then show how to convert a list of length (a + b) to a list of length
 %% (b + a).
 
-To see how such a proof may be utilised, consider the following definition of a
-length indexed vector:
+To see how such a proof may be utilised, suppose we have a type of
+length-indexed vectors:
 
-%% SM: It's OK to take liberties with the code and syntax to hide details
-%% under the rug, but don't introduce additional new syntax.  IOW, use
-%% a simplified/idealized Typer syntax, rather than Haskell/Agda syntax.
-%% TODO: I used Agda/Haskell-like syntax to simplify the presentation of this,
-%% maybe encode this in Typer later, i.e. in the spirit of ''System F with type
-%% equality coercions`? Is it a bit heavy to do it here? I could do it in the
-%% Appendix maybe? Decisions, decisions...
-\begin{minted}[]{agda}
-data Vector (A : Type) : Nat → Type where
-    Vnil : Vector A 0
-    Vcons : {n : Nat} → A → Vector A n → Vector A (suc n)
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Vector : (A : Type) @$\rightarrow$@ Nat @$\rightarrow$@ Type
 \end{minted}
 
-%% SM: Read aloud.
+This type is parametrised by \fn{A}, the type of the elements of the vector, as
+well as a natural number that represents its length, this is once again an
+instance of a dependent type as the type refers to a term of type \fn{Nat}. The
+fact that the vector type is indexed by its length allows us to conduct more
+static checks that verify that our program is well-behaved since functions are
+able to impose constraints based on the length of vectors. However, this is not
+without its disadvantages as programmers are now burdened with the
+responsibility of proving at various points during the program that their
+vectors have the `right length'. To humans, the fact that \fn{Vector A (m + n)}
+and \fn{Vector A (n + m)} are the same is something trivial and is often taken
+for granted. In general, the type checker of a dependently-typed language would
+not immediately consider the above types equal without further evidence. Hence,
+one would not be able to pass a vector of the first type to a function that
+expects a vector of the latter type. Below is a typical definition of the addition
+operation on natural numbers:
 
-As its name would suggest, the length of such a vector is found in its type
-itself. Since we are able to prove that the addition of natural numbers is
-%% SM: I think most programmers would not like to be able to say this.
-%% Instead, they'd probably take it for granted that the type checker must know
-%% that those two types are obviously the same.  So you first have to explain
-%% that the type checkers are usually so dumb that they will not consider
-%% that a vector of one type can be passed to a function expecting the other
-%% type.  So, even though the programmers don't want to state this
-%% equality, they end up needing to do it to convince the damn type checker
-%% to accept their "obviously correct" program.
-commutative, we would like to be able to say something regarding the types
-$\Funapp{\id{Vector}}{\id{A}}{(\id{m} + \id{n})}$ and
-$\Funapp{\id{Vector}}{\id{A}}{(\id{n} + \id{m})}$. Since we expect that it
-should be possible to prove that the two types are equal, this then implies that
-we should also be able to convert a vector of type
-$\Funapp{\id{Vector}}{\id{A}}{(\id{m} + \id{n})}$ to one of type
-$\Funapp{\id{Vector}}{\id{A}}{(\id{n} + \id{m})}$.
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+_+_ : Nat @$\rightarrow$@ Nat @$\rightarrow$@ Nat
+_+_ x y = case x
+  | zero @$\Rightarrow$@ y
+  | succ x' @$\Rightarrow$@ succ (x' + y)
+\end{minted}
+
+The function is defined by case analysis on its first argument, it is thus not
+immediate that for arbitrary natural numbers \fn{m} and \fn{n}, \fn{m + n} and
+\fn{n + m} would evaluate to the same thing. Hence, if a programmer wishes to
+uses a term of type \fn{Vector A (n + m)} in place of one of type \fn{Vector A
+  (m + n)}, he would be required to state and prove the propositional equality
+\fn{Vector A (m + n) $\equiv$ Vector A (n + m)}. Once we have such a proof, we
+may then use it to cast vectors between those two types. This is achieved by
+defining a function like the one below:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Vlength-comm+ : (m n : Nat) @$\Rrightarrow$@ Vector ?A (m + n) → Vector ?A (n + m)
-Vlength-comm+ = lambda A m n @$\Rrightarrow$@ Eq_cast (p := Nat+_comm m n) (f := Vector A)
+Vlength_comm+ : (m n : Nat) @$\Rrightarrow$@ Vector ?A (m + n) @$\rightarrow$@ Vector ?A (n + m)
+Vlength_comm+ = lambda A m n @$\Rrightarrow$@ Eq_cast (p := Nat+_comm m n) (f := Vector A)
 \end{minted}
 
-%% SM: I think you know what you need to do it, here.
-
-By making use of a proof that $m + n \equiv n + m$, we are able to perform type
-casting on a vector of type $\Funapp{\id{Vector}}{\id{A}}{(\id{m} + \id{n})}$ to
-produce one of the desired type. This makes use of the fact that the equality
-type satisfies substitution, i.e. if two terms are equal, then if a predicate is
-true of the first term, then it is necessarily also true for the second term.
-%% SM: Mention Leibniz.
+\fn{Vlength\_comm+} is a function that converts a vector of type \fn{Vector A (m
+  + n)} to one of type \fn{Vector A (n + m)}. By making use of a proof that
+\fn{m + n $\equiv$ n + m}, we are able to perform type casting on a vector of
+type \fn{Vector A (m + n)} to produce one of the desired type. The equality type
+satisfies Leibniz's principle of the indiscernibility of identicals, i.e.\ two
+identical things may be substituted for one another. Thus if two terms are
+equal, then if a predicate is true of the first term, then it is necessarily
+also true for the other.
 
 %% SM: Another example where equality is needed and that's usually easy
 %% to grasp is the matrix product to ensure the matrices are compatible.
@@ -714,9 +719,8 @@ Eq_refl : (x : ?A) @$\Rrightarrow$@ x @$\equiv$@ x;
 
 Given a term $x$ of an arbitrary type $A$, we can trivially construct the proof that $x$ is equal to itself. This is known as the reflexive proof of equality.
 
-
-%% - Give code examples of the Eq type and what we can do with it.
-
+%% NOTE: I think I don't need to explain this. Delete when sure.
+%%
 %% One might also wonder why the $\kw{Eq}$ type is not implemented as a `native' inductive datatype in Typer. This is because Typer does not have out-of-the-box support for indexed datatypes. Consider the below definition of the $\kw{Eq}$ type in the language Coq that does support indexed datatypes:
 
 %% \begin{minted}{coq}
@@ -733,6 +737,31 @@ Given a term $x$ of an arbitrary type $A$, we can trivially construct the proof 
 
 %% This implies that the definition of $\kw{Eq}$ necessitates the use of the $\kw{Eq}$ type itself and we get a definition that is unpleasant to use.
 
+%% SM: I recommend you test-run this paragraph(subsection) by passing it to
+%% some programmer friend of yours (someone not familiar with topology),
+%% to see how much they understand.
+\subsection*{Cubical Equality?}
+
+Recent advances in type theory inspired from topology propose a different
+approach to represent equality proofs by modelling them as functions out of a
+unit interval to some type A. In this alternative formulation of equality
+proofs, an equality is viewed as a continuous path along the unit interval that
+connects two terms that are equal. The return value of such functions are not
+allowed to directly depend on the value of the interval argument. For instance,
+the function may not do a case analysis on the interval and return a different
+term of type A depending on which endpoint of the interval is encountered. This
+essentially implies that such a function would indeed be constant on the unit
+interval and aptly respects the requirements of an equality proof. An equality
+type based on the interval also allows us to derive many proofs regarding the
+equality type in an alternative manner that is much cleaner and more elegant. It
+also allows to derive new theorems regarding the equality type that are
+desirable, such as functional extensionality. This flavour of equality was first
+conceived in cubical type theories in order to provide a computational
+interpretation of the univalence axiom\cite{bezem2014model}. This allows the
+encoding of equivalences as equalities. This is much like what is done in
+informal mathematics where objects with equivalent structures are just taken to
+be the ``the same''.
+
 %% SM: You're switching here to a different (sub)section, I suggest you
 %% mark that somehow.  Until the end of this section, you're talking about
 %% the fact that there are various different ways to introduce this notion
@@ -740,55 +769,48 @@ Given a term $x$ of an arbitrary type $A$, we can trivially construct the proof 
 %% take those two one at a time.  Currently it's all mushed up in a single
 %% somewhat breathless paragraph.
 
-%% SM: I recommend you test-run this paragraph(subsection) by passing it to
-%% some programmer friend of yours (someone not familiar with topology),
-%% to see how much they understand.
-Recent advances in type theory inspired from topology propose a different
-approach to represent equality proofs by modelling them as functions out of a
-unit interval to some type A. In this alternative formulation of equality
-proofs, an equality is viewed as a continuous path along the unit interval that
-connects two terms that are equal. The return value of such functions may not
-directly depend on the value of the interval type. For instance, the function
-may not do a case analysis on the interval and return a different term of type A
-depending on which endpoint of the interval is encountered. This essentially
-implies that such a function would indeed be constant on the unit interval and
-aptly respects the requirements of an equality proof. An equality type based on
-the interval also allows us to derive many proofs regarding the equality type in
-an alternative manner that is much cleaner and more elegant. It also allows to
-derive new theorems regarding the equality type that are desirable, such as
-functional extensionality. This flavour of equality was first conceived in
-cubical type theories in order to provide a computational interpretation of the
-univalence axiom \cite{bezem2014model}. This allows the encoding of equivalences
-as equalities, in which case it is precisely because their equality proofs are
-non-trivial, i.e.\ proof relevant, that the univalence axiom may be proven as a
-theorem. However in the case of Typer, it is desirable for equality proofs to
-remain irrelevant so that they may be erased before runtime. This is essential
-so that operations involving the equality type may be treated as no-ops at
-runtime. Hence, we seek to reap the benefits of having a more powerful equality
-type, all while retaining the runtime irrelevance of equality proofs.
+Encoding equivalences as equalities is the bread and butter of univalence. It is
+thus crucial that equality proofs are not irrelevant in a HoTT setting, as their
+equalities could be constructed on the basis of equivalences and thus may
+participate in computation. As a general purpose programming language, Typer has
+no ambitions of supporting univalence. Thus, it is desirable for equality proofs
+in Typer to remain irrelevant so that they may be erased prior to runtime. This
+is essential so that operations involving the equality type may be treated as
+no-ops during runtime. If all equality proofs are merely reflexivity proofs in
+disguise (?), then type casts using the \fn{Eq\_cast} primitive simply behave
+like the identity function at runtime as we would merely need to cast a term to
+its own type. This is in stark contrast to equalities that are really
+equivalences, a cast at runtime would actually involve applying the underlying
+function of the equivalence. In our work, we carefully adapt the cubical
+equality type to Typer to reap the benefits of having a more powerful equality
+type, all while preserving our equality type's compatibility with proof
+irrelevance.
 
 \section{Quotients}
 
-%% SM: Give a simple example of a quotient set early on, such as the
-%% naturals modulo 256, or something.
 In keeping with the theme of equality, we shall discuss the implementation of
 quotient types in Typer. Quotient types allow us to redefine the equality of a
 type, usually on the basis of an equivalence relation on the type. This is
 inspired by quotients in set theory, where if we are given a set A and an
 equivalence relation $\sim$ on A, then we can construct the quotient set of A by
 $\sim$, which we denote as $A / \sim$. Equivalent elements in A are considered
-equal in $A / \sim$. The subsets of elements that are considered equal in $A /
-\sim$ are precisely the subsets whose elements are all equivalent under the
-equivalence relation. We can say that for some $a \in A$, the subset of $A$ such
-that all elements are equivalent to $a$ is $\{a' \in A \ | \ a' \sim a \}$.
-Indeed, this subset is what one would call the equivalence class of $a$, this is
-usually denoted as $[a]$. When we take the quotient of a set, we are essentially
-partitioning the set into equivalence classes, implying that we can regard a
-quotient set as simply the set of equivalence classes induced by the equivalence
-relation.
+equal in $A / \sim$. Conversely, the subsets of elements that are considered
+equal in $A / \sim$ are precisely the subsets whose elements are all equivalent
+under the equivalence relation. We can say that for some $a \in A$, the subset
+of $A$ such that all elements are equivalent to $a$ is $\{a' \in A \ | \ a' \sim
+a \}$. Indeed, this subset is what one would call the equivalence class of $a$,
+this is usually denoted as $[a]$. When we take the quotient of a set, we are
+essentially partitioning the set into equivalence classes, implying that we can
+regard a quotient set as simply the set of equivalence classes induced by the
+equivalence relation. For example, consider the integers modulo \id{5} where the
+underlying relation is congruence modulo \id{5}. Here, 0, 1, 2, 3, 4 are the
+canonical representatives of their respective equivalence classes, or more
+specifically, congruence classes.
 
-%% SM: Define "inductive type" (tho, actually, here you can simply
-%% remove "inductive").
+\begin{equation}
+\mathbb{Z} / 5\mathbb{Z} = \{ [0], [1], [2], [3], [4] \}
+\end{equation}
+
 %% SM: Another way to look at it is to say that, as programmers we
 %% often end up defining types that allow several different representations
 %% of the same thing (like syntax with names instead of deBruijn indices,
@@ -800,13 +822,20 @@ relation.
 %% Quotient types let you define explicitly what information is "exposed"
 %% vs what information is "internal details" and have the type checker
 %% verify that your abstraction doesn't leak.
-Quotient types often provide us with alternative ways of defining inductive
-types that are familiar to us. Some of these definitions could potentially be
-better than the original formulations depending on the use cases of the
-resulting data type. For example, as was noted in \cite{hewer2023quotient}, by
-defining the List data type as a quotient of binary trees where the joining
-operation of two trees is associative, the resulting List datatype has a
-constant time append operation.
+
+%% NOTE: When defining a type on top of an existing type, the base type might
+%% have `redundancies' as far as our purposes are concerned. Quotient types are
+%% a way of taking advantage of the type checker to ensure that these
+%% redundancies are appropriately handled internally. I think that instead of
+%% saying that we can control what is ''exposed`, I would rather say that what
+%% we end up exposing is necessarily `lawful' wrt to the quotient.
+
+Quotient types often provide us with alternative ways of defining types that are
+familiar to us. Some of these definitions could potentially be better than the
+original formulations depending on the use cases of the resulting data type. For
+example, as was noted in\cite{hewer2023quotient}, by defining the List data type
+as a quotient of binary trees where the joining operation of two trees is
+associative, the resulting List datatype has a constant time append operation.
 
 Quotient types are especially useful when defining datatypes that have
 redundancies. By taking the quotient of such types, we ensure that redundancies
@@ -921,7 +950,7 @@ Elimination of $\bI$ is similar to that of \id{Booleans} the only difference is
 that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected.
 The recursion principle of $\bI$ can thus be stated as follows\footnote{When we
 say recursion principle, we refer to the definition as is employed in an
-introduction to the Coq proof assistant \cite{chlipala2022certified}. This
+introduction to the Coq proof assistant\cite{chlipala2022certified}. This
 terminology has also been employed in the HoTT book\cite{HoTTbook}.}:
 
 \begin{prooftree*}
@@ -997,7 +1026,7 @@ Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
 
 For the sake of simplifying the proof of $\beta$, we assume the $\eta$-rule for dependent pairs. And with that, the proof is complete.
 
-\section{Justification}
+\section{Justification}\label{sec:eq-justification}
 We have established that the equality type (also known as the identity type) is
 equivalent to a function out of the interval. We have also illustrated that such
 a function is expected to be constant on the unit interval. This condition is
