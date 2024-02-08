@@ -580,13 +580,14 @@ name $\fn{a}$ is because subsequent parameters may depend on it as Typer is a
 dependently typed language. The second parameter $\fn{i}$ is a natural number
 --- the index of the element we wish to retrieve from the array. The last
 parameter is a proof that the index $\id{i}$ is indeed within the bounds of the
-array. Dependent types are at play here as the type $\fn{i < length a}$ depends
-on the terms $\fn{i}$ and $\fn{length a}$. When the function is called with all
-three arguments, it then returns something of type $\fn{A}$ --- the element of
-the array that we are trying to retrieve. This gives us a guarantee that array
-accesses will never lead to a runtime error. Additionally, this could also allow
-us to skip runtime bounds-checking as the index is necessarily valid as long as
-the program is well-typed.
+array. This is our first example of dependent types, whose defining
+characteristic is that types may depend on terms. The type $\fn{i < length a}$
+depends on the terms $\fn{i}$ and $\fn{length a}$. When the function is called
+with all three arguments, it then returns something of type $\fn{A}$ --- the
+element of the array that we are trying to retrieve. This gives us a guarantee
+that array accesses will never lead to a runtime error. Additionally, this could
+also allow us to skip runtime bounds-checking as the index is necessarily valid
+as long as the program is well-typed.
 
 In general, proofs improve the reliability of programs by allowing more errors
 to be detected at compile-time by making use of the type system to impose
@@ -823,12 +824,18 @@ specifically, congruence classes.
 %% vs what information is "internal details" and have the type checker
 %% verify that your abstraction doesn't leak.
 
-%% NOTE: When defining a type on top of an existing type, the base type might
-%% have `redundancies' as far as our purposes are concerned. Quotient types are
-%% a way of taking advantage of the type checker to ensure that these
-%% redundancies are appropriately handled internally. I think that instead of
-%% saying that we can control what is ''exposed`, I would rather say that what
-%% we end up exposing is necessarily `lawful' wrt to the quotient.
+%% NOTE: Let's see how I can adapt the above, I like some of the ideas but not
+%% all of them. I like the BT example, but the one with DB indices is less
+%% convincing. The former has a direct link to quotients whereas the latter is
+%% an analogy. Another good example is maybe the alpha equivalence of functions.
+
+%% Often, types that we define permit multiple internal representations that are
+%% equivalent. Such equivalences may be seen as `redundancies' in the base type
+%% as far as our purposes are concerned. Quotient types are a way of taking
+%% advantage of the type checker to ensure that these redundancies are
+%% appropriately handled internally. I think that instead of saying that we can
+%% control what is ''exposed`, I would rather say that what we end up exposing
+%% is necessarily `lawful' wrt to the quotient.
 
 Quotient types often provide us with alternative ways of defining types that are
 familiar to us. Some of these definitions could potentially be better than the
@@ -856,21 +863,30 @@ the rationals as pairs of integers does nothing to ensure that equal rationals
 are indeed treated equally. This problem is remedied by quotienting pairs of
 integers by an appropriate equivalence relation.
 
-%% SM: "We also show..."?
-We also show that there exists a class of quotients that can be defined without
-the addition of a new type former, i.e.\ quotients that are characterised by a
 %% SM: I think the Miranda article also fits here.
 %% That article might also be a good way to motivate your work: quotients
 %% were introduced early on in FP, but they didn't catch on, and you can
 %% argue that it's maybe because they couldn't manipulate proofs, so now
 %% the time is ripe for the second coming.
-normalisation function\cite{li2015quotient,courtieu-normalizedtypes}. For these
-quotients, it is possible to elect a canonical representative for each
-equivalence class. In the rest of the paper, we first describe the typing and
-reduction rules of the introduced type, and then we discuss the library that was
-implemented to faciliate the usage of quotient types in Typer. Finally, we
-illustrate how the quotient type may be used by providing examples in the form
-of code along with commentary.
+
+There also exists a class of quotients that can be defined without the addition
+of a new type former, i.e.\ quotients that are characterised by a normalisation
+function\cite{li2015quotient,courtieu-normalizedtypes}. For these quotients, it
+is possible to elect a canonical representative for each equivalence class. This
+idea is reminiscent of the \emph{laws} in the Miranda programming
+language\cite{thompson1986laws}. The constructors of its algebraic data types
+may be defined with rewrite rules that ensure that terms of a certain type are
+always in normal form. All this to say that ideas related to quotient types have
+been introduced to functional programming in its early years, however they did
+not gain mainstream adoption. This is probably because dependently typed
+languages were still nascent at that time, making it more challenging for
+quotient types and their entailed proof obligations to be aptly integrated into
+functional languages. In the rest of this thesis, we discuss our experience of
+introducing quotient types to Typer. We first describe the typing and reduction
+rules of the introduced quotient type, and then we discuss the library that was
+implemented to faciliate their usage in Typer. Finally, we illustrate how the
+quotient type may be used by providing examples in the form of code along with
+commentary.
 
 \section{Contributions}
 
