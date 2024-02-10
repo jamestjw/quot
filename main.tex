@@ -703,9 +703,9 @@ Vlength_comm+ = lambda A m n @$\Rrightarrow$@ Eq_cast (p := Nat+_comm m n) (f :=
 \fn{m + n $\equiv$ n + m}, we are able to perform type casting on a vector of
 type \fn{Vector A (m + n)} to produce one of the desired type. The equality type
 satisfies Leibniz's principle of the indiscernibility of identicals, i.e.\ two
-identical things may be substituted for one another. Thus if two terms are
-equal, then if a predicate is true of the first term, then it is necessarily
-also true for the other.
+identical things may be substituted for one another. \fn{Eq\_cast} is thus of
+the fact that if two terms are equal, then if a predicate is true of the first
+term, then it is necessarily also true for the other.
 
 %% SM: Another example where equality is needed and that's usually easy
 %% to grasp is the matrix product to ensure the matrices are compatible.
@@ -718,7 +718,29 @@ only constructor of the $\kw{Eq}$ type is the following:
 Eq_refl : (x : ?A) @$\Rrightarrow$@ x @$\equiv$@ x;
 \end{minted}
 
-Given a term $x$ of an arbitrary type $A$, we can trivially construct the proof that $x$ is equal to itself. This is known as the reflexive proof of equality.
+Given a term $x$ of an arbitrary type $A$, we can trivially construct the proof
+that $x$ is equal to itself. This is known as the reflexive proof of equality.
+
+What we have just seen is commonly known as homogeneous equality as only terms
+of the same type may be equated under this form of equality. Occasionally, it is
+also useful to be able to relate two terms of types that are not definitionally
+equal. Suppose that we had the terms \fn{u:Vector A (m + n)} and \fn{v:Vector A
+  (n + m)} and that we would like to construct a proposition of their equality.
+We would not be able to do it with the \fn{Eq} constructor as \id{u} and \id{v}
+are not of the \emph{same} type, though we know that the types may be proven to
+be equal. To state equalities between terms of different types, McBride
+introduced the notion of heterogeneous equality\cite{mcbride2000dependently},
+with which we may state our desired equality as \fn{Heq u v}. However, in order
+for two things to truly be equal, they need to be one and the same, their types
+included. This is witnessed by the constructor of \fn{Heq} which has the
+following type.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Heq_refl : (x : ?A) @$\Rrightarrow$@ Heq x x;
+\end{minted}
+
+In subsequent sections, we discuss the introduction of heterogeneous equality to
+Typer and its role in the elimination of quotients.
 
 %% NOTE: I think I don't need to explain this. Delete when sure.
 %%
@@ -762,13 +784,6 @@ interpretation of the univalence axiom\cite{bezem2014model}. This allows the
 encoding of equivalences as equalities. This is much like what is done in
 informal mathematics where objects with equivalent structures are just taken to
 be the ``the same''.
-
-%% SM: You're switching here to a different (sub)section, I suggest you
-%% mark that somehow.  Until the end of this section, you're talking about
-%% the fact that there are various different ways to introduce this notion
-%% of equality, and you're also talking about erasure.  I suggest you
-%% take those two one at a time.  Currently it's all mushed up in a single
-%% somewhat breathless paragraph.
 
 Encoding equivalences as equalities is the bread and butter of univalence. It is
 thus crucial that equality proofs are not irrelevant in a HoTT setting, as their
@@ -896,20 +911,11 @@ Inspired by cubical type theory, we replace the existing implementation of the
 equality type in Typer by one that is based on the Interval type. We also
 demonstrate that proofs regarding the equality type are consequently generally
 easier to realise by providing a library of theorems regarding the equality
-type. We also introduce the notion of heterogenous equality, making it possible
-%% SM: I think heterogenous equality might deserve a tiny bit more
-%% explanation (too much for this section, so you'll need to talk about
-%% it earlier), to explain that of course, "in reality" the two types are
-%% equal.  You can give an example such as equality between
-%% `x : Vector a (n + m)` and `y : Vector b (m + n)`.
-%% SM: The footnote is very appreciated.
+type. We also introduce the notion of heterogeneous equality, making it possible
 to identify terms of different types\footnote{To identify A and B is to claim
 that they are equal.}. This is necessary to enable the dependent elimination of
 quotient types, notably because this enables the representation of
-pathovers\cite{licata2015cubical} (TODO:\ The paper's definition of Heq has the
-proof alpha that both types are equal, this concerns me a little bit as our
-version doesn't have that, is this justifiable or should I adapt to their
-version instead?). We also implemented a proof of Hedberg's
+pathovers\cite{licata2015cubical}. We also implemented a proof of Hedberg's
 theorem\cite{hedberg1998coherence} in Typer. The theorem states that if a type
 has decidable equalities, then its equalities are necessarily trivial. Next, we
 introduced quotient types to Typer. This work then explores the usability and
@@ -1218,7 +1224,7 @@ $\Funapp{\id{A}}{(\earg{\id{i}_1})}$. We shall make use of this property
 subsequently to define the actual transport function. However, the other
 property of the $\id{I\_transp}$ function may appear bizarre at first sight, but
 in reality it ensures that $\Funapp{\id{I\_transp}}{\id{A}}{\id{r}}{\id{a}}$ is
-equal to $\id{a}$\footnote{This equality would be heteregenous as the two terms
+equal to $\id{a}$\footnote{This equality would be heterogeneous as the two terms
 may not have the same type}.
 
 The computational behaviour of the function is as follows:
@@ -1239,26 +1245,32 @@ untouched.
 
 \section{Identity type}\label{sec:identity}
 
-\subsection{Heterogenous equality}
+\subsection{Heterogeneous equality}
 With the above definition of $\bI$, we are now ready to introduce the notion of
-heterogenous equality. Such an equality type allows us to identify two terms
-that are not necessarily of the same type. The heterogenous equality type has
+heterogeneous equality. Such an equality type allows us to identify two terms
+that are not necessarily of the same type. The heterogeneous equality type has
 the following type signature\footnote{Although not mentioned explicitly,
 functions involving the identity type are universe polymorphic in their
 arguments and return type.} and is implemented axiomatically. Usually, when we
 define an axiom in type theory, we simply claim that it is an inhabitant of some
 type without saying anything about its behaviour. However, in our case we also
 supplement it with the appropriate reduction rules so it has the right
-computational behaviour. In the absence of this, e.g. if we were to define the
+computational behaviour. In the absence of this, i.e.\ if we were to define the
 computation rules for axioms in the form of propositional equalities, then the
 usage of these axioms suffers greatly as programs and proofs tend to be clumsy
 and inelegant.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Heq : ?x @$\rightarrow$@ ?y @$\rightarrow$@ Type
+Heq : (f : I @$\Rrightarrow$@ Type)
+      @$\Rrightarrow$@ f (_ := i0) @$\rightarrow$@ f (_ := i1) @$\rightarrow$@ Type
 \end{minted}
 
-The introduction rule of the above type leverages the fact that erasable functions out of the interval are equivalent to identity types.
+As we have previously proven, \fn{I $\Rrightarrow$ Type} is equivalent to an
+equality between two types. Although we say that \fn{Heq} allows us to equate
+two terms of different types, in reality the two types have to be provably
+equal. \id{Heq\_eq}, the constructor of \id{Heq} also leverages the property of
+erasable functions out of the interval to accept an argument of that form as a
+witness of the equality being constructed.
 
 %% Heq_eq : (l : TypeLevel) ≡> (t : I ≡> Type_ l) ≡> (f : (i : I) ≡> t (_ := i))
 %%           ≡> Heq (f (_ := i0)) (f (_ := i1))
@@ -1269,7 +1281,9 @@ Heq_eq : (t : I @$\Rrightarrow$@ Type)
          @$\Rrightarrow$@ Heq (f (_ := i0)) (f (_ := i1))
 \end{minted}
 
-The elimination of equality types is trivial, it merely returns a function out of the interval that represents the underlying equality.
+The elimination of equality types merely does the opposite of the introduction
+rule by returning a function out of the interval that represents the underlying
+equality.
 
 %% Heq_uneq : (l : TypeLevel) ≡> (t : I ≡> Type_ l)
 %%                     ≡> (x : t (_ := i0)) => (y : t (_ := i1))
@@ -1306,11 +1320,10 @@ the corresponding endpoint of the equality proof. This is a crucial property
 that allows derive theorems such as functional extensionality in
 \autoref{subsec:funext}.
 
-\subsection{Homogenous equality}
-Homogenous equality is by far the more typical notion of equality. We are able
-to define it as a special case of heterogenous equality as a special case of of
-$\fn{Heq x y}$ where $\fn{x}$ and $\fn{y}$ are of the same
-type.
+\subsection{Homogeneous equality}
+Homogeneous equality is by far the more typical notion of equality. We are able
+to define it as a special case of heterogeneous equality as a special case of of
+$\fn{Heq x y}$ where $\fn{x}$ and $\fn{y}$ are of the same type.
 
 %% TODO: Fix the alignment
 %% Eq_uneq : (l : TypeLevel) ≡> (t : Type_ l)
@@ -1322,7 +1335,7 @@ type.
 %%                 Heq_uneq (t := lambda _ ≡> t) (p := p) (i := i)
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Eq : (t : Type) @$\Rrightarrow$@ t @$\rightarrow$@ t @$\rightarrow$@ Type
-Eq x y = Heq x y
+Eq x y = Heq (t := lambda _ @$\Rrightarrow$@ t) x y
 
 Eq_eq : (t : Type) @$\Rrightarrow$@ (f : I @$\Rrightarrow$@ t)
         @$\Rrightarrow$@ Eq (t := t) (f (_ := @$\ileft$@)) (f (_ := @$\iright$@))
@@ -1337,7 +1350,10 @@ Eq_uneq p i = Heq_uneq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (p := p) (i := i)
 Common properties of the equality type remain true, some of them are easier to prove than with a traditional equality type.
 
 \subsection*{Reflexivity}
-A reflexive equality is the most trivial equality that we are able to construct, and indeed, it is the one that we are able to construct with an erasable function out of $\bI$ given that such a function is necessarily a constant function.
+A reflexive equality is the most trivial equality that we are able to construct,
+and indeed, it is the one that we are able to construct with an erasable
+function out of $\bI$ given that such a function is necessarily a constant
+function.
 
 %% Eq_refl : (l : TypeLevel) ≡> (t : Type_ l)
 %%            ≡> (x : t) ≡> Eq x x
@@ -1349,7 +1365,16 @@ Eq_refl x = Eq_eq (f := |$\lambda$| _ |$\Rrightarrow$| x)
 \end{minted}
 
 \subsection*{Commutativity}
-This is the first of many properties that can be proved in an elegant manner by virtue of defining the equality type based on functions out of the interval. This property has many names, such as the commutativity of equality, the symmetry of equality, or the inversion of a path. Consider an equality between $\id{x}$ and $\id{y}$, we can think of the two terms as points, the equality itself can then be thought of as a continuous path between the two points. We think of the path as a directed path from $\id{x}$ to $\id{y}$. The commutativity of equality basically means that we are able to construct a path that goes in the opposite direction, in other words, we are able to invert the path. This is the intuition behind the following proof.
+This is the first of many properties that can be proved in an elegant manner by
+virtue of defining the equality type based on functions out of the interval.
+This property has many names, such as the commutativity of equality, the
+symmetry of equality, or the inversion of a path. Consider an equality between
+$\id{x}$ and $\id{y}$, we can think of the two terms as points, the equality
+itself can then be thought of as a continuous path between the two points. We
+think of the path as a directed path from $\id{x}$ to $\id{y}$. The
+commutativity of equality basically means that we are able to construct a path
+that goes in the opposite direction, in other words, we are able to invert the
+path. This is the intuition behind the following proof.
 
 %% Eq_comm : (x : ?t) ≡> (y : ?t) ≡> Eq x y -> Eq y x
 %% Eq_comm p = Eq_eq (f := lambda i ≡> Eq_uneq (p := p) (i := I_not i))
@@ -1391,7 +1416,10 @@ Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := 
 \end{figure}
 
 \subsection*{Functional extensionality}\label{subsec:funext}
-The notion of functional extensionality implies that pointwise-equal functions are indeed equal. By postulating the existence of the $\type{Interval}$ type along with an equality type that's based on it, functional extensionality can be derived trivially as is illustrated by the below proof.
+The notion of functional extensionality implies that pointwise-equal functions
+are indeed equal. By postulating the existence of the $\type{Interval}$ type
+along with an equality type that's based on it, functional extensionality can be
+derived trivially as is illustrated by the below proof.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Eq_funExt : (f : (? |$\rightarrow$| ?)) |$\Rightarrow$| (g : (? |$\rightarrow$| ?))
@@ -1874,7 +1902,7 @@ $\Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}})}$. In a
 way, this implies that the function $\id{f}$ has the chance of `looking inside'
 the quotient, and thus we also require a proof that such a function $\id{f}$
 behaves consistently when applied to terms that are related by the underlying
-relation of the quotient. The usage of heterogenous equality here is necessary
+relation of the quotient. The usage of heterogeneous equality here is necessary
 as $\Funapp{\id{f}}{\id{a}_1}$ and $\Funapp{\id{f}}{\id{a}_2}$ are not of the
 same type. We note as well that our dependent elimination of quotients is not
 limited to motives that are \type{Props}, as opposed to when quotient types are
@@ -2951,7 +2979,7 @@ diagram.
 \end{tikzpicture}
 \end{center}
 
-The circles represent the two types and points in the circle are elements of the corresponding types. With our definition of equality, we can trivially construct an equality between $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and $\Funapp{\id{A}}{(\earg{\_}{\iright})}$. Now, given that the two circles are `equal', intuitively speaking, every point in one circle should have a counterpart in the other circle, and this can be obtained transporting a point along the equality between the two types. The result of transporting $\id{x}$ to the type $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ is a point that we shall call $\id{transport\_x}$. Additionally, suppose also that we have an equality between $\id{transport\_x}$ and $\id{y}$, this is indicated by the path $\id{p}$ between the two points in the diagram. Given that $\id{x}$ is transported to $\id{transport\_x}$, and that $\id{transport\_x}$ is equal to $\id{y}$, we also want to be able to say something about the relationship between $\id{x}$ and $\id{y}$. Since they are not of the same type, all we can do is construct a heterogenous equality between them, and this is precisely what the function $\id{toPathOver}$ seeks to do.
+The circles represent the two types and points in the circle are elements of the corresponding types. With our definition of equality, we can trivially construct an equality between $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and $\Funapp{\id{A}}{(\earg{\_}{\iright})}$. Now, given that the two circles are `equal', intuitively speaking, every point in one circle should have a counterpart in the other circle, and this can be obtained transporting a point along the equality between the two types. The result of transporting $\id{x}$ to the type $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ is a point that we shall call $\id{transport\_x}$. Additionally, suppose also that we have an equality between $\id{transport\_x}$ and $\id{y}$, this is indicated by the path $\id{p}$ between the two points in the diagram. Given that $\id{x}$ is transported to $\id{transport\_x}$, and that $\id{transport\_x}$ is equal to $\id{y}$, we also want to be able to say something about the relationship between $\id{x}$ and $\id{y}$. Since they are not of the same type, all we can do is construct a heterogeneous equality between them, and this is precisely what the function $\id{toPathOver}$ seeks to do.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 toPathOver : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0)) @$\Rightarrow$@ (y : A (_ := i1))
@@ -2971,7 +2999,7 @@ toPathOver = @$\lambda$@ _  A @$\Rrightarrow$@ @$\lambda$@ x y @$\Rightarrow$@ @
         (p := p) (f := @$\lambda$@ y' @$\rightarrow$@ Heq x y') l;
 \end{minted}
 
-We construct a heterogenous equality between $\id{x}$ and $\id{transport\_x}$ and we concatenate it with the equality proof between $\id{transport\_x}$ and $\id{y}$ to complete the proof.
+We construct a heterogeneous equality between $\id{x}$ and $\id{transport\_x}$ and we concatenate it with the equality proof between $\id{transport\_x}$ and $\id{y}$ to complete the proof.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 elimProp : (A : Type_ ?) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
