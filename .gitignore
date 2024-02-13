@@ -1,5 +1,8 @@
-
 # LaTeX-generated files
+_minted-main
+*.bbl
+*.blg
+*.lot
 *.aux
 *.log
 *.out

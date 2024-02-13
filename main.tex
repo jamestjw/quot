@@ -3534,7 +3534,7 @@ from that, we get definitional equalities even for path constructors.
 
 TODO:\ Wanted to show an example of HIT-style elimination of a quotient, but I didn't find anything worth showing for now.
 
-\section{QITs (Quotient Haskell)}
+\section{Quotient Inductive Types}
 
 Quotient inductive types (QITs) are essentially HITs that are set-truncated.
 This essentially provides us with the full range of expressiveness of HITs
@@ -3570,7 +3570,69 @@ types to Typer instead of QITs primarily because of its simpler implementation.
 Aside from that, we get the added benefit of preserving the modularity of the
 current implementation of inductive types.
 
-\section{Quotient by normalisation}
+\section{Quotients in Observational Type Theory}
+
+%% TODO: Be a bit more careful with this section as I'm reading about this for
+%% the first time, so I might be prone to misunderstanding the article
+%% (pujet2022observational)
+
+In observational type theories such as TT$^{obs}$\cite{pujet2022observational},
+every type has a built-in setoid structure which is preserved by all terms by
+construction. Equality is represented by the setoid equality of types
+themselves, each type is thus free to have its own notion of equality. The
+observational equality type is denoted as \fn{t $\sim_A$ u}, this type
+represents the equality of terms \id{t} and \id{u} at type \id{A}. However, this
+is not a typical type former of equality types as we have previously seen,
+$\sim$ in reality pattern matches on the type \id{A} and the two endpoints and
+computes to a type. We show two reductions rules to illustrate this point.
+First, we show the reduction rule for observational equality between two
+propositions. Note that in TT$^{obs}$, $\Omega_i$ is a universe of proof
+irrelevant propositions.
+
+\begin{prooftree*}
+  \hypo{\oftype{\ctx}{A}{\Omega_i}}
+  \hypo{\oftype{\ctx}{B}{\Omega_i}}
+
+  \infer2[\kw{EQ-$\Omega$}]{\oftype{\ctx}{A \sim_{\Omega_i} B \Rightarrow{} (A
+      \rightarrow{} B) \wedge{} (B \rightarrow{} A)}{\Omega_i}}
+\end{prooftree*}
+
+Observational equality between propositions is simply represented by their
+logical equivalence, implying that propositional extensionality is baked into
+the theory. Next, we discuss the reduction rule for observational equality
+between functions.
+
+\begin{prooftree*}
+  \hypo{\oftype{\ctx}{f}{\Pi{} (x:A).B}}
+  \hypo{\oftype{\ctx}{g}{\Pi{} (x:A).B}}
+
+  \infer2[\kw{EQ-FUN}]{\oftype{\ctx}{f \sim_{\Pi{} A B} g \Rightarrow{}
+      \Pi{} (x:A). \Funapp{f}{x} \sim_B \Funapp{g}{x} }{\Omega_i}}
+\end{prooftree*}
+
+We observe that observational equality between functions simply reduces to a
+proof of pointwise equality of these functions, in other words, functional
+extensionality is built into the system.
+
+All that to say that this system lends itself well to the introduction of
+quotient types. The quotient type \fn{A/R} is interpreted as a setoid with
+\id{A} as its base type and the relation \id{R} as its setoidal equality. This
+of course requires the relation \id{R} to be reflexive, symmetric and
+transitive. In the theory, equality between two terms that are injections into
+the quotient (this is syntatically represented by $\pi(t)$) reduces to the
+underlying relation between the base terms, as is illustrated by the following
+rule:
+
+\begin{prooftree*}
+  \hypo{\oftype{\ctx}{t}{A}}
+  \hypo{\oftype{\ctx}{u}{A}}
+
+  \infer2{\oftype{\ctx}{\pi(t) \sim_{A/R} \pi(u) \Rightarrow{} \Funapp{R}{t}{u}
+    }{\Omega_i}}
+\end{prooftree*}
+
+
+\section{Quotients by Normalisation}
 When we take the quotient of a type/set based on an equivalence relation, we are
 essentially partitioning the elements of the type into their respective
 equivalence classes. Elements of the same equivalence class are then identified
