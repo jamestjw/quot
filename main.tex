@@ -1846,12 +1846,12 @@ We present the $\id{Quotient}$ primitives along with their typing rules.
 \end{prooftree*}
 
 We introduce the $\kw{Quotient}$ type former, which takes a base type $\id{A}$
-along with a relation $\id{R}$ as arguments. At this stage, we do not require
-the relation to be an equivalence relation, though in order to define a
-meaningful quotient type, the above requirement is often necessary. We also do
-not enforce that the relation be a mere proposition, however as we will see in
-\autoref{ch:quotient-effectiveness}, this is required in order for the quotient
-to be effective.
+along with a relation $\id{R}$ as arguments. At this stage, just like
+in\cite{hofmann1995simple}, we do not require the relation to be an equivalence
+relation, though in order to define a meaningful quotient type, the above
+requirement is often necessary. We also do not enforce that the relation be a
+mere proposition, however as we will see in \autoref{ch:quotient-effectiveness},
+this is required in order for the quotient to be effective.
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{a}}{\id{A}}}
@@ -3454,7 +3454,9 @@ Ok maybe let's scratch this, this isn't super interesting.
 \chapter{Related works}
 
 %% TODO: Set the right tone for this chapter so that it can appropriately be put
-%% after the introduction to give readers some background and motivation
+%% after the introduction to give readers some background and motivation.
+%% Or alternatively, I could split it up, show some of it as a
+%% background/motivation and the half at the very end to compare approaches
 
 \section{HITs}
 Higher inductive types (HITs) are a generalisation of inductive types that has
@@ -3632,6 +3634,47 @@ rule:
 \end{prooftree*}
 
 
+\section{Setoid Rewriting}
+
+%% TODO: Finish this
+
+Quotient types are not provided as a primitive in the Coq proof assistant.
+Before we get to that, we briefly introduce the rewriting mechanism of Coq.
+Every construction is congruent with respect to the equality type, hence
+rewrites using the equality type may be carried out in any context. For
+instance, if we have a certain proof goal that requires us to produce a term of
+type \fn{m + n $\le$ n + m} and we have proof that \fn{m + n $\equiv$ n + m}, we
+may use the \kw{rewrite} tactic in Coq to rewrite the goal such that it becomes
+\fn{n + m $\le$ n + m}. The simplified goal may thus be easily proven using the
+reflexivity property of $\le$.
+
+%% TODO: cite something, maybe A New Look at Generalized Rewriting in Type
+%% Theory, though this seems more relevant
+%% https://coq.inria.fr/doc/v8.12/refman/addendum/generalized-rewriting.html#first-class-setoids-and-morphisms
+Plain rewriting allows rewriting with \emph{equal} terms, generalised rewriting
+on the other hand enables rewriting using terms that are \emph{related} by some
+binary relation (TODO:\ wait does this generalise to n-ary relations?), often
+represented as a function of type \fn{A $\rightarrow$ A $\rightarrow$
+  \kw{Prop}}. Unlike equality, this form of rewriting does not work in all
+contexts, instead it only works in contexts that are compatible with the
+relation. A base type \id{A} equipped with an equivalence relation that is meant
+to behave as an equality characterises a structure known as a
+setoid\cite{hofmann1995simple}. Instead of constructing a new type to represent
+the quotient of the base type, we would directly work with the base type.
+Suppose that we had a proof of \fn{a R b} where \id{R} is a binary relation, we
+would be able to rewrite \id{a} to \id{b} if the context of \id{a} in the goal
+is compatible with the relation. (TODO:\ Maybe try to construct some example of
+this in Coq) However, every function definition that interacts with the setoid
+needs to be accompanied with a proof that setoid equivalence is respected. This
+is in contrast to the ideal situation where such coherence proofs are
+\emph{only} required in the function that eliminates quotients, subsequent
+interaction and composition of this function should be free of the burden of
+such proof obligations. This has historically been the go-to way of modelling
+quotient types in Coq, however such an approach is known to be rather laborious.
+This phenomenon is often designated as \emph{setoid hell} by the community.
+Although Coq offers numerous tactics to facilitate the usage of setoids, it
+quickly becomes unwieldy in the case of large programs.
+
 \section{Quotients by Normalisation}
 When we take the quotient of a type/set based on an equivalence relation, we are
 essentially partitioning the elements of the type into their respective
@@ -3666,7 +3709,17 @@ in the resulting quotient type/set.
 \caption{Equivalence classes of $\mathbb{Z}$ under the relation $x \equiv y \ (\kw{mod} \ 4)$}
 \end{figure}
 
-An alternative way of defining a quotient on type $\kw{A}$ under a relation $\kw{R}$ is to construct a function $\oftype{\id{nf}}{A \rightarrow A}$ such that $\Funapp{\id{nf}}{\id{a}}$ is the canonical representative of the equivalence class that $\id{a}$ belongs to. This approach is comparable to \cite{courtieu-normalizedtypes}. In other words, for $\oftype{x, y}{A}$, $\Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})} \iff \Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$. To represent this in our system, we can simply treat this as a quotient under the relation $\Funapp{\id{R}}{\id{x}}{\id{y}} = \Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$.
+An alternative way of defining a quotient on type $\kw{A}$ under a relation
+$\kw{R}$ is to construct a function $\oftype{\id{nf}}{A \rightarrow A}$ such
+that $\Funapp{\id{nf}}{\id{a}}$ is the canonical representative of the
+equivalence class that $\id{a}$ belongs to. This approach is comparable
+to\cite{courtieu-normalizedtypes,cohen2013pragmatic}. In other words, for
+$\oftype{x, y}{A}$,
+$\Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})}
+\iff \Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$.
+To represent this in our system, we can simply treat this as a quotient under
+the relation $\Funapp{\id{R}}{\id{x}}{\id{y}} =
+\Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$.
 
 To simplify the utilisation of this class of quotients in Typer programs, we define the following helper functions:
 
@@ -3721,7 +3774,10 @@ type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
 Now, we can define the type $\kw{Qnorm}$ for some type $\id{A}$ and
 normalisation function $\oftype{r}{A \rightarrow A}$ as a dependent pair that
 contains some term of type $\id{A}$ and a proof that it has been normalised.
-This of course requires the idempotency of the normalisation function.
+This of course requires the idempotency of the normalisation function. We note
+as well that generally speaking, the codomain of the normalisation function need
+not be of the same type as its domain, however for the purposes of this
+construction such a constraint is necessary.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Qnorm : (A : Type) @$\rightarrow$@ isSet A @$\rightarrow$@ (r : A @$\rightarrow$@ A)
@@ -3749,18 +3805,29 @@ Qnorm_eq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x y p r i @$\Rightarrow$@ 
            rx@$\equiv$@ry
 \end{minted}
 
-We can easily prove the reverse of this too, i.e. if we have that $\Funapp{\kw{Eq}}{(\Funapp{\kw{Qnorm\_in}}{x})}{(\Funapp{\kw{Qnorm\_in}}{y})}$, then $\Funapp{\kw{Eq}}{(\Funapp{r}{x})}{(\Funapp{r}{y})}$ is immediate by taking the first projection of the pairs.
+We can easily prove the reverse of this too, i.e.\ if we have that
+$\Funapp{\kw{Eq}}{(\Funapp{\kw{Qnorm\_in}}{x})}{(\Funapp{\kw{Qnorm\_in}}{y})}$,
+then $\Funapp{\kw{Eq}}{(\Funapp{r}{x})}{(\Funapp{r}{y})}$ is immediate by taking
+the first projection of the pairs.
 
-Finally, we can also show that $\kw{Qnorm}$ fulfils the universal property of a quotient. In other words, we want show the following equivalence:
+Finally, we can also show that $\kw{Qnorm}$ fulfils the universal property of a
+quotient. In other words, we want show the following equivalence:
 
 \begin{align*}
-  & (\Funapp{\kw{Qnorm}}{A}{p}{r}{i} \rightarrow B) \simeq \Sigma \ (A \rightarrow B) \ (\lambda g \rightarrow (x \ y : A) \rightarrow \Funapp{r}{x} \equiv \Funapp{r}{y} \rightarrow \Funapp{g}{x} \equiv \Funapp{g}{y})
+  & (\Funapp{\kw{Qnorm}}{A}{p}{r}{i} \rightarrow B) \simeq \Sigma \ (A
+  \rightarrow B) \ (\lambda g \rightarrow (x \ y : A) \rightarrow \Funapp{r}{x}
+  \equiv \Funapp{r}{y} \rightarrow \Funapp{g}{x} \equiv \Funapp{g}{y})
 \end{align*}
 
-The proof itself is not very interesting, hence we do not describe it here. (TODO:\ Link to proof). We note however that the reverse direction of this equivalence gives us a means of eliminating $\kw{Qnorm}$, as was the case for $\kw{Quotient}$.
+The proof itself is not very interesting, hence we do not describe it here.
+(TODO:\ Link to proof). We note however that the reverse direction of this
+equivalence gives us a means of eliminating $\kw{Qnorm}$, as was the case for
+$\kw{Quotient}$.
 
-TODO:\ Mention how we could also have an NF of type $A \rightarrow B$, i.e.\ doesn't have to be the same type as the base type, but obviously this doesn't work with this precise construction.
+\chapter{Conclusion}
 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+incididunt ut labore et dolore magna aliqua.
 
 %%--------------%
 %%     index    %
