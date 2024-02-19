@@ -3373,7 +3373,18 @@ Now, we consider the below diagram
 
 in which $q$ is the coequaliser of $f$ and $g$. Supposing that $xq = yq$, we need to show that $x = y$. We have that $z = xq = yq$, implying that $zf = xqf = xqg = zg$. By the universal property of the coequaliser, there exists a unique $u$ such that $z = uq$. Since $z = xq$ and $z = yq$, it must be the case that $u = x = y$. Hence, $q$ is epic.
 
-Suppose that $R$ is a pair of some set X that is related by some equivalence relation, such that there are morphisms $\oftype{\pi_1, \pi_2}{R \rightarrow X}$ that act as projections out of the pair. Then, the injection into the quotient, $\oftype{q}{X \rightarrow X/R}$ is an coequaliser of $\pi_1$ and $\pi_2$. Its counterpart in Typer is the function $\kw{Quotient\_in}$. Since the coequaliser is epic, this implies that $\kw{Quotient\_in}$ is surjective, as can be proven within Typer. When we say that a function $\oftype{f}{X \rightarrow Y}$ is surjective, we are essentially saying that $\forall y \in Y. \ \exists x \in X. \ f(x) = y$. Note that we should represent this by a weak sum, i.e.\ we do not require a concrete witness of $x$.
+%% TODO: Wait this means that every single time I used the word `injection' into
+%% the quotient, I really should have said `surjection' instead.
+Suppose that $R$ is a pair of some set X that is related by some equivalence
+relation, such that there are morphisms $\oftype{\pi_1, \pi_2}{R \rightarrow X}$
+that act as projections out of the pair. Then, the injection into the quotient,
+$\oftype{q}{X \rightarrow X/R}$ is an coequaliser of $\pi_1$ and $\pi_2$. Its
+counterpart in Typer is the function $\kw{Quotient\_in}$. Since the coequaliser
+is epic, this implies that $\kw{Quotient\_in}$ is surjective, as can be proven
+within Typer. When we say that a function $\oftype{f}{X \rightarrow Y}$ is
+surjective, we are essentially saying that $\forall y \in Y. \ \exists x \in X.
+\ f(x) = y$. Note that we should represent this by a weak sum, i.e.\ we do not
+require a concrete witness of $x$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 type SurjectiveQuotientProof (A : Type) (R : A -> A -> Type)
@@ -3392,7 +3403,16 @@ Quotient_in_surjective = lambda A R @$\Rrightarrow$@
            (@$\lambda$@ a @$\rightarrow$@ inPropTrunc (surjectiveQuotientProof a Eq_refl))
 \end{minted}
 
-Additionally, if we have an $\oftype{f}{X \rightarrow Y}$ such that it respects the underlying equivalence relation, i.e. $f \circ \pi_1 = f \circ \pi_2$, then there exists a unique function $\oftype{\overline{f}}{X/R \rightarrow Y}$. For $x \in X$, we have that $f(x) = \overline{f}(q(x))$. The equivalent of $\overline{f}$ in Typer is the function $\Funapp{\kw{Quotient\_elim}}{f}{(\earg{p}{p})}$ where $p$ is an appropriate proof that $f$ respects the relation. This also justifies the reduction rule of $\kw{Quotient\_elim}$.
+Additionally, if we have an $\oftype{f}{X \rightarrow Y}$ such that it respects
+the underlying equivalence relation, i.e. $f \circ \pi_1 = f \circ \pi_2$, then
+there exists a unique function $\oftype{\overline{f}}{X/R \rightarrow Y}$. For
+$x \in X$, we have that $f(x) = \overline{f}(q(x))$. The equivalent of
+$\overline{f}$ in Typer is the function
+$\Funapp{\id{Quotient\_elim}}{f}{(\earg{p}{p})}$ where $p$ is an appropriate
+proof that $f$ respects the relation. This also justifies the reduction rule of
+\id{Quotient\_elim} which says that the application of \id{Quotient\_elim} to
+some function \id{f} and an injection of some term \id{x} into the quotient
+should reduce to the direct application of \id{f} to \id{x}.
 
 \begin{figure}[H]
   \centering
@@ -3439,13 +3459,17 @@ Additionally, if we have an $\oftype{f}{X \rightarrow Y}$ such that it respects 
 
 \end{figure}
 
-We can also phrase the universal property of $\kw{Quotient}$ in a type-theoretic way as follows:
+We can also phrase the universal property of $\kw{Quotient}$ in a type-theoretic
+way as follows:
 
 \begin{align*}
   & (X/R \rightarrow Y) \simeq \Sigma \ (X \rightarrow Y) \ (\lambda \ f \rightarrow (x \ y : X) \rightarrow \Funapp{R}{x}{y} \rightarrow \Funapp{f}{x} \equiv \Funapp{f}{y}) \\
 \end{align*}
 
-This property may be proven within Typer itself. (TODO:\ Actually make this work and direct readers to it).
+This property says that a map between the quotient \fn{X/R} to some type \id{Y}
+is equivalent to some function of type \fn{X $\rightarrow$ Y} accompanied with a
+proof that the function respects the quotient. This may be proven within Typer
+itself, the proof is provided in \autoref{app:ump-quot} of the appendix.
 
 \subsection{Initial object of quotient set algebras}
 
@@ -3970,6 +3994,176 @@ Nat+_comm m n =
          | succ n' @$\Rightarrow$@ Eq_trans (Nat+_succ m n')
                                (Eq_cong succ (Nat+_comm m n'))
 \end{minted}
+
+\section{UMP of Quotients}\label{app:ump-quot}
+
+In order to prove that the universal property of quotients is indeed respected by our
+implementation of quotients types in Typer, we need to prove the following:
+
+\begin{align*}
+  & (X/R \rightarrow Y) \simeq \Sigma \ (X \rightarrow Y) \ (\lambda \ f \rightarrow (x \ y : X) \rightarrow \Funapp{R}{x}{y} \rightarrow \Funapp{f}{x} \equiv \Funapp{f}{y}) \\
+\end{align*}
+
+To construct the forward direction of this equivalence, the function of type
+\fn{A $\rightarrow$ B} may be formed by pre-composing the function \fn{f:
+  Quotient A R $\rightarrow$ B} with a surjection into the quotient. The
+coherence property follows naturally as a consequence of the fact that elements
+of the base type that are related under the relation are \emph{equal} after
+their surjection into the quotient.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+e : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
+    @$\Rrightarrow$@ (Quotient A R @$\rightarrow$@ B)
+    @$\rightarrow$@ Sigma (A @$\rightarrow$@ B)
+             (@$\lambda$@ g @$\rightarrow$@ (a : A) @$\rightarrow$@ (a' : A) @$\rightarrow$@ R a a' @$\rightarrow$@ Eq (g a) (g a'))
+e = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ f @$\rightarrow$@
+      sigma (@$\lambda$@ x @$\rightarrow$@ f (Quotient_in (R := R) x))
+            (@$\lambda$@ x y r @$\rightarrow$@ Eq_cong f (Quotient_eq (R := R) r))
+\end{minted}
+
+As for the reverse direction, we are required to construct a map from
+\fn{Quotient A R} to \id{B}. To that end, we can simply apply the function of
+type \fn{A $\rightarrow$ B} to the underlying element of the quotient.
+Conceptually speaking, this function merely strips away the \id{Quotient\_in}
+and may be regarded as a trivial right inverse to the pre-composition with
+\id{Quotient\_in}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+e' : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
+     @$\Rrightarrow$@ Sigma (A @$\rightarrow$@ B)
+              (@$\lambda$@ g @$\rightarrow$@ (a : A) @$\rightarrow$@ (a' : A) @$\rightarrow$@ R a a' @$\rightarrow$@ Eq (g a) (g a'))
+     @$\rightarrow$@ (Quotient A R @$\rightarrow$@ B)
+e' = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ s @$\rightarrow$@ Quotient_rec (R := R) s.fst (p := s.snd)
+\end{minted}
+
+Now it remains to prove that \id{e} and \id{e'} are both left and right inverses
+of each other. \fn{e' $\circ{}$ e $\equiv$ id} is proved without too much hassle
+by appealing to functional extensionality.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+e'e=id : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
+         @$\Rrightarrow$@ (f : Quotient A R @$\rightarrow$@ B)
+         @$\rightarrow$@ Eq (e' (R := R) (e f)) f
+e'e=id = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ f @$\rightarrow$@
+  let
+    p : (x : Quotient A R) @$\rightarrow$@ (f : Quotient A R @$\rightarrow$@ B)
+        @$\rightarrow$@ Eq (e' (R := R) (e f) x) (f x)
+    p x f =
+      Quotient_elim (R := R)
+                    (P := @$\lambda$@ x @$\rightarrow$@ Eq (e' (R := R) (e f) x) (f x))
+                    (@$\lambda$@ x @$\rightarrow$@ Eq_refl (x := f (Quotient_in (R := R) x)))
+                    (p := @$\lambda$@ x y r @$\rightarrow$@
+                      Heq_cong (P := @$\lambda$@ x @$\rightarrow$@ Eq (f x) (f x))
+                               (@$\lambda$@ x @$\rightarrow$@ Eq_refl (x := f x))
+                               (Quotient_eq (R := R) (a := x) (a' := y) r))
+                    x
+  in
+    HoTT_lib.Eq_funext (f := e' (R := R) (e f)) (g := f) (@$\lambda$@ x @$\rightarrow$@ p x f)
+\end{minted}
+
+Although it was mentioned earlier that \id{e'} is a trivial right inverse of
+\id{e}, implying that \fn{e $\circ{}$ e' $\equiv$ id} should be able to proved
+by reflexivity, some limitations of Typer make this unfeasible for the moment.
+One of the reasons is because the $\eta$-equivalence of \id{Sigma} does not hold
+definitionally, however it may be proven propositionally as we show below:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+Sigma_@$\eta$@ : (l : TypeLevel) @$\Rrightarrow$@ (A : Type_ l) @$\Rrightarrow$@ (P : (a : A) @$\rightarrow$@ Type_ l)
+          @$\Rrightarrow$@ (p : Sigma A P) @$\rightarrow$@ Eq p (sigma (B := P) p.fst p.snd)
+Sigma_@$\eta$@ p = case p
+    | sigma x y =>
+        let
+          sigmaxy = sigma (B := P) x y
+          branch=p : Eq sigmaxy p
+          branch=p = ##DeBruijn 0
+          sigmaxy_@$\eta$@ : Eq sigmaxy (sigma (B := P) sigmaxy.fst sigmaxy.snd)
+          sigmaxy_@$\eta$@ = Eq_refl
+        in
+          Eq_cast (p := branch=p)
+                  (f := @$\lambda$@ x @$\rightarrow$@ Eq x (sigma (B := P) x.fst x.snd))
+                  sigmaxy_@$\eta$@
+\end{minted}
+
+Another thing that we are lacking is a proof that the dependent map induced by
+\id{Quotient\_rec} and \id{Quotient\_eq} is coherent. Suppose that we had terms
+\fn{x y:A}, \fn{r:R x y} and a function \fn{f:A $\rightarrow$ B} as well as a
+proof \id{p} that \id{f} respects the quotient, i.e.\ \fn{p: (a:A) $\rightarrow$
+  (a':A) $\rightarrow$ R a a' $\rightarrow$ f a $\equiv$ f a'}. Then we could
+expect the below coherence property to hold:
+
+\begin{align*}
+  & \fn{Eq\_cong (Quotient\_rec f (p := p)) (Quotient\_eq r)} \equiv \fn{p x y} \\
+\end{align*}
+
+This property does not hold definitionally in Typer, however we could prove it
+by appealing to the fact that the output type \id{B} is a \textbf{Set}. In our
+proof of \fn{e $\circ{}$ e' $\equiv$ id}, we shall use the above two properties
+manually by packing them into a lemma \id{$\Sigma${}$\equiv${}Prop} which states
+that to prove that two terms of type \fn{Sigma A B} are equal, if
+\fn{$\Pi_{x:A}$ isProp (B x)} is true, then it suffices to show that the
+first projection of the two dependent pairs are equal. The proof of this lemma
+is as follows:
+
+%% TODO: Fix this proof to use the updated version of Heq that has an implicit
+%% proof of equality in its type
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+@$\Sigma$@@$\equiv$@Prop : (A : Type_ ?l1) @$\Rrightarrow$@ (B : (a : A) @$\rightarrow$@ Type_ ?l2)
+         @$\Rrightarrow$@ ((x : A) @$\rightarrow$@ HoTT_isProp (B x))
+         @$\rightarrow$@ (u : Sigma A B) @$\rightarrow$@ (v : Sigma A B)
+         @$\rightarrow$@ (p : Eq u.fst v.fst) @$\rightarrow$@ Eq u v;
+@$\Sigma$@@$\equiv$@Prop = @$\lambda$@ l1 l2 A B @$\Rrightarrow$@ @$\lambda$@ propB u v p @$\rightarrow$@
+  let
+    h : Heq (t1 := B u.fst) (t2 := B v.fst)
+            u.snd (Eq_cast (p := p) (f := B) u.snd);
+    h = Heq_eq (t := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
+               (f := @$\lambda$@ i @$\Rrightarrow$@
+                      I_transp (A := @$\lambda$@ j @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := I_meet i j)))
+                               (r := I_not i) u.snd);
+    sndv_eq : Eq (Eq_cast (p := p) (f := B) u.snd) v.snd;
+    sndv_eq = propB v.fst (Eq_cast (p := p) (f := B) u.snd) v.snd;
+    pathOver : Heq (t1 := B u.fst) (t2 := B v.fst) u.snd v.snd;
+    pathOver = whiskerRight (A := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
+                            u.snd (Eq_cast (p := p) (f := B) (u.snd))
+                            v.snd h sndv_eq;
+    r : Heq (sigma (B := B) u.fst u.snd) (sigma (B := B) v.fst v.snd);
+    r = Heq_eq (t := @$\lambda$@ _ @$\Rrightarrow$@ Sigma A B)
+               (f := @$\lambda$@ i @$\Rrightarrow$@
+                       sigma (B := B) (Eq_uneq (p := p) (i := i))
+                             (Heq_uneq (t := @$\lambda$@ j @$\Rrightarrow$@
+                                               B (Eq_uneq (p := p) (i := j)))
+                             (p := pathOver) (i := i)));
+  in
+    Eq_trans (Sigma_@$\eta$@ u) (Eq_trans r (Eq_comm (Sigma_@$\eta$@ v)));
+\end{minted}
+
+By using the aforementioned lemma, we then construct a short and elegant proof
+of \fn{e $\circ{}$ e' $\equiv$ id}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+ee'=id : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
+         @$\Rrightarrow$@ HoTT_isSet B
+         @$\rightarrow$@ (p : Sigma (A @$\rightarrow$@ B)
+                       (@$\lambda$@ g @$\rightarrow$@ (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ R x y @$\rightarrow$@ Eq (g x) (g y)))
+         @$\rightarrow$@ Eq (e (e' (R := R) p)) p
+ee'=id = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ isSetB p @$\rightarrow$@
+  let
+    propSnd g =
+      HoTT_lib.isProp@$\Pi$@
+        (B := @$\lambda$@ x @$\rightarrow$@ (y : A) @$\rightarrow$@ R x y @$\rightarrow$@ Eq (g x) (g y))
+        (@$\lambda$@ x @$\rightarrow$@ HoTT_lib.isProp@$\Pi$@
+                  (B := @$\lambda$@ y @$\rightarrow$@ R x y @$\rightarrow$@ Eq (g x) (g y))
+                  (@$\lambda$@ y @$\rightarrow$@ HoTT_lib.isProp@$\Pi$@
+                            (B := @$\lambda$@ (r : R x y) @$\rightarrow$@ Eq (g x) (g y))
+                            (@$\lambda$@ r @$\rightarrow$@ isSetB (g x) (g y))))
+  in
+    @$\Sigma$@@$\equiv$@Prop
+      (B := @$\lambda$@ g @$\rightarrow$@ (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ R x y @$\rightarrow$@ Eq (g x) (g y))
+      propSnd
+      (e (e' (R := R) p)) p Eq_refl
+\end{minted}
+
+This concludes the proof of the desired equivalence.
 
 \chapter{Les différentes parties et leur ordre d'apparition}
 
