@@ -3995,6 +3995,91 @@ Nat+_comm m n =
                                (Eq_cong succ (Nat+_comm m n'))
 \end{minted}
 
+
+\section{Properties of dependent pairs}\label{app:deppairs-properties}
+The type of dependent pairs in Typer is represented by the \id{Sigma} inductive
+type.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
+  | sigma (fst : A) (snd : B fst);
+\end{minted}
+
+$\eta$-equivalence does not hold definitionally for the \id{Sigma} type, however
+it may be proven propositionally:
+
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+Sigma_@$\eta$@ : (l : TypeLevel) @$\Rrightarrow$@ (A : Type_ l) @$\Rrightarrow$@ (P : (a : A) @$\rightarrow$@ Type_ l)
+          @$\Rrightarrow$@ (p : Sigma A P) @$\rightarrow$@ Eq p (sigma (B := P) p.fst p.snd)
+Sigma_@$\eta$@ p = case p
+    | sigma x y =>
+        let
+          sigmaxy = sigma (B := P) x y
+          branch=p : Eq sigmaxy p
+          branch=p = ##DeBruijn 0
+          sigmaxy_@$\eta$@ : Eq sigmaxy (sigma (B := P) sigmaxy.fst sigmaxy.snd)
+          sigmaxy_@$\eta$@ = Eq_refl
+        in
+          Eq_cast (p := branch=p)
+                  (f := @$\lambda$@ x @$\rightarrow$@ Eq x (sigma (B := P) x.fst x.snd))
+                  sigmaxy_@$\eta$@
+\end{minted}
+
+We also define a lemma, \id{$\Sigma${}$\equiv${}Prop}, which states that to
+prove that two terms of type \fn{Sigma A B} are equal, if \fn{$\Pi_{x:A}$ isProp
+  (B x)} is true, then it suffices to show that the first projection of the two
+dependent pairs are equal. The proof of this lemma is as follows:
+
+%% TODO: Fix this proof to use the updated version of Heq that has an implicit
+%% proof of equality in its type
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+@$\Sigma$@@$\equiv$@Prop : (A : Type_ ?l1) @$\Rrightarrow$@ (B : (a : A) @$\rightarrow$@ Type_ ?l2)
+         @$\Rrightarrow$@ ((x : A) @$\rightarrow$@ HoTT_isProp (B x))
+         @$\rightarrow$@ (u : Sigma A B) @$\rightarrow$@ (v : Sigma A B)
+         @$\rightarrow$@ (p : Eq u.fst v.fst) @$\rightarrow$@ Eq u v;
+@$\Sigma$@@$\equiv$@Prop = @$\lambda$@ l1 l2 A B @$\Rrightarrow$@ @$\lambda$@ propB u v p @$\rightarrow$@
+  let
+    h : Heq (t1 := B u.fst) (t2 := B v.fst)
+            u.snd (Eq_cast (p := p) (f := B) u.snd);
+    h = Heq_eq (t := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
+               (f := @$\lambda$@ i @$\Rrightarrow$@
+                      I_transp (A := @$\lambda$@ j @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := I_meet i j)))
+                               (r := I_not i) u.snd);
+    sndv_eq : Eq (Eq_cast (p := p) (f := B) u.snd) v.snd;
+    sndv_eq = propB v.fst (Eq_cast (p := p) (f := B) u.snd) v.snd;
+    pathOver : Heq (t1 := B u.fst) (t2 := B v.fst) u.snd v.snd;
+    pathOver = whiskerRight (A := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
+                            u.snd (Eq_cast (p := p) (f := B) (u.snd))
+                            v.snd h sndv_eq;
+    r : Heq (sigma (B := B) u.fst u.snd) (sigma (B := B) v.fst v.snd);
+    r = Heq_eq (t := @$\lambda$@ _ @$\Rrightarrow$@ Sigma A B)
+               (f := @$\lambda$@ i @$\Rrightarrow$@
+                       sigma (B := B) (Eq_uneq (p := p) (i := i))
+                             (Heq_uneq (t := @$\lambda$@ j @$\Rrightarrow$@
+                                               B (Eq_uneq (p := p) (i := j)))
+                             (p := pathOver) (i := i)));
+  in
+    Eq_trans (Sigma_@$\eta$@ u) (Eq_trans r (Eq_comm (Sigma_@$\eta$@ v)));
+\end{minted}
+
+The above proof makes use of the \id{whiskerRight} lemma which states that if we
+have a heterogeneous equality proof between \id{a0} and \id{a1} and a
+homogeneous equality proof between \id{a1} and \id{a2}, then we can construct a
+heterogeneous equality proof between \id{a0} and \id{a2}. The proof is as
+follows:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+whiskerRight : (A : I @$\Rrightarrow$@ Type_ ?) @$\Rrightarrow$@ (a0 : A (_ := i0)) @$\rightarrow$@ (a1 : A (_ := i1))
+               @$\rightarrow$@ (a2 : A (_ := i1)) @$\rightarrow$@ Heq a0 a1 @$\rightarrow$@ Eq a1 a2 @$\rightarrow$@ Heq a0 a2
+whiskerRight = @$\lambda$@ l A @$\Rrightarrow$@ @$\lambda$@ a0 a1 a2 p1 p2 @$\rightarrow$@
+  Eq_cast (p := p2)
+          (f := @$\lambda$@ x @$\rightarrow$@ Heq (t1 := A (_ := i0)) (t2 := A (_ := i1)) a0 x)
+          p1
+\end{minted}
+
+
 \section{UMP of Quotients}\label{app:ump-quot}
 
 In order to prove that the universal property of quotients is indeed respected by our
@@ -4065,24 +4150,8 @@ Although it was mentioned earlier that \id{e'} is a trivial right inverse of
 \id{e}, implying that \fn{e $\circ{}$ e' $\equiv$ id} should be able to proved
 by reflexivity, some limitations of Typer make this unfeasible for the moment.
 One of the reasons is because the $\eta$-equivalence of \id{Sigma} does not hold
-definitionally, however it may be proven propositionally as we show below:
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Sigma_@$\eta$@ : (l : TypeLevel) @$\Rrightarrow$@ (A : Type_ l) @$\Rrightarrow$@ (P : (a : A) @$\rightarrow$@ Type_ l)
-          @$\Rrightarrow$@ (p : Sigma A P) @$\rightarrow$@ Eq p (sigma (B := P) p.fst p.snd)
-Sigma_@$\eta$@ p = case p
-    | sigma x y =>
-        let
-          sigmaxy = sigma (B := P) x y
-          branch=p : Eq sigmaxy p
-          branch=p = ##DeBruijn 0
-          sigmaxy_@$\eta$@ : Eq sigmaxy (sigma (B := P) sigmaxy.fst sigmaxy.snd)
-          sigmaxy_@$\eta$@ = Eq_refl
-        in
-          Eq_cast (p := branch=p)
-                  (f := @$\lambda$@ x @$\rightarrow$@ Eq x (sigma (B := P) x.fst x.snd))
-                  sigmaxy_@$\eta$@
-\end{minted}
+definitionally as mentioned in \autoref{app:deppairs-properties}, though it may
+be proven propositionally.
 
 Another thing that we are lacking is a proof that the dependent map induced by
 \id{Quotient\_rec} and \id{Quotient\_eq} is coherent. Suppose that we had terms
@@ -4097,48 +4166,10 @@ expect the below coherence property to hold:
 
 This property does not hold definitionally in Typer, however we could prove it
 by appealing to the fact that the output type \id{B} is a \textbf{Set}. In our
-proof of \fn{e $\circ{}$ e' $\equiv$ id}, we shall use the above two properties
-manually by packing them into a lemma \id{$\Sigma${}$\equiv${}Prop} which states
-that to prove that two terms of type \fn{Sigma A B} are equal, if
-\fn{$\Pi_{x:A}$ isProp (B x)} is true, then it suffices to show that the
-first projection of the two dependent pairs are equal. The proof of this lemma
-is as follows:
-
-%% TODO: Fix this proof to use the updated version of Heq that has an implicit
-%% proof of equality in its type
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-@$\Sigma$@@$\equiv$@Prop : (A : Type_ ?l1) @$\Rrightarrow$@ (B : (a : A) @$\rightarrow$@ Type_ ?l2)
-         @$\Rrightarrow$@ ((x : A) @$\rightarrow$@ HoTT_isProp (B x))
-         @$\rightarrow$@ (u : Sigma A B) @$\rightarrow$@ (v : Sigma A B)
-         @$\rightarrow$@ (p : Eq u.fst v.fst) @$\rightarrow$@ Eq u v;
-@$\Sigma$@@$\equiv$@Prop = @$\lambda$@ l1 l2 A B @$\Rrightarrow$@ @$\lambda$@ propB u v p @$\rightarrow$@
-  let
-    h : Heq (t1 := B u.fst) (t2 := B v.fst)
-            u.snd (Eq_cast (p := p) (f := B) u.snd);
-    h = Heq_eq (t := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
-               (f := @$\lambda$@ i @$\Rrightarrow$@
-                      I_transp (A := @$\lambda$@ j @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := I_meet i j)))
-                               (r := I_not i) u.snd);
-    sndv_eq : Eq (Eq_cast (p := p) (f := B) u.snd) v.snd;
-    sndv_eq = propB v.fst (Eq_cast (p := p) (f := B) u.snd) v.snd;
-    pathOver : Heq (t1 := B u.fst) (t2 := B v.fst) u.snd v.snd;
-    pathOver = whiskerRight (A := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
-                            u.snd (Eq_cast (p := p) (f := B) (u.snd))
-                            v.snd h sndv_eq;
-    r : Heq (sigma (B := B) u.fst u.snd) (sigma (B := B) v.fst v.snd);
-    r = Heq_eq (t := @$\lambda$@ _ @$\Rrightarrow$@ Sigma A B)
-               (f := @$\lambda$@ i @$\Rrightarrow$@
-                       sigma (B := B) (Eq_uneq (p := p) (i := i))
-                             (Heq_uneq (t := @$\lambda$@ j @$\Rrightarrow$@
-                                               B (Eq_uneq (p := p) (i := j)))
-                             (p := pathOver) (i := i)));
-  in
-    Eq_trans (Sigma_@$\eta$@ u) (Eq_trans r (Eq_comm (Sigma_@$\eta$@ v)));
-\end{minted}
-
-By using the aforementioned lemma, we then construct a short and elegant proof
-of \fn{e $\circ{}$ e' $\equiv$ id}.
+proof of \fn{e $\circ{}$ e' $\equiv$ id}, we shall make use of both of the above
+properties manually by invoking the \id{$\Sigma$$\equiv$Prop} lemma defined in
+\autoref{app:deppairs-properties}. The lemma allows us to construct a short and
+elegant proof of \fn{e $\circ{}$ e' $\equiv$ id}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 ee'=id : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
