@@ -1261,8 +1261,8 @@ usage of these axioms suffers greatly as programs and proofs tend to be clumsy
 and inelegant.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Heq : (f : I @$\Rrightarrow$@ Type)
-      @$\Rrightarrow$@ f (_ := i0) @$\rightarrow$@ f (_ := i1) @$\rightarrow$@ Type
+Heq : (t : I @$\Rrightarrow$@ Type)
+      @$\Rrightarrow$@ t (_ := i0) @$\rightarrow$@ t (_ := i1) @$\rightarrow$@ Type
 \end{minted}
 
 As we have previously proven, \fn{I $\Rrightarrow$ Type} is equivalent to an
@@ -3843,10 +3843,11 @@ quotient. In other words, we want show the following equivalence:
   \equiv \Funapp{r}{y} \rightarrow \Funapp{g}{x} \equiv \Funapp{g}{y})
 \end{align*}
 
-The proof itself is not very interesting, hence we do not describe it here.
-(TODO:\ Link to proof). We note however that the reverse direction of this
-equivalence gives us a means of eliminating $\kw{Qnorm}$, as was the case for
-$\kw{Quotient}$.
+The proof itself is not very interesting as it is largely similar to the proof
+of the universal property of \id{Quotient} that is provided in
+\autoref{app:ump-quot} of the appendix. We note however that the reverse
+direction of this equivalence characterises the elimination principle of
+$\id{Qnorm}$, as was the case for $\id{Quotient}$.
 
 \chapter{Conclusion}
 
@@ -4008,8 +4009,7 @@ type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
 $\eta$-equivalence does not hold definitionally for the \id{Sigma} type, however
 it may be proven propositionally:
 
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Sigma_@$\eta$@ : (l : TypeLevel) @$\Rrightarrow$@ (A : Type_ l) @$\Rrightarrow$@ (P : (a : A) @$\rightarrow$@ Type_ l)
           @$\Rrightarrow$@ (p : Sigma A P) @$\rightarrow$@ Eq p (sigma (B := P) p.fst p.snd)
 Sigma_@$\eta$@ p = case p
@@ -4038,30 +4038,30 @@ dependent pairs are equal. The proof of this lemma is as follows:
 @$\Sigma$@@$\equiv$@Prop : (A : Type_ ?l1) @$\Rrightarrow$@ (B : (a : A) @$\rightarrow$@ Type_ ?l2)
          @$\Rrightarrow$@ ((x : A) @$\rightarrow$@ HoTT_isProp (B x))
          @$\rightarrow$@ (u : Sigma A B) @$\rightarrow$@ (v : Sigma A B)
-         @$\rightarrow$@ (p : Eq u.fst v.fst) @$\rightarrow$@ Eq u v;
+         @$\rightarrow$@ (p : Eq u.fst v.fst) @$\rightarrow$@ Eq u v
 @$\Sigma$@@$\equiv$@Prop = @$\lambda$@ l1 l2 A B @$\Rrightarrow$@ @$\lambda$@ propB u v p @$\rightarrow$@
   let
-    h : Heq (t1 := B u.fst) (t2 := B v.fst)
-            u.snd (Eq_cast (p := p) (f := B) u.snd);
+    h : Heq (t := lambda i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
+            u.snd (Eq_cast (p := p) (f := B) u.snd)
     h = Heq_eq (t := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
                (f := @$\lambda$@ i @$\Rrightarrow$@
                       I_transp (A := @$\lambda$@ j @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := I_meet i j)))
-                               (r := I_not i) u.snd);
-    sndv_eq : Eq (Eq_cast (p := p) (f := B) u.snd) v.snd;
-    sndv_eq = propB v.fst (Eq_cast (p := p) (f := B) u.snd) v.snd;
-    pathOver : Heq (t1 := B u.fst) (t2 := B v.fst) u.snd v.snd;
+                               (r := I_not i) u.snd)
+    sndv_eq : Eq (Eq_cast (p := p) (f := B) u.snd) v.snd
+    sndv_eq = propB v.fst (Eq_cast (p := p) (f := B) u.snd) v.snd
+    pathOver : Heq (t := lambda i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
+                   u.snd v.snd
     pathOver = whiskerRight (A := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
                             u.snd (Eq_cast (p := p) (f := B) (u.snd))
-                            v.snd h sndv_eq;
-    r : Heq (sigma (B := B) u.fst u.snd) (sigma (B := B) v.fst v.snd);
-    r = Heq_eq (t := @$\lambda$@ _ @$\Rrightarrow$@ Sigma A B)
-               (f := @$\lambda$@ i @$\Rrightarrow$@
-                       sigma (B := B) (Eq_uneq (p := p) (i := i))
-                             (Heq_uneq (t := @$\lambda$@ j @$\Rrightarrow$@
-                                               B (Eq_uneq (p := p) (i := j)))
-                             (p := pathOver) (i := i)));
+                            v.snd h sndv_eq
+    r : Eq (sigma (B := B) u.fst u.snd) (sigma (B := B) v.fst v.snd)
+    r = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@
+                    sigma (B := B) (Eq_uneq (p := p) (i := i))
+                            (Heq_uneq (t := @$\lambda$@ j @$\Rrightarrow$@
+                                            B (Eq_uneq (p := p) (i := j)))
+                            (p := pathOver) (i := i)))
   in
-    Eq_trans (Sigma_@$\eta$@ u) (Eq_trans r (Eq_comm (Sigma_@$\eta$@ v)));
+    Eq_trans (Sigma_@$\eta$@ u) (Eq_trans r (Eq_comm (Sigma_@$\eta$@ v)))
 \end{minted}
 
 The above proof makes use of the \id{whiskerRight} lemma which states that if we
@@ -4074,11 +4074,8 @@ follows:
 whiskerRight : (A : I @$\Rrightarrow$@ Type_ ?) @$\Rrightarrow$@ (a0 : A (_ := i0)) @$\rightarrow$@ (a1 : A (_ := i1))
                @$\rightarrow$@ (a2 : A (_ := i1)) @$\rightarrow$@ Heq a0 a1 @$\rightarrow$@ Eq a1 a2 @$\rightarrow$@ Heq a0 a2
 whiskerRight = @$\lambda$@ l A @$\Rrightarrow$@ @$\lambda$@ a0 a1 a2 p1 p2 @$\rightarrow$@
-  Eq_cast (p := p2)
-          (f := @$\lambda$@ x @$\rightarrow$@ Heq (t1 := A (_ := i0)) (t2 := A (_ := i1)) a0 x)
-          p1
+  Eq_cast (p := p2) (f := @$\lambda$@ x @$\rightarrow$@ Heq (t := A) a0 x) p1
 \end{minted}
-
 
 \section{UMP of Quotients}\label{app:ump-quot}
 
@@ -4123,25 +4120,25 @@ e' = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ s @$\rightarrow$@ Quotient_r
 
 Now it remains to prove that \id{e} and \id{e'} are both left and right inverses
 of each other. \fn{e' $\circ{}$ e $\equiv$ id} is proved without too much hassle
-by appealing to functional extensionality.
+by using functional extensionality and the fact that the output type \id{B} is a
+Set.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 e'e=id : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
-         @$\Rrightarrow$@ (f : Quotient A R @$\rightarrow$@ B)
+         @$\Rrightarrow$@ HoTT_isSet B
+         @$\rightarrow$@ (f : Quotient A R @$\rightarrow$@ B)
          @$\rightarrow$@ Eq (e' (R := R) (e f)) f
-e'e=id = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ f @$\rightarrow$@
+e'e=id = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ isSetB f @$\rightarrow$@
   let
     p : (x : Quotient A R) @$\rightarrow$@ (f : Quotient A R @$\rightarrow$@ B)
         @$\rightarrow$@ Eq (e' (R := R) (e f) x) (f x)
     p x f =
-      Quotient_elim (R := R)
-                    (P := @$\lambda$@ x @$\rightarrow$@ Eq (e' (R := R) (e f) x) (f x))
-                    (@$\lambda$@ x @$\rightarrow$@ Eq_refl (x := f (Quotient_in (R := R) x)))
-                    (p := @$\lambda$@ x y r @$\rightarrow$@
-                      Heq_cong (P := @$\lambda$@ x @$\rightarrow$@ Eq (f x) (f x))
-                               (@$\lambda$@ x @$\rightarrow$@ Eq_refl (x := f x))
-                               (Quotient_eq (R := R) (a := x) (a' := y) r))
-                    x
+      quot_lib.elimProp
+          (R := R)
+          (P := @$\lambda$@ x @$\rightarrow$@ Eq (e' (R := R) (e f) x) (f x))
+          (@$\lambda$@ x @$\rightarrow$@ isSetB (e' (R := R) (e f) x) (f x))
+          (@$\lambda$@ x @$\rightarrow$@ Eq_refl (x := f (Quotient_in (R := R) x)))
+          x
   in
     HoTT_lib.Eq_funext (f := e' (R := R) (e f)) (g := f) (@$\lambda$@ x @$\rightarrow$@ p x f)
 \end{minted}
