@@ -986,9 +986,9 @@ terminology has also been employed in the HoTT book\cite{HoTTbook}.}:
 The recursion principle computes as follows:
 
 \begin{align*}
-  & rec_{\bI}(\_ . A, M, N, P, \ileft) = M \\
-  & rec_{\bI}(\_ . A, M, N, P, \iright) = N \\
-  & \kw{cong}_{rec_{\bI}(P)}(\id{seg}) = P
+  & rec_{\bI}(\_ . A, P, \ileft) = M \\
+  & rec_{\bI}(\_ . A, P, \iright) = N \\
+  & \kw{cong}_{rec_{\bI}(\_ . \bI, P)}(\id{seg}) = P
 \end{align*}
 
 \kw{cong} refers to the congruence property of equality and is explained in more
@@ -1025,17 +1025,16 @@ we define a function \id{f} and its inverse \id{g} as such:
   & f : (\bI \rightarrow A) \rightarrow \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y} \\
   & f(h) := \braket{\id{h}(\ileft), \braket{\id{h}(\iright), \kw{cong}_{\id{h}}(\id{seg})}} \\ \\
   & g : \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . (\eqtype{x}{y}) \rightarrow  (\bI \rightarrow A) \\
-  & g \braket{x, \braket{y, p}} := \lambda \id{i} . rec_{\bI}(\_ . \id{A}, \id{x}, \id{y}, \id{p}, \id{i})
+  & g \braket{x, \braket{y, p}} := \lambda \id{i} . rec_{\bI}(\_ . \id{A}, \id{p}, \id{i})
 \end{align*}
 
 Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
 
-%% TODO: Add proof of $\kw{cong}_2$ and $\Sigma$ path characterisation in the
-%% appendix or something (sketch is in Interval.lagda.md)
+%% TODO: Add proof of $\kw{cong}_2$ in the appendix or something (sketch is in
+%% Interval.lagda.md)
 
 %% Note: 23 Jan - Why did I bother to mention $\kw{cong}_2$ here? I can't
-%% remember. Before I forget, $\Sigma$ path characterisation would explain why
-%% $\beta$ is proven the way it is below.
+%% remember.
 
 \begin{align*}
   & \id{$\alpha$-helper} : (\oftype{h}{\bI \rightarrow A}) \rightarrow (\oftype{i}{Interval}) \rightarrow \eqtype{(g (f \ h)) \ i}{h \ i} \\
@@ -1063,10 +1062,8 @@ role during runtime. Within the function body, such an argument may only be used
 in an \emph{erasable} manner, for instance, it may be used in the computation of
 an expression that is passed as an erasable argument to yet another function. In
 other words, we can first define the $\id{Interval}$ type as a normal algebraic
-data type. Next, we can model the equality type as an erasable function out of
-the $\id{Interval}$ type. (FIXME: Abuse of terminology here? When I say erasable
-function I mean that the argument is erasable, not the function itself.)
-
+data type. Next, we can model the equality type as a function with an erasable
+argument out of the $\id{Interval}$ type.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 type I
@@ -1188,7 +1185,7 @@ not behave like a Boolean algebra, it is not the case the
 $\Funapp{\fn{I\_meet}}{i}{(\Funapp{\fn{I\_not}}{i})} \rightsquigarrow{} i_0$.
 
 \subsection*{Join}
-TODO: So far I haven't found a need for this operator. Do some investigation to
+TODO:\ So far I haven't found a need for this operator. Do some investigation to
 see if this is a worthy addition
 
 \section{Elimination of the Interval type}
@@ -1230,7 +1227,11 @@ may not have the same type}.
 The computational behaviour of the function is as follows:
 
 \begin{prooftree*}
-  \infer0{\Funapp{\id{I\_transp}}{\id{A}}{\id{r}}{\id{a}} \rightsquigarrow \id{a}}
+  \infer0{\Funapp{\id{I\_transp}}{\id{A}}{\ileft}{\id{a}} \rightsquigarrow \id{a}}
+\end{prooftree*}
+
+\begin{prooftree*}
+  \infer0{\Funapp{\id{I\_transp}}{\id{A}}{\iright}{\id{a}} \rightsquigarrow \id{a}}
 \end{prooftree*}
 
 The function is implemented in Typer as a primitive with the following type
@@ -1241,7 +1242,10 @@ I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (r : I) @$\Rrightarrow
 \end{minted}
 
 Its implementation is simple in that it simply returns the argument $\id{a}$
-untouched.
+untouched when \id{r} is a canonical value of \id{Interval}.
+
+%% TODO: If we return \id{a} for arbitrary values of \id{r}, we break subject
+%% reduction I believe? Check and mention this
 
 \section{Identity type}\label{sec:identity}
 
@@ -1325,7 +1329,6 @@ Homogeneous equality is by far the more typical notion of equality. We are able
 to define it as a special case of heterogeneous equality as a special case of of
 $\fn{Heq x y}$ where $\fn{x}$ and $\fn{y}$ are of the same type.
 
-%% TODO: Fix the alignment
 %% Eq_uneq : (l : TypeLevel) ≡> (t : Type_ l)
 %%           ≡> (x : t) => (y : t)
 %%           => (p : Eq x y) ≡> (i : I) ≡> t
@@ -1451,14 +1454,12 @@ merely needs to swap the order of its two arguments. This is observed in several
 recent proof assistants that implement cubical type theory, such as Cubical Agda
 as mentioned before, as well as coolTT and redTT.\@
 
-%% TODO: Link to the examples chapter after showing that Quot implies funExt
 Functional extensionality is an important property of the equality type, it will
 especially be required in order to prove the effectiveness of quotients in
-\autoref{ch:quotient-effectiveness}. However, as we shall see in ???, the
-existence of quotient types itself is actually sufficient to derive functional
-extensionality.
+\autoref{ch:quotient-effectiveness}. However, as we shall see in
+\autoref{sec:quot-implies-funext}, the existence of quotient types itself is
+actually sufficient to derive functional extensionality.
 
-%% FIXME: Should this come before the section on funext? maybe, maybe not
 \subsection*{Congruence of equality}\label{subsec:congruence-eq}
 This is a another typical property of equality whose proof is significantly
 simplified in a system with a cubical equality.
@@ -3047,6 +3048,15 @@ elimProp2 = @$\lambda$@ _ _ _ _ _ A B R S P @$\Rrightarrow$@ @$\lambda$@ prop f 
 
 TODO\: Consider defining a macro that defines $\fn{elimProp}_n$, i.e.\ the general case.
 
+\section{Functional Extensionality}\label{sec:quot-implies-funext}
+
+%% TODO: DO this soon
+
+In intensional type theory, functional extensionality is a property that is
+respected by all functions, however typically this may not be proven. In this
+section, we demonstrate that the existence of quotient types implies functional
+extensionality.
+
 \chapter{Holy Trinity?}
 There is an intricate relationship between logic, programming (type theory) and category theory, as was proposed by Harper (TODO:\ link his article https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/). Everything that exists in each of these domains necessarily has an interesting analogue in the other two. In this chapter, we discuss quotients from the perspective of logic and category theory. In some cases, this will motivate the `discovery' of some interesting properties of the $\kw{Quotient}$ type.
 
@@ -4057,9 +4067,6 @@ We also define a lemma, \id{$\Sigma${}$\equiv${}Prop}, which states that to
 prove that two terms of type \fn{Sigma A B} are equal, if \fn{$\Pi_{x:A}$ isProp
   (B x)} is true, then it suffices to show that the first projection of the two
 dependent pairs are equal. The proof of this lemma is as follows:
-
-%% TODO: Fix this proof to use the updated version of Heq that has an implicit
-%% proof of equality in its type
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 @$\Sigma$@@$\equiv$@Prop : (A : Type_ ?l1) @$\Rrightarrow$@ (B : (a : A) @$\rightarrow$@ Type_ ?l2)
