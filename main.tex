@@ -131,8 +131,11 @@
   mathescape,
   breaklines=true
 }
+
+
 \usepackage{minted} %% Typeset code
 \setminted{fontsize=\small}
+
 \usepackage{bbold} %% For blackboard font
 \usepackage{tikz} %% For drawing diagrams
 
@@ -489,7 +492,7 @@ constructs to streamline proof development in Typer.
 \begin{twocolumnlist}{.2\textwidth}{.7\textwidth}
   ETT & Extensional Type Theory\\
   HoTT & Homotopy Type Theory\\
-  UIP & Uniqueness of Identity Types\\
+  UIP & Uniqueness of Identity Proofs\\
 \end{twocolumnlist}
 %% L'environnement <threecolumnlist> existe aussi pour trois colonnes.
 
@@ -1454,11 +1457,30 @@ merely needs to swap the order of its two arguments. This is observed in several
 recent proof assistants that implement cubical type theory, such as Cubical Agda
 as mentioned before, as well as coolTT and redTT.\@
 
-Functional extensionality is an important property of the equality type, it will
-especially be required in order to prove the effectiveness of quotients in
-\autoref{ch:quotient-effectiveness}. However, as we shall see in
-\autoref{sec:quot-implies-funext}, the existence of quotient types itself is
-actually sufficient to derive functional extensionality.
+Functional extensionality is a property that often makes an appearance in
+mathematical proofs, it will especially be required in order to prove the
+effectiveness of quotients in \autoref{ch:quotient-effectiveness}. However, as
+we shall see in \autoref{sec:quot-implies-funext}, the existence of quotient
+types itself is actually sufficient to derive functional extensionality.
+
+It is also worth mentioning that unlike the traditional approach of adding
+functional extensionality to an ITT as an axiom, canonicity is not broken by our
+approach since the property is derived as a theorem. For instance, the example
+given in\cite{altenkirch2007observational} is not a problem in our system as
+performing a cast on an equality proof constructed by functionality
+extensionality does not lead to a stuck term as shown in the following code snippet:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+plus0 : (x : Nat) -> zero + x @$\equiv$@ x + zero
+plus0 x = Nat+_comm zero x
+
+eqf = Eq_funext (f := lambda x -> zero + x)
+                (g := lambda x -> x + zero)
+                plus0
+
+canon0 : Eq_cast (p := eqf) (f := lambda _ -> Nat) zero @$\equiv$@ zero
+canon0 = Eq_refl
+\end{minted}
 
 \subsection*{Congruence of equality}\label{subsec:congruence-eq}
 This is a another typical property of equality whose proof is significantly
@@ -2607,76 +2629,6 @@ Rational_+Rinv q = Eq_trans (Rational_+-Comm q (Rational_negate q))
 For brevity, we do not describe the proofs for multiplication as they can be
 carried out in a similar fashion as above.
 
-\subsection{Benchmarks}
-
-%% TODO: If I end up running benchmarks for other examples as well, maybe then I
-%% should consider having a dedicated section for benchmarks
-
-In this section, we use our implementation of rational numbers to explore the
-runtime cost of using quotient types in Typer. Quotient types are nothing more
-than a means of using the type system to ensure that programmers respect a
-certain relation on a base type by means of proof obligations. Such proofs can
-be expected to be erased before the actual execution of a program, our intuition
-would then lead us to expect that the usage of quotient types to have a
-negligible runtime overhead. Hence, the tests in our benchmark were designed
-with the simple objective of verifying the above claim.
-
-Since the operations on rational numbers are essentially wrappers around
-operations on the base type $\zpair$, our benchmark simply compares the
-execution time of operations on $\zpair$ with their $\fn{Rational}$
-counterparts\footnote{The code for this may be found in the
-$\fn{rational\_benchmark.typer}$ file.}. We examine the runtime
-cost\footnote{The tests were executed on the author's 2018 Macbook Pro with a
-quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of executing the
-functions $\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
-$\fn{Rational\_*}$ on 500000 pairs of rational numbers.
-
-%% TODO: Column sizes aren't equal between zpair and Rational? How do I fix this?
-\begin{table}[H]
-\centering
-\begin{tabular}{ccccc}
-\hline
-\multirow{2}{*}{\textbf{Operation}} & \multicolumn{2}{c}{\textbf{Execution Time (seconds)}} & \multicolumn{2}{c}{\textbf{Overhead}} \\ \cline{2-5}
-                                    & \textbf{$\zpair$}          & \textbf{Rational}         & \textbf{seconds}     & \textbf{\%}    \\ \hline
-Negation       & 1.82 & 2.53 & 0.71 & 39.0 \\
-Addition       & 3.18 & 4.82 & 1.64 & 51.6 \\
-Subtraction    & 4.10 & 6.26 & 2.16 & 52.7 \\
-Multiplication & 2.97 & 4.59 & 1.62 & 54.5 \\ \hline
-\end{tabular}
-\caption{The runtime cost of operations on rational numbers with and without the
-  use of quotient types.}\label{tab:rational-benchmark}
-\end{table}
-
-We observe that there is indeed a non-negligible overhead caused by the usage of
-quotient types, which we will now try to justify. Without loss of generality, we
-discuss the addition operation. Once the $\zpairplus$ function that handles the
-addition of $\zpair$ and its $\fn{Rational}$ counterpart, $\fn{Rational\_+}$
-have undergone erasure, the resulting functions are extensionally equal. By
-definition of erasure\cite{monnier2019typer}, all erasable arguments are
-removed, hence all proof objects required by the quotient type will be absent in
-the erased versions of the above functions. The two erased functions are
-nevertheless not completely equal, as we shall see by examining the Elexp
-(erased lambda expression)\cite{delaunay2017implementation} of
-$\fn{Rational\_+}$:
-
-\begin{minted}[escapeinside=@@,mathescape=true]{scheme}
-  (lambda (a) @$\rightarrow$@ (lambda (b) @$\rightarrow$@
-    (Quotient_rec2 (lambda (x) @$\rightarrow$@
-                       (lambda (y) @$\rightarrow$@
-                           (Quotient_in (@$\zpairplus$@ x y)))) a b)))
-\end{minted}
-
-Through a series of $\eta$-reductions and $\beta$-reductions, we can see that
-the above expression is equivalent to $\zpairplus$. This implies that with an
-appropriate optimisation phase, Elexps containing quotient primitives could be
-simplified to completely neutralise the overhead of quotient types. We leave
-this optimisation for a future work. We also note that addition and
-multiplication unsurprisingly have a similar constant overhead due to how
-similarly they are defined. Since negation is a unary operation operation, it
-was defined directly using $\fn{Quotient\_rec}$ and thus has a lesser overhead
-than the other binary operations. We also defined subtraction on the basis of
-addition combined with subtraction, so its greater overhead is well justified.
-
 \section{Multiset}\label{sec:multiset}
 
 A multiset is an abstract data type that may be seen as a generalisation of
@@ -3046,33 +2998,69 @@ elimProp2 = @$\lambda$@ _ _ _ _ _ A B R S P @$\Rrightarrow$@ @$\lambda$@ prop f 
                             (prop (Quotient_in a)) (f a))
 \end{minted}
 
-TODO\: Consider defining a macro that defines $\fn{elimProp}_n$, i.e.\ the general case.
-
 \section{Functional Extensionality}\label{sec:quot-implies-funext}
-
-%% TODO: DO this soon
 
 In intensional type theory, functional extensionality is a property that is
 respected by all functions, however typically this may not be proven. In this
 section, we demonstrate that the existence of quotient types implies functional
 extensionality.
 
-\chapter{Holy Trinity?}
-There is an intricate relationship between logic, programming (type theory) and category theory, as was proposed by Harper (TODO:\ link his article https://existentialtype.wordpress.com/2011/03/27/the-holy-trinity/). Everything that exists in each of these domains necessarily has an interesting analogue in the other two. In this chapter, we discuss quotients from the perspective of logic and category theory. In some cases, this will motivate the `discovery' of some interesting properties of the $\kw{Quotient}$ type.
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+funext : (A : Type_ ?) @$\rightarrow$@ (B : A @$\rightarrow$@ Type_ ?)
+         @$\rightarrow$@ (f1 : (a : A) @$\rightarrow$@ B a) @$\rightarrow$@ (f2 : (a : A) @$\rightarrow$@ B a)
+         @$\rightarrow$@ (h : (a : A) @$\rightarrow$@ f1 a @$\equiv$@ f2 a) @$\rightarrow$@ f1 @$\equiv$@ f2
+funext A B f1 f2 h =
+  let
+    fn_type = (a : A) @$\rightarrow$@ B a
 
-\section{Relationship to Logic}
-TODO:\ Figure out what could be informative to say here. If this doesn't work
-out, then ditch this section and rename the chapter or something
+    equiv_rel : (f1 : fn_type) @$\rightarrow$@ (f1 : fn_type) @$\rightarrow$@ Type_ ?
+    equiv_rel f1 f2 = ((a : A) @$\rightarrow$@ f1 a @$\equiv$@ f2 a)
 
-\section{Relationship to Category Theory}
+    extfun_app : (f : Quotient fn_type equiv_rel) @$\rightarrow$@ fn_type
+    extfun_app f a = Quotient_rec (R := equiv_rel)
+                                  (f := lambda f @$\rightarrow$@ f a)
+                                  (p := lambda f1 f2 r @$\rightarrow$@ r a) f
+
+    sound : Quotient_in (R := equiv_rel) f1 @$\equiv$@ Quotient_in (R := equiv_rel) f2
+    sound = Quotient_eq (R := equiv_rel) (a := f1) (a' := f2) h
+
+  in
+    Eq_cong extfun_app sound
+\end{minted}
+
+We quotient functions by a relation \id{equiv\_rel} that represents pointwise
+n
+equality. By making use of $\beta$-rule of \id{Quotient\_rec} and the
+$\eta$-equivalence of functions, we construct the desired proof by using the
+congruence property of equality.
+
+\chapter{Relationship to Category Theory}
+There is an intricate relationship between logic, programming (type theory) and
+category theory, as was proposed by Harper\cite{harpertrinity}. Everything that
+exists in each of these domains necessarily has an interesting analogue in the
+other two. In previous chapters, we have motivated quotients by drawing
+parallels with set theory. We now discuss quotients from the perspective of
+category theory. In some cases, this will motivate the `discovery' of some
+interesting properties of the $\id{Quotient}$ type.
+
 %% TODO: Maybe I should reconsider how much value is added by having this here
 %% honestly, I'm starting to have second thoughts... If this can inspire a few
 %% interesting theorems out about Quotient types it'd be more interesting
 
-Numerous constructs in type theory have equivalents in category theory. To set the stage for this, we shall do a very short primer on category theory. For a more detailed introduction, interested readers are directed to other works such as Awodey's textbook\cite{awodey-cattheory}.
+Numerous constructs in type theory have equivalents in category theory. To set
+the stage for this, we shall do a very short primer on category theory. For a
+more detailed introduction, interested readers are directed to other works such
+as Awodey's textbook\cite{awodey-cattheory}.
 
 \subsection{Introduction}
-Category theory is built on merely a few foundational constructs, these alone give rise to a lot of interesting structures and properties. First, we postulate the existence of categories that contain objects. Next, we say that objects can be related to other objects via morphisms (also known as arrows, these two terms shall be used interchangeably in the following discussion). Assuming that readers are familiar with programming and/or type theory, one could think of categories as types, objects as terms of a particular type, and morphisms as functions. Every object has an identity arrow that relates it with itself.
+Category theory is built on merely a few foundational constructs, these alone
+give rise to a lot of interesting structures and properties. First, we postulate
+the existence of categories that contain objects. Next, we say that objects can
+be related to other objects via morphisms (also known as arrows, these two terms
+shall be used interchangeably in the following discussion). Assuming that
+readers are familiar with programming and/or type theory, one could think of
+categories as types, objects as terms of a particular type, and morphisms as
+functions. Every object has an identity arrow that relates it with itself.
 
 \begin{figure}[H]
 \centering
@@ -3670,8 +3658,6 @@ rule:
 
 \section{Setoid Rewriting}
 
-%% TODO: Finish this
-
 Quotient types are not provided as a primitive in the Coq proof assistant.
 Before we get to that, we briefly introduce the rewriting mechanism of Coq.
 Every construction is congruent with respect to the equality type, hence
@@ -3859,14 +3845,38 @@ of the universal property of \id{Quotient} that is provided in
 direction of this equivalence characterises the elimination principle of
 $\id{Qnorm}$, as was the case for $\id{Quotient}$.
 
-\chapter{Conclusion}
+\chapter{Evaluation}
 
-\ldots
+At the start of this work, we first set out to augment Typer with a more
+powerful and expressive notion of equality. We achieved this by basing our new
+equality type on an Interval type. We showed the benefits of such an equality
+type by demonstrating that the manipulation of propositional equality is greatly
+simplified. To that end we illustrated the derivation of various
+equality-related theorems in a clean and elegant manner. Some desirable
+properties such as functional extensionality that we are now able to derive were
+previously unprovable by using Typer's original equality type.
+
+We then introduced quotient types to Typer. We convinced ourselves that our
+quotient types behave as they should by proving that they fulfil the universal
+property of quotients. A library was provided with proofs of many other
+properties fulfilled by our quotient types. We also explored the practical
+aspect of our quotient types by using them to construct several examples. We
+then observed that when the identifications that we wish to impose on the base
+type may be immediately represented as an equivalence relation, the resulting
+construction was a lot simpler as was the case with \id{Rational}. However, our
+experience constructing \id{Multiset} showed that when the identifications that
+we require do not immediately induce an equivalence relation, we need to
+manually construct the reflexive, symmetric, and transitive closure of the
+resulting relation. This complicates the underlying relation of the quotient,
+leading to additional proof obligations that are often easily satisfied but
+nevertheless unnecessary. This may be seen as a glaring disadvantage of our
+approach as opposed to quotient inductive types that allow the direct definition
+of path constructors on inductive types.
 
 As the examples in the previous sections would suggest, the usage of quotient
-types is accompanied by a considerable amount of proof obligations. As we have
-seen, such proofs are not always trivial to construct, mainly because of Typer's
-current lack of support for the development of proofs. This is in contrast to
+types is often accompanied by a considerable amount of proof obligations. As we
+have seen, such proofs are not always trivial to construct, mainly because of
+Typer's current lack of support for the development of proofs as opposed to
 other contemporary programming languages. For instance, the Quotient Haskell
 extension\cite{hewer2023quotient} is implemented with the help of Satisfiability
 Modulo Theories (SMT) solvers. This enables many proof obligations generated by
@@ -3887,9 +3897,146 @@ their development a laborious endeavour. During the construction of
 arithmetic in order to prove propositions that were seemingly obvious to the
 human eye. Such goals may typically be solved using tactics such as the Coq's
 \kw{lia} tactic and Lean's \kw{linarith} tactic that are essentially solvers for
-linear goals over $\mathbb{Z}$. The above seem to be desirable features that we
-should contemplate introducing to Typer in some shape or form to facilitate
-proof development.
+linear goals over $\mathbb{Z}$. For the moment, Typer also lacks the powerful
+dependent pattern matching system of Agda. This inconvenience is somewhat
+mitigated by the presence of the \fn{\kw{case} $\ldots$ \kw{as} $\ldots$
+  \kw{return} $\ldots$} construct that is reminiscent of Coq. However, while we
+are in \kw{case} branches, we lack the specialisation of types of other
+variables in the context that depend on the scrutinee. This was an inconvenience
+that we had to reckon with on numerous occassions while working with quotient
+types. The above seem to be desirable features that we should contemplate
+introducing to Typer in some shape or form to facilitate proof development.
+
+%% TODO: Finish the `foreword' section of this chapter
+
+\section*{Benchmarks}
+
+In this section, we use our implementation of \id{Rational} and \id{Multiset} to
+explore the runtime cost of using quotient types in Typer. Quotient types are
+nothing more than a means of using the type system to ensure that programmers
+respect a certain relation on a base type by means of proof obligations. Such
+proofs can be expected to be erased before the actual execution of a program.
+Our intuition thus tells us that it should be feasible to have quotient types as
+a zero-cost abstraction in our system. The tests in our benchmark were designed
+with the simple objective of verifying the above claim.
+
+\subsection*{Rational}
+
+Since the operations on rational numbers are essentially wrappers around
+operations on the base type $\zpair$, our benchmark simply compares the
+execution time of operations on $\zpair$ with their $\fn{Rational}$
+counterparts\footnote{The code for this may be found in the
+$\fn{rational\_benchmark.typer}$ file.}. We examine the runtime
+cost\footnote{The tests were executed on the author's 2018 Macbook Pro with a
+quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of executing the
+functions $\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
+$\fn{Rational\_*}$ on 500000 pairs of rational numbers.
+
+%% TODO: Column sizes aren't equal between zpair and Rational? How do I fix this?
+\begin{table}[H]
+\centering
+\begin{tabular}{ccccc}
+\hline
+\multirow{2}{*}{\textbf{Operation}} & \multicolumn{2}{c}{\textbf{Execution Time (seconds)}} & \multicolumn{2}{c}{\textbf{Overhead}} \\ \cline{2-5}
+                                    & \textbf{$\zpair$}          & \textbf{Rational}         & \textbf{seconds}     & \textbf{\%}    \\ \hline
+Negation       & 1.82 & 2.53 & 0.71 & 39.0 \\
+Addition       & 3.18 & 4.82 & 1.64 & 51.6 \\
+Subtraction    & 4.10 & 6.26 & 2.16 & 52.7 \\
+Multiplication & 2.97 & 4.59 & 1.62 & 54.5 \\ \hline
+\end{tabular}
+\caption{The runtime cost of operations on rational numbers with and without the
+  use of quotient types.}\label{tab:rational-benchmark}
+\end{table}
+
+We observe that there is indeed a non-negligible overhead caused by the usage of
+quotient types, which we will now try to justify. Without loss of generality, we
+discuss the addition operation. Once the $\zpairplus$ function that handles the
+addition of $\zpair$ and its $\fn{Rational}$ counterpart, $\fn{Rational\_+}$
+have undergone erasure, the resulting functions are extensionally equal. By
+definition of erasure\cite{monnier2019typer}, all erasable arguments are
+removed, hence all proof objects required by the quotient type will be absent in
+the erased versions of the above functions. The two erased functions are
+nevertheless not completely equal, as we shall see by examining the Elexp
+(erased lambda expression)\cite{delaunay2017implementation} of
+$\fn{Rational\_+}$:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{scheme}
+(lambda (a) @$\rightarrow$@ (lambda (b) @$\rightarrow$@
+  (Quotient_rec2 (lambda (x) @$\rightarrow$@
+                     (lambda (y) @$\rightarrow$@
+                         (@$\zpairplus$@ x y))) a b)))
+\end{minted}
+
+Through a series of $\eta$-reductions and $\beta$-reductions, we can see that
+the above expression is equivalent to $\zpairplus$. This implies that with an
+appropriate optimisation phase, Elexps containing quotient primitives could be
+simplified to completely neutralise the overhead of quotient types. We leave
+this optimisation for a future work. We also note that addition and
+multiplication unsurprisingly have a similar constant overhead due to how
+similarly they are defined. Since negation is a unary operation operation, it
+was defined directly using $\fn{Quotient\_rec}$ and thus has a lesser overhead
+than the other binary operations. We also defined subtraction on the basis of
+addition combined with subtraction, so its greater overhead is well justified.
+
+\subsection*{Multiset}
+
+We do a similar set of experiments on our construction of \id{Multiset} with the
+\id{Multiset\_append} and \id{Multiset\_mem} operations.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+% \usepackage{multirow}
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\multirow{2}{*}{\textbf{Operation}} & \multicolumn{2}{l}{\textbf{Execution Time (seconds)}} & \multicolumn{2}{l}{\textbf{Overhead}} \\ \cmidrule(l){2-5}
+       & \textbf{List} & \textbf{Multiset} & \textbf{seconds} & \textbf{\%} \\ \midrule
+Append & 4.46          & 4.95              & 0.49             & 11.0        \\
+Member & 0.28          & 0.33              & 0.05             & 17.8        \\ \bottomrule
+\end{tabular}
+\caption{The runtime cost of operations on multisets with and without the use of quotient types.}
+\label{tab:benchmark-multiset}
+\end{table}
+
+The \id{Multiset\_append} operation was tested by appending multisets of 100
+integers with themselves 50000 times. For the \id{Multiset\_mem} operation, we
+run the membership test with 50 integers on a multiset containing 100 integers,
+this was repeated 1000 times.
+
+%% TODO: If the number of `operations' is the same across both experiments, then
+%% why is the overhead for 'member' significantly less? I either screwed up the
+%% tests or I'm misinterpreting this?
+
+We also observe that the generated Elexps for \id{Multiset\_append} and
+\id{Multiset\_mem} are devoid of their related proof terms. \id{Quotient\_rec}
+and \id{Quotient\_rec2} both reduce to the application of the lambda passed to
+it on the subsequent arguments.
+
+\begin{figure}[H]
+\begin{minted}[escapeinside=@@,mathescape=true]{scheme}
+(lambda (xs) ->
+ (lambda (ys) ->
+  (Quotient_rec2 (List_append) xs ys)))
+\end{minted}
+\caption{Elexp of \id{Multiset\_append}}
+\end{figure}
+
+\begin{figure}[H]
+\begin{minted}[escapeinside=@@,mathescape=true]{scheme}
+(lambda (disc) ->
+ (lambda (a) ->
+  (lambda (s) ->
+   (Quotient_rec (lambda (l) ->
+                  (Dec2Bool (isMemberDec disc a l))) s))))
+\end{minted}
+\caption{Elexp of \id{Multiset\_mem}}
+\end{figure}
+
+\chapter{Conclusion}
+
+\ldots
+
 
 \ldots
 
