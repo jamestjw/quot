@@ -1884,8 +1884,8 @@ this is required in order for the quotient to be effective.
                                          {\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}}
 \end{prooftree*}
 
-$\id{Quotient\_in}$ is none other than a term former that injects a term of type
-$\id{A}$ into a quotient under some relation.
+$\id{Quotient\_in}$ is none other than a term former that acts as the canonical
+surjection of a term of type $\id{A}$ into a quotient under some relation.
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{a}_1}{\id{A}}}
@@ -1899,7 +1899,7 @@ $\id{A}$ into a quotient under some relation.
 \end{prooftree*}
 
 By definition, given that two terms $\id{a}_1$ and $\id{a}_2$ of type $\id{A}$
-are related by some relation, then the injections of these two terms into a
+are related by some relation, then the surjections of these two terms into a
 quotient under the aforementioned relation should be equal. $\id{Quotient\_eq}$
 is a witness of the above property.
 
@@ -1952,10 +1952,9 @@ It is also interesting to note that we are not able to derive a meaningful
 $\eta$-rule. If we wish to apply $\id{Quotient\_in}$ after applying
 $\id{Quotient\_elim}$ such that the composition amounts to the identity
 function, this would imply that $\id{Quotient\_elim}$ would need to called with
-a function $\id{f}$ that is itself the identity function. Unfortunately, in the
-general case this would not respect the underlying relation of the quotient.
-However, we could define an $\eta$-rule of sorts for quotients based on
-normalisation. (TODO:\ discuss and link)
+a function $\id{f}$ such that \fn{$\forall$ a. R a (f a)} is valid.
+Unfortunately, in the general case this would not respect the underlying
+relation of the quotient.
 
 \section{Implementation}
 
@@ -2009,11 +2008,71 @@ form $\Funapp{\id{Quotient\_in}}{\id{a}}$, the entire $\id{Quotient\_elim}$ term
 reduces to just $\Funapp{\id{f}}{\id{a}}$, ignoring the coherence proof that is
 passed to the function as it acts simply as a form of static information.
 
-\subsection{Syntaxique sugar}
-TODO:\ Add more details after things get figured out
+\subsection{Syntaxic sugar}
 
-TODO:\ Maybe mention experience of trying to encode QITs using syntaxic sugar,
-though unfortunately it didn't work out very well
+\subsubsection*{qcase}
+
+We provide some syntaxic sugar to simplify the non-dependent elimination
+quotients. The syntax we opted for is reminiscent of that of
+Arend's\cite{arend}. The elimination of a quotient expression is done in the
+style of a case analysis where both the term and path constructors have to be
+addressed with the following syntax:
+
+\begin{minted}{haskell}
+qcase q
+  | Quotient_in a => e1
+  | Quotient_eq x y r => e2;
+\end{minted}
+
+\id{q} is the scrutinee of the case analysis. A type annnotation may be given it
+by specifying the base type and relation of the quotient, e.g. \fn{(e: A / R)}.
+The variable \id{a} is defined in the scope of \id{e1} and the variables \id{x},
+\id{y} and \id{r} are defined in the scope of \id{e2}. The bound variables are
+the parameters of the two constructors of \id{Quotient}. In the first branch, we
+say what we would like to map a quotient expression to. In the second branch, we
+prove that the above mapping respects the quotient by constructing a term
+\fn{e2: [x/a]e1 $\equiv$ [y/a]e2}.
+
+To illustrate how this works, we construct an simple example based on the
+quotient of the \id{Unit} type along with a total relation \id{R} defined on
+\id{Unit}. We define a function of type \fn{Quotient Unit R $\rightarrow$ Unit}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+R : Unit @$\rightarrow$@ Unit @$\rightarrow$@ Type
+R u1 u2 = Unit
+
+e1 : Quotient Unit R @$\rightarrow$@ Unit
+e1 q = qcase (q : Unit / R)
+        | Quotient_in a @$\Rightarrow$@ ()
+        | Quotient_eq a a' r @$\Rightarrow$@ Eq_refl
+\end{minted}
+
+Drawing inspiration from Arend, the \id{Quotient\_eq} branch may also be handled
+by introducing an Interval variable into the scope. Instead of directly
+constructing an equality proof, we simply specify what the given map for the
+\id{Quotient\_in} branch would map us to for a certain endpoint \id{i}. We may
+rewrite the above example as follows:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+e2 : Quotient Unit R @$\rightarrow$@ Unit
+e2 q = qcase (q : Unit / R)
+        | Quotient_in a @$\Rightarrow$@ ()
+        | Quotient_eq a a' r i @$\Rightarrow$@ ()
+\end{minted}
+
+More elaborate examples of usages of this macro are given in subsequent
+sections.
+
+\subsubsection*{Encoding of Quotient Inductive Types}
+
+We initially intended to encode QITs as quotient types with the help of a macro.
+Such an encoding is without a doubt possible, in \autoref{sec:multiset} and
+\autoref{sec:related-qit} we shall see the \id{Multiset} data type defined both
+as a quotient type and as a quotient inductive type. One could imagine that the
+translation of the latter version to the former may be done by repackaging the path
+constructors introduced by the QIT as constructors of a new relation over which we shall
+construct a new quotient type.
+
 
 \chapter{Quotient Effectiveness}\label{ch:quotient-effectiveness}
 
@@ -2185,7 +2244,7 @@ type isEquivRel (A : Type) (R : A -> A -> Type) : Type
 
 \section{Proof}
 Given two arbitrary elements $\id{a}$ and $\id{a}'$ of a base type $\kw{A}$, a
-quotient is said to be effective if given a proof that the injection of $\id{a}$
+quotient is said to be effective if given a proof that the surjection of $\id{a}$
 and $\id{a}'$ into the quotient are equal, then it must be the case that
 $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ is true, i.e.\ we are able to find an
 inhabitant of it. A sufficient condition for a quotient to be effective is that
@@ -2697,8 +2756,8 @@ Multiset : Type_ ? @$\rightarrow$@ Type_ ?
 Multiset A = Quotient (List A) (ListPerm A)
 \end{minted}
 
-An empty multiset is simply the injection of the $\fn{nil}$ List into the
-Quotient.
+An empty multiset is simply the canonical surjection of the $\fn{nil}$ List into
+the Quotient.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Multiset_empty : Multiset ?A
@@ -3052,7 +3111,7 @@ the stage for this, we shall do a very short primer on category theory. For a
 more detailed introduction, interested readers are directed to other works such
 as Awodey's textbook\cite{awodey-cattheory}.
 
-\subsection{Introduction}
+\section{Introduction}
 Category theory is built on merely a few foundational constructs, these alone
 give rise to a lot of interesting structures and properties. First, we postulate
 the existence of categories that contain objects. Next, we say that objects can
@@ -3263,7 +3322,7 @@ diagram commute:
 
 Another way of saying the above is that $\id{h}$ factorises $\id{p}$ and $\id{q}$. The universal product, if it exists, is unique up to isomorphism. Products are not guaranteed to exist in every category. In the category of sets, the universal product is none other than the Cartesian product.
 
-\subsection{Coequaliser}
+\section{Coequaliser}
 We now introduce the notion of a coequaliser. We shall see later that $\kw{Quotient}$ acts indeed as a coequaliser, or rather coequalisers are generalisation of quotients. For two arrows $\oftype{f, g}{A \rightarrow B}$, a coequaliser is an arrow $\oftype{q}{B \rightarrow Q}$ such that $qf = qg$ (we use juxtaposition to imply composition). The universal property of the coequaliser then dictates that for any other $Z$ and $\oftype{z}{B \rightarrow Z}$, if $zf = zg$, then there must exist a unique $\oftype{u}{Q \rightarrow Z}$ such that $uq = g$. This allows us to call $q$ \textbf{the} coequaliser of $f$ and $g$.
 
 \begin{figure}[H]
@@ -3371,11 +3430,9 @@ Now, we consider the below diagram
 
 in which $q$ is the coequaliser of $f$ and $g$. Supposing that $xq = yq$, we need to show that $x = y$. We have that $z = xq = yq$, implying that $zf = xqf = xqg = zg$. By the universal property of the coequaliser, there exists a unique $u$ such that $z = uq$. Since $z = xq$ and $z = yq$, it must be the case that $u = x = y$. Hence, $q$ is epic.
 
-%% TODO: Wait this means that every single time I used the word `injection' into
-%% the quotient, I really should have said `surjection' instead.
 Suppose that $R$ is a pair of some set X that is related by some equivalence
 relation, such that there are morphisms $\oftype{\pi_1, \pi_2}{R \rightarrow X}$
-that act as projections out of the pair. Then, the injection into the quotient,
+that act as projections out of the pair. Then, the surjection into the quotient,
 $\oftype{q}{X \rightarrow X/R}$ is an coequaliser of $\pi_1$ and $\pi_2$. Its
 counterpart in Typer is the function $\kw{Quotient\_in}$. Since the coequaliser
 is epic, this implies that $\kw{Quotient\_in}$ is surjective, as can be proven
@@ -3409,7 +3466,7 @@ $\overline{f}$ in Typer is the function
 $\Funapp{\id{Quotient\_elim}}{f}{(\earg{p}{p})}$ where $p$ is an appropriate
 proof that $f$ respects the relation. This also justifies the reduction rule of
 \id{Quotient\_elim} which says that the application of \id{Quotient\_elim} to
-some function \id{f} and an injection of some term \id{x} into the quotient
+some function \id{f} and an surjection of some term \id{x} into the quotient
 should reduce to the direct application of \id{f} to \id{x}.
 
 \begin{figure}[H]
@@ -3469,9 +3526,9 @@ is equivalent to some function of type \fn{X $\rightarrow$ Y} accompanied with a
 proof that the function respects the quotient. This may be proven within Typer
 itself, the proof is provided in \autoref{app:ump-quot} of the appendix.
 
-\subsection{Initial object of quotient set algebras}
+\section{Initial object of quotient set algebras}
 
-Ok maybe let's scratch this, this isn't super interesting.
+TODO:\ Ok maybe let's scratch this, this isn't super interesting.
 
 \chapter{Related works}
 
@@ -3558,7 +3615,7 @@ from that, we get definitional equalities even for path constructors.
 
 TODO:\ Wanted to show an example of HIT-style elimination of a quotient, but I didn't find anything worth showing for now.
 
-\section{Quotient Inductive Types}
+\section{Quotient Inductive Types}\label{sec:related-qit}
 
 Quotient inductive types (QITs) are essentially HITs that are set-truncated.
 This essentially provides us with the full range of expressiveness of HITs
@@ -3642,7 +3699,7 @@ All that to say that this system lends itself well to the introduction of
 quotient types. The quotient type \fn{A/R} is interpreted as a setoid with
 \id{A} as its base type and the relation \id{R} as its setoidal equality. This
 of course requires the relation \id{R} to be reflexive, symmetric and
-transitive. In the theory, equality between two terms that are injections into
+transitive. In the theory, equality between two terms that are surjections into
 the quotient (this is syntatically represented by $\pi(t)$) reduces to the
 underlying relation between the base terms, as is illustrated by the following
 rule:
@@ -3805,7 +3862,12 @@ Qnorm : (A : Type) @$\rightarrow$@ isSet A @$\rightarrow$@ (r : A @$\rightarrow$
 Qnorm A p r i = Sigma A (@$\lambda$@ (x : A) @$\rightarrow$@ Eq (r x) x)
 \end{minted}
 
-The injection into $\kw{Qnorm}$ is simply the construction of a dependent pair containing a term that has been normalised and a proof of its normalisation. This is in contrast to the construction that was described previously with $\kw{Quotient}$ which applied the normalisation upon the elimination of a quotient, whereas here, normalisation immediately occurs upon the construction of a term of type $\kw{Qnorm}$.
+The surjection into $\kw{Qnorm}$ is simply the construction of a dependent pair
+containing a term that has been normalised and a proof of its normalisation.
+This is in contrast to the construction that was described previously with
+$\kw{Quotient}$ which applied the normalisation upon the elimination of a
+quotient, whereas here, normalisation immediately occurs upon the construction
+of a term of type $\kw{Qnorm}$.
 
 We can prove that the equality of $\kw{Qnorm}$ terms is characterised by the
 equality between the normalised forms of the underlying terms. As usual, we
