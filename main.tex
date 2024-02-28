@@ -275,7 +275,7 @@
 \NewDocumentCommand{\ctx}{}{\Gamma}
 \NewDocumentCommand{\earg}{mg}{\IfValueTF{#2}{#1:=#2}{\_:=#1}} %% Erasable argument
 
-%% \newcommand\qed {\square}
+\renewcommand\qed{\blacksquare}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1033,14 +1033,8 @@ we define a function \id{f} and its inverse \id{g} as such:
 
 Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
 
-%% TODO: Add proof of $\kw{cong}_2$ in the appendix or something (sketch is in
-%% Interval.lagda.md)
-
-%% Note: 23 Jan - Why did I bother to mention $\kw{cong}_2$ here? I can't
-%% remember.
-
 \begin{align*}
-  & \id{$\alpha$-helper} : (\oftype{h}{\bI \rightarrow A}) \rightarrow (\oftype{i}{Interval}) \rightarrow \eqtype{(g (f \ h)) \ i}{h \ i} \\
+  & \id{$\alpha$-helper} : (\oftype{h}{\bI \rightarrow A}) \rightarrow (\oftype{i}{\bI}) \rightarrow \eqtype{(g (f \ h)) \ i}{h \ i} \\
   & \id{$\alpha$-helper} (h , i) = rec_{\bI}(i . \ \eqtype{(g (f \ h)) \ i}{h \ i}, \ \refl{h(\ileft)}, \ \refl{h(\iright)}, \ \kw{cong}_{\lambda i . \refl{h(i)}}(\id{seg}), \ i) \\
   & \alpha : (\oftype{h}{\bI \rightarrow A}) \rightarrow \eqtype{g(f(h))}{h} \\
   & \alpha(h) =  \kw{funExt} (\id{$\alpha$-helper} (h)) \\ \\
@@ -1048,7 +1042,10 @@ Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
   & \beta(e) =  \refl{\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}}{e}
 \end{align*}
 
-For the sake of simplifying the proof of $\beta$, we assume the $\eta$-rule for dependent pairs. And with that, the proof is complete.
+%% The proof of beta is done via refl by leveraging the eta-equivalence of the
+%% sigma type
+For the sake of simplifying the proof of $\beta$, we assume the $\eta$-rule for
+dependent pairs. And with that, the proof is complete.
 
 \section{Justification}\label{sec:eq-justification}
 We have established that the equality type (also known as the identity type) is
@@ -1246,9 +1243,6 @@ I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (r : I) @$\Rrightarrow
 
 Its implementation is simple in that it simply returns the argument $\id{a}$
 untouched when \id{r} is a canonical value of \id{Interval}.
-
-%% TODO: If we return \id{a} for arbitrary values of \id{r}, we break subject
-%% reduction I believe? Check and mention this
 
 \section{Identity type}\label{sec:identity}
 
@@ -2069,10 +2063,15 @@ We initially intended to encode QITs as quotient types with the help of a macro.
 Such an encoding is without a doubt possible, in \autoref{sec:multiset} and
 \autoref{sec:related-qit} we shall see the \id{Multiset} data type defined both
 as a quotient type and as a quotient inductive type. One could imagine that the
-translation of the latter version to the former may be done by repackaging the path
-constructors introduced by the QIT as constructors of a new relation over which we shall
-construct a new quotient type.
-
+translation of the latter version to the former may be done by repackaging the
+path constructors introduced by the QIT as constructors of a new relation over
+which we shall construct a new quotient type. However, as will be mentioned in
+\autoref{sec:multiset}, such a relation is not necessarily an equivalence
+relation. In the aforementioned section, we solved the problem by taking
+reflexive, symmetric, and transitive closure of the relation. However, such a
+construction is a tough ask for a macro. Hence, we ultimately decided to abandon
+this idea as even if such a macro were to come to fruition, it would most likely
+be user-unfriendly.
 
 \chapter{Quotient Effectiveness}\label{ch:quotient-effectiveness}
 
@@ -2307,7 +2306,6 @@ $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ and
 $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$ are equal since they
 are both mere propositions.
 
-Examples of usage of the above theorem are in Chapter XXX (TODO:\ Link to eventual proof of discreteness of Rationals, if I elect to do it that is.).
 
 \chapter{Examples}\label{ch:examples}
 The addition of quotient types to Typer allows us to define certain constructs
@@ -2501,7 +2499,11 @@ Not : (T : Type) @$\rightarrow$@ Type
 Not T = T @$\rightarrow$@ Void
 \end{minted}
 
-The underlying relation takes on the following form, this can be proven to be an equivalence relation.
+The underlying relation takes on the following form, this may be proven to be
+both an equivalence relation as well as a mere proposition. These properties are
+useful if we wish to prove that resulting quotient is effective and that
+\id{Rational} is discrete.
+
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 equal@$\mathbb{Q}$@ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ Type
 equal@$\mathbb{Q}$@ p1 p2 = Eq (p1.z1 * p2.z2) (p1.z2 * p2.z1)
@@ -2514,14 +2516,17 @@ Rational : Type
 Rational = Quotient @$\zpair$@ equal@$\mathbb{Q}$@
 \end{minted}
 
-As a sanity check, we prove that the resulting $\kw{Rational}$ type is indeed a field as it should be. Negation is the simplest operation that we can define on the rationals, it is achieved by simply negating the integer numerator. This is done via the below function.
+Negation is the simplest operation that we can define on the rationals, it is
+achieved by simply negating the integer numerator. This is done via the below
+function.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 negate_fst : @$\zpair \rightarrow \zpair$@
 negate_fst x = inR (-1 * x.z1) x.z2 x.p
 \end{minted}
 
-We also need to prove that $\id{negate\_fst}$ respects the underlying relation $equal\mathbb{Q}$. In other words, we need to prove the following:
+We also need to prove that $\id{negate\_fst}$ respects the underlying relation
+$equal\mathbb{Q}$. In other words, we need to prove the following:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 negate_compat : (a : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@) @$\rightarrow$@
@@ -2541,9 +2546,11 @@ negate_compat a b r =
     a.z2 * (-1 * b.z1) @$\qed$@
 \end{minted}
 
-We introduced equational reasoning to facilitate the development and reading of such proofs, more details are given in Section~\ref{section:eqreasoning} of the appendix.
+We introduced equational reasoning to facilitate the development and reading of
+such proofs, more details are given in Section~\ref{section:eqreasoning} of the
+appendix.
 
-Finally, the negation operation of rational numbers can be constructed like so:
+Finally, the negation operation of rational numbers may be constructed like so:
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
 Rational_negate : Rational @$\rightarrow$@ Rational
@@ -2556,7 +2563,8 @@ Rational_negate x =
                                         (negate_compat a a' r)
 \end{minted}
 
-We can also define the addition operation on the rationals. As before, we start off by defining a function that operates on expressions of the base type.
+We can also define the addition operation on the rationals. As before, we start
+off by defining a function that operates on expressions of the base type.
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
 @$\zpairplus$@ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ @$\zpair$@
@@ -2565,7 +2573,8 @@ We can also define the addition operation on the rationals. As before, we start 
                  (Integer_0-product a.z2 b.z2 a.p b.p)
 \end{minted}
 
-This is an operation that can be shown to be commutative with respect to the equivalence relation.
+This is an operation that can be shown to be commutative with respect to the
+relation.
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
 @$\zpairplus$-Comm@ : (a : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@)
@@ -2590,7 +2599,9 @@ This is an operation that can be shown to be commutative with respect to the equ
                   compat
 \end{minted}
 
-We still need to show that the $\zpairplus$ function itself respects the underlying relation, and since this is a binary operation, we will have to prove it for `both sides'. In other words, we have to produce the below proofs.
+We still need to show that the $\zpairplus$ function itself respects the
+underlying relation, and since this is a binary operation, we will have to prove
+it for `both sides'. In other words, we have to produce the below proofs.
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
 @$\mathbb{Q}$+\_feql@ : (a : @$\zpair$@) @$\rightarrow$@ (a' : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@) @$\rightarrow$@ @$\equalq$@ a a'
@@ -2617,7 +2628,8 @@ corollary by virtue of the commutativity of $\zpairplus$.
              (Eq_trans (@$\mathbb{Q}$@+_feql b b' a p) (@$\zpairplus$-Comm@ b' a))
 \end{minted}
 
-We can now assemble the above to define both the addition and subtraction of rationals as follows:
+We can now assemble the above to define both the addition and subtraction of
+rationals as follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
 Rational_+ : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational
@@ -2630,10 +2642,10 @@ Rational_- : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational
 Rational_- a b = Rational_+ a (Rational_negate b)
 \end{minted}
 
-$\kw{Quotient\_rec2}$ is a library function that allows us to simultaneously
+$\id{Quotient\_rec2}$ is a library function that allows us to simultaneously
 eliminate two quotient expressions, more details are given in
 \autoref{subsec:rec2}. Finally, we want to prove that negation of a rational
-produces its additive inverse. We define $\kw{Rational\_0}$ to be the additive
+produces its additive inverse. We define $\id{Rational\_0}$ to be the additive
 identity using a trivial representative of its equivalence class.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
@@ -2686,7 +2698,10 @@ Rational_+Rinv q = Eq_trans (Rational_+-Comm q (Rational_negate q))
 \end{minted}
 
 For brevity, we do not describe the proofs for multiplication as they can be
-carried out in a similar fashion as above.
+carried out in a similar fashion as above. As a sanity check of the validity of
+our construction of the rational nnumbers, we provided proofs of other
+interesting properties of \id{Rational} in the actual file, proving that it does
+indeed satisfy the characteristics of a \emph{ring}.
 
 \section{Multiset}\label{sec:multiset}
 
@@ -3613,8 +3628,6 @@ double (loop i) = (loop @$\cdot$@ loop) i
 Elimination is done in cleaner manner when done using pattern matching. Aside
 from that, we get definitional equalities even for path constructors.
 
-TODO:\ Wanted to show an example of HIT-style elimination of a quotient, but I didn't find anything worth showing for now.
-
 \section{Quotient Inductive Types}\label{sec:related-qit}
 
 Quotient inductive types (QITs) are essentially HITs that are set-truncated.
@@ -3624,7 +3637,7 @@ between paths is not allowed. Indeed, such paths are not typically required in
 day-to-day programming tasks.
 
 Unlike the quotient types that we introduce in this work, QITs allow the
-definition of arbitrary equality constructors between terms of an inductive type
+definition of arbitrary equation constructors between terms of an inductive type
 instead of requiring these equalities to be encoded as equivalence relations.
 This can prove to be very helpful when defining certain quotients. In
 \autoref{sec:multiset}, we defined a relation on the \id{List} data type such
@@ -3640,16 +3653,21 @@ data Multiset a
   |/ swap :: x:a -> y:a -> l:Multiset a -> cons x (cons y l) == cons y (cons x l)
 \end{minted}
 
-What is important to note here that since we are adding equality constructors,
+What is important to note here that since we are adding equation constructors,
 we do not need the counterparts of the other constructors that were required in
 the Typer definition of the relation as they are vacuously valid here by virtue
-of the properties of the equality type. Although it seems to be the case that
-QITs are more convenient to work with in practice, we have not found any
-evidence that they are more expressive than regular quotient types (TODO:\ I
-better find a way to back up this claim). We opted to introduce plain quotient
-types to Typer instead of QITs primarily because of its simpler implementation.
-Aside from that, we get the added benefit of preserving the modularity of the
-current implementation of inductive types.
+of the congruence properties of the equality type. This seems to suggest that
+QITs are more convenient to work with in practice. QITs are also strictly more
+expressive than the combination of ordinary inductive types with quotient
+types\cite{fiore2022quotients}. Though in practice, the additional expressivity
+offered by QITs is often unrequired for general programming. The example
+provided by the aforementioned paper of a QIT that we may not trivially define
+using quotient types in the form of unordered infinitely branching trees is
+indeed not a data type that one would expect to make a frequent appearance in
+daily programming tasks. Hence, we opted to introduce plain quotient types to
+Typer instead of QITs primarily because of its simpler implementation. Aside
+from that, we get the added benefit of preserving the modularity of the current
+implementation of inductive types.
 
 \section{Quotients in Observational Type Theory}
 
@@ -3725,12 +3743,9 @@ may use the \kw{rewrite} tactic in Coq to rewrite the goal such that it becomes
 \fn{n + m $\le$ n + m}. The simplified goal may thus be easily proven using the
 reflexivity property of $\le$.
 
-%% TODO: cite something, maybe A New Look at Generalized Rewriting in Type
-%% Theory, though this seems more relevant
-%% https://coq.inria.fr/doc/v8.12/refman/addendum/generalized-rewriting.html#first-class-setoids-and-morphisms
-Plain rewriting allows rewriting with \emph{equal} terms, generalised rewriting
-on the other hand enables rewriting using terms that are \emph{related} by some
-binary relation (TODO:\ wait does this generalise to n-ary relations?), often
+Plain rewriting allows rewriting with \emph{equal} terms, generalised
+rewriting\cite{sozeau2009new, coq-gen-rewriting} on the other hand enables
+rewriting using terms that are \emph{related} by some binary relation , often
 represented as a function of type \fn{A $\rightarrow$ A $\rightarrow$
   \kw{Prop}}. Unlike equality, this form of rewriting does not work in all
 contexts, instead it only works in contexts that are compatible with the
@@ -3740,15 +3755,19 @@ setoid\cite{hofmann1995simple}. Instead of constructing a new type to represent
 the quotient of the base type, we would directly work with the base type.
 Suppose that we had a proof of \fn{a R b} where \id{R} is a binary relation, we
 would be able to rewrite \id{a} to \id{b} if the context of \id{a} in the goal
-is compatible with the relation. (TODO:\ Maybe try to construct some example of
-this in Coq) However, every function definition that interacts with the setoid
-needs to be accompanied with a proof that setoid equivalence is respected. This
-is in contrast to the ideal situation where such coherence proofs are
-\emph{only} required in the function that eliminates quotients, subsequent
-interaction and composition of this function should be free of the burden of
-such proof obligations. This has historically been the go-to way of modelling
-quotient types in Coq, however such an approach is known to be rather laborious.
-This phenomenon is often designated as \emph{setoid hell} by the community.
+is compatible with the relation. However, every function definition that
+interacts with the setoid needs to be accompanied with a proof that setoid
+equivalence is respected. This is in contrast to the ideal situation where such
+coherence proofs are \emph{only} required in the function that eliminates
+quotients, subsequent interaction and composition of this function should be
+free of the burden of such proof obligations. This has historically been the
+go-to way of modelling quotient types in Coq, however such an approach is known
+to be rather laborious. This phenomenon is often designated as \emph{setoid
+hell} by the community\footnote{Examples of community discussions on this topic
+may be found at
+\url{https://stackoverflow.com/questions/65493694/why-do-calculus-of-construction-based-languages-use-setoids-so-much/}
+and
+\url{https://proofassistants.stackexchange.com/questions/908/what-exactly-is-setoid-hell/}}.
 Although Coq offers numerous tactics to facilitate the usage of setoids, it
 quickly becomes unwieldy in the case of large programs.
 
@@ -3969,8 +3988,6 @@ that we had to reckon with on numerous occassions while working with quotient
 types. The above seem to be desirable features that we should contemplate
 introducing to Typer in some shape or form to facilitate proof development.
 
-%% TODO: Finish the `foreword' section of this chapter
-
 \section*{Benchmarks}
 
 In this section, we use our implementation of \id{Rational} and \id{Multiset} to
@@ -4128,9 +4145,17 @@ it on the subsequent arguments.
 \appendix
 
 \chapter{Equational Reasoning}\label{section:eqreasoning}
-Equational reasoning provides us with a neat way of expressing proofs in Typer. With the help of some syntactic sugar, this allows us to build chains of equality proofs by using the transitivity property of equality as shown in Section~\ref{subsection:eqtransitivity}. This is something that is implemented in the libraries of most proof assistants, such as Agda, Lean, and Lean. This allows lengthy proofs to remain readable as intermediate steps are documented and are clearly seen.
+Equational reasoning provides us with a neat way of expressing proofs in Typer.
+With the help of some syntactic sugar, this allows us to build chains of
+equality proofs by using the transitivity property of equality as shown in
+Section~\ref{subsection:eqtransitivity}. This is something that is implemented
+in the libraries of most proof assistants, such as Agda, Lean, and Lean. This
+allows lengthy proofs to remain readable as intermediate steps are documented
+and are clearly seen.
 
-First, we introduce a helper function that simply invokes the transitivity property of equality proofs. This function carries out a single step of equational reasoning.
+First, we introduce a helper function that simply invokes the transitivity
+property of equality proofs. This function carries out a single step of
+equational reasoning.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 step-@$\equiv$@ : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ (z : ?A) @$\rightarrow$@ Eq x y @$\rightarrow$@ Eq y z @$\rightarrow$@ Eq x z
@@ -4144,15 +4169,16 @@ qed : (x : ?A) @$\rightarrow$@ Eq x x
 qed x = Eq_refl
 \end{minted}
 
-To make it all come together, we wrap the above functions with some syntaxic sugar.
+To make it all come together, we wrap the above functions with some syntaxic
+sugar.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 _==<_>==_ = step-@$\equiv$@
 _@$\qed$@ = qed
 \end{minted}
 
-%% TODO:\ Make \_$\qed$ look nicer
-\verb|_==<_>==_| can be seen as a mixfix operator, whereas \_$\qed$ is a postfix operator.
+\verb|_==<_>==_| can be seen as a mixfix operator, whereas \_$\qed$ is a postfix
+operator.
 
 When we write the following
 
