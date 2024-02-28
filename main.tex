@@ -1532,9 +1532,17 @@ Eq_cast A x y p f fx =
            (r := |$\ileft$|) fx
 \end{minted}
 
-Here, we make use of the built-in function $\id{I\_transp}$ by passing it the argument $\earg{\id{r}}{\ileft}$, intending it to behave as a transport function. In other words, by passing it something of type $\Funapp{\id{f}}{\id{x}}$, it returns something of type $\Funapp{\id{f}}{\id{y}}$, which is precisely what the transport/cast function is meant to do.
+Here, we make use of the built-in function $\id{I\_transp}$ by passing it the
+argument $\earg{\id{r}}{\ileft}$, intending it to behave as a transport
+function. In other words, by passing it something of type
+$\Funapp{\id{f}}{\id{x}}$, it returns something of type
+$\Funapp{\id{f}}{\id{y}}$, which is precisely what the transport/cast function
+is meant to do.
 
-The $\id{I\_transp}$ function that looks slightly strange at first sight allows us to prove a certain property of the transport operation. Transporting across a reflexive path should be equivalent to a no-op, as is illustrated in the following proof.
+The $\id{I\_transp}$ function that looks slightly strange at first sight allows
+us to prove a certain property of the transport operation. Transporting across a
+reflexive path should be equivalent to a no-op, as is illustrated in the
+following proof.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Eq_cast_refl : (A : Type) |$\Rrightarrow$| (x : A)
@@ -1544,6 +1552,23 @@ Eq_cast_refl : (A : Type) |$\Rrightarrow$| (x : A)
 Eq_cast_refl A x = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$|
                             I_transp (A := |$\lambda$| _ |$\Rrightarrow$| A) (r := i) x)
 \end{minted}
+
+
+In Typer and in intensional type theory in general, we need to explicitly invoke
+a cast function of some sort, this is in contrast with extensional type theory
+(ETT)\cite{martin1982constructive} where equality proofs in the context are
+automatically used by the typechecker to carry out casts whenever necessary.
+This is shown by the following judgement in ETT that states that equality proofs
+can be converted to judgemental equalities.
+
+\begin{prooftree*}
+  \hypo{\oftype{\ctx}{t}{\Funapp{\kw{Eq}}{a}{b}}}
+  \infer1{\ctx \vdash a \simeq b}
+\end{prooftree*}
+
+This is also the reason why typechecking is not decidable in ETT as the
+necessity to invoke the above rule is not syntax directed.
+
 
 \subsection*{J-rule}\label{subsec:j-rule}
 The sole term former of the $\kw{Eq}$ only allows the construction of reflexive
@@ -1563,10 +1588,10 @@ all $\oftype{x}{A}$ a term of type $\Funapp{C}{x}{x}{(\Funapp{\kw{refl}}{x})}$.
 We now state the type of the J-rule:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-J : (C : (x : ?A) -> (y : ?A) -> Eq x y -> Type)
-    -> ((x : A) -> C x x Eq_refl)
-    -> (x : A) -> (y : A) -> (p : Eq x y)
-    -> C x y p;
+J : (A : Type) @$\Rrightarrow$@ (C : (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ Eq x y @$\rightarrow$@ Type)
+    @$\Rrightarrow$@ ((x : A) @$\rightarrow$@ C x x Eq_refl)
+    @$\rightarrow$@ (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ (p : Eq x y)
+    @$\rightarrow$@ C x y p;
 \end{minted}
 
 This rule is essentially saying that in order to know what to do with an
@@ -1619,26 +1644,15 @@ eqUnique : (A : Type) @$\Rrightarrow$@ (a b : A) (p : Eq a b)
 This can be seen as a justification of the J-rule, by fixing one endpoint of an
 equality proof to be $\fn{a}$, it is provable that any equality proof between
 $\fn{a}$ and some other arbitrary $\fn{b}$ may be proved to be equal to the
-reflexivity proof at $\fn{a}$. We provide more details of this in the appendix
-(TODO:\ actually do this).
+reflexivity proof at $\fn{a}$. More details are given in
+\autoref{subsec:interval-connections} on how to construct the above. Once we have that,
+we may easily define the J-rule.
 
-- TODO:\ If want to be able to prove that J can be derived from cast, we need to
-leverage the fact that $(x , refl) = (y , p)$, check notes for more details.
-
-In Typer and in intensional type theory in general, we need to explicitly invoke
-a cast function of some sort, this is in contrast with extensional type theory
-(ETT)\cite{martin1982constructive} where equality proofs in the context are
-automatically used by the typechecker to carry out casts whenever necessary.
-This is shown by the following judgement in ETT that states that equality proofs
-can be converted to judgemental equalities.
-
-\begin{prooftree*}
-  \hypo{\oftype{\ctx}{t}{\Funapp{\kw{Eq}}{a}{b}}}
-  \infer1{\ctx \vdash a \equiv b}
-\end{prooftree*}
-
-This is also the reason why typechecking is not decidable in ETT as the
-necessity to invoke the above rule is not syntax directed.
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+J h x y p =
+    Eq_cast (p := eqUnique p)
+            (f := lambda e @$\rightarrow$@ C x e.fst e.snd) (h x);
+\end{minted}
 
 \subsection*{Transitivity}\label{subsection:eqtransitivity}
 Continuing our analogy of equality proofs as paths, the transitivity property allows us to concatenate two paths. We join the right endpoint of the first path with the left endpoint of the second path, producing a new path. The proof of this theorem is as follows:
@@ -1685,7 +1699,7 @@ Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
 \caption{The concatenation of a path between x and y and a path between y and z to produce a new path between x and z.}
 \end{figure}
 
-\subsection*{Connections}
+\subsection*{Connections}\label{subsec:interval-connections}
 
 The operations that we defined on the Interval correspond to
 connections\cite{cohen2016cubical} that are typically drawn as squares. Such
@@ -1788,8 +1802,8 @@ prove the $\fn{eqUnique}$ property mentioned in \autoref{subsec:j-rule}.
 
 TODO:\ TBD if I want to do this. Joins could be used to build the same square
 that we saw as above, the only difference is that the added degeneracy would be
-a refl path on $b$ instead of $a$.
-
+a refl path on $b$ instead of $a$. The thing is, I've never really had a need
+for this.
 
 \section{Equality as a mere proposition}
 Although we say that our equality type is a proposition, it is by no means a
@@ -2618,9 +2632,10 @@ it for `both sides'. In other words, we have to produce the below proofs.
 \end{minted}
 
 The proof of $\mathbb{Q}{+}\_\kw{feql}$ is long and uninteresting and thus will
-not described here\footnote{Interested readers may find the proof at
-TODO:\ link}. However, once this has been proved, its counterpart is a trivial
-corollary by virtue of the commutativity of $\zpairplus$.
+not described here\footnote{Interested readers may find the proof at TODO:\ link
+to online repository since the proof itself is not instructive enought to
+warrant being put here}. However, once this has been proved, its counterpart is
+a trivial corollary by virtue of the commutativity of $\zpairplus$.
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
 @$\mathbb{Q}$+\_feqr@ a b b' p =
@@ -2822,12 +2837,12 @@ isMember : (A : Type) => A -> List A -> Type
 isMember = lambda A => lambda x l -> Any A (lambda x' -> Eq x x') l
 \end{minted}
 
+%% The omitted proofs are uninteresting so far as quotient types are concerned
 We need to prove a lemma that says that if $\fn{isMember a $l_1$}$ is valid,
 then for some other $\fn{$l_2$}$ that is a permutation of $\fn{$l_1$}$,
-$\fn{isMember a $l_2$}$ is also valid, we omit this proof (TODO:\ Consider
-putting this in the appendix, it's long). Next, we just need to define
-$\fn{isMemberDec}$, whose details we shall once again omit. Finally, we may
-proceed to define $\fn{Multiset\_mem}$.
+$\fn{isMember a $l_2$}$ is also valid, we omit this proof. Next, we just need to
+define $\fn{isMemberDec}$, whose details we shall once again omit. Finally, we
+may proceed to define $\fn{Multiset\_mem}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 isMemberDec : (A : Type) @$\Rightarrow$@ Discrete A @$\rightarrow$@ (a : A) @$\rightarrow$@ (l : List A)
@@ -3541,10 +3556,6 @@ is equivalent to some function of type \fn{X $\rightarrow$ Y} accompanied with a
 proof that the function respects the quotient. This may be proven within Typer
 itself, the proof is provided in \autoref{app:ump-quot} of the appendix.
 
-\section{Initial object of quotient set algebras}
-
-TODO:\ Ok maybe let's scratch this, this isn't super interesting.
-
 \chapter{Related works}
 
 %% TODO: Set the right tone for this chapter so that it can appropriately be put
@@ -3622,11 +3633,10 @@ double base = base
 double (loop i) = (loop @$\cdot$@ loop) i
 \end{minted}
 
-%% TODO: Improve wording here
-%% TODO: 9 Feb, when rereading this, I can't seem to recall what I meant by
-%% definitional equalities for path constructors
-Elimination is done in cleaner manner when done using pattern matching. Aside
-from that, we get definitional equalities even for path constructors.
+Elimination is done in a cleaner manner when done using pattern matching. Aside
+from that, we get to specify how the function acts on equation constructors.
+This leads to more convenient defitional equalities when using this function
+with the congruence property of equality.
 
 \section{Quotient Inductive Types}\label{sec:related-qit}
 
