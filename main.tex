@@ -387,15 +387,15 @@
 %%   to give a feeling for how the different parts relate to each other,
 %%   and the relative importance of each one.
 
-This work describes the introduction of quotients types to Typer, a dependently
+This work describes the introduction of quotient types to Typer, a dependently
 typed programming language. Quotient types allow programmers to construct new
-types on the basis of existing types by identifying (FIXME: The word `identify'
+types based on existing types by identifying (FIXME: The word `identify'
 is the most appropriate word, but only if the reader understands it, hopefully I
 can find an alternative.) certain terms of the base type. This is typically
 based on equivalence relations defined on the base type; related terms are thus
 treated as equal in the resulting quotient type. For instance, rational numbers
 may be defined as the quotient of pairs of integers under an appropriate
-equivalence relation. To better accomodate the introduction of quotient types to
+equivalence relation. To better accommodate the introduction of quotient types to
 Typer, we revamped the built-in equality type by drawing inspiration from
 cubical type theory and proof assistants that implement it. As such, Typer's new
 equality type is based on functions out of a new interval primitive. Such an
@@ -409,7 +409,7 @@ facilitate the usage of quotient types, we provide a library that helps simplify
 the manipulation of quotient types. We also leverage this new addition to the
 language to introduce new built-in types, such as rational numbers,
 propositional truncation, etc. Finally, this work also explores the development
-of proofs in Typer, to our knowledge this is the first attempt to really write a
+of proofs in Typer, to our knowledge this is the first attempt to write a
 substantial amount of proofs using the language since the language is primarily
 intended to be a general-purpose programming language. We describe our
 experience and the challenges faced in the process. Additionally, we introduce
@@ -530,7 +530,7 @@ is analogous to an implication \fn{A $\supset$ B}. If we think of the types
 \fn{A} to proofs of \fn{B}\footnote{We only consider total functions.}. Such a
 function corresponds directly to our intuition of \emph{A implies B}, its
 existence is thus a proof of \fn{A $\supset$ B}. A conjunction \fn{A $\wedge$ B}
-is represented by a pair \fn{A $\times$ B}. In order to prove that \fn{A} and
+is represented by a pair \fn{A $\times$ B}. To prove that \fn{A} and
 \fn{B} are both true, we need a proof of \fn{A} and \fn{B} respectively, which
 is precisely what we need a construct the pair \fn{A $\times$ B}. In the same
 vein, a disjunction \fn{A $\vee$ B} is interpreted as a sum type \fn{A + B}. A
@@ -544,41 +544,41 @@ truths. Since equalities are mathematical propositions, we require a type that
 plays the role of equality in mathematical proofs. For instance, we might want
 to state the theorem that the addition of natural numbers is commutative, i.e.
 $\forall xy. \ x + y \equiv y + x$. To this end, our system requires an equality
-type\footnote{In the literature, the terms `equality type', `identity type' and
+type\footnote{In the literature, the terms `equality type', `identity type', and
 `path' are used interchangeably. For our purposes, we shall employ the term
-`equality type', though occassionally we shall use the term `path' to draw an
+`equality type', though occasionally we shall use the term `path' to draw an
 analogy with HoTT.} that allows us to make statements such as the above. Such a
 type provides us with a proposition that can be manipulated like any other. This
 implies that we can manipulate it with other operations such as logical
-negation, conjunction, disjunction etc. What we have just described is what is
+negation, conjunction, disjunction, etc. What we have just described is what is
 commonly known as \emph{propositional equality}.
 
 %% TODO: I could add one more example if something good comes to mind.
 %% SM: A bit of motivation for why we care about proofs in programs
 %% would be welcome.
 
-Not only can we write mathematical proofs, we may also prove properties about
-our programs. In general, it is desirable for proofs to not be executed during
+Not only can we write mathematical proofs, but we may also prove properties of
+our programs. In general, it is desirable for proofs not to be executed during
 runtime, i.e.\ we only want them to be verified at compile time, or more
 precisely, during type-checking. This allows us to prove that our programs have
-the right behaviour, and this is achieved without incurring additional runtime
+the right behaviour, and this is achieved without incurring an additional runtime
 cost. This is mainly achieved through a certain feature of Typer that allows
-certain terms to be marked as erasable, a point that we shall came back to
-later. Consider a function that accesses the i-th element of an array with the
+certain terms to be marked as erasable, a point that we shall come back to
+later. Consider a function that accesses the i$^{th}$ element of an array with the
 below type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 arrayGet : (a : Array A) @$\rightarrow$@ (i : Nat) @$\rightarrow$@ i < length a @$\rightarrow$@ A
 \end{minted}
 
-The above is a type declaration which says that the variable $\fn{arrayGet}$ has
+The above is a type declaration that says that the variable $\fn{arrayGet}$ has
 what is on the right of the colon as its type. $\rightarrow$ is a constructor of
 function types. For instance, $\fn{A $\rightarrow$ B}$ is a type of a function
 that accepts an argument of the type $\fn{A}$ and returns something of type
 $\fn{B}$. $\fn{arrayGet}$ may thus be seen as a function of three parameters.
 The first parameter is an array $\fn{a}$ of type $\fn{Array A}$, i.e.\ an array
 that contains elements of type $\fn{A}$. The reason why it is given a specific
-name $\fn{a}$ is because subsequent parameters may depend on it as Typer is a
+name $\fn{a}$ is that subsequent parameters may depend on it as Typer is a
 dependently typed language. The second parameter $\fn{i}$ is a natural number
 --- the index of the element we wish to retrieve from the array. The last
 parameter is a proof that the index $\id{i}$ is indeed within the bounds of the
@@ -593,7 +593,7 @@ as long as the program is well-typed.
 
 In general, proofs improve the reliability of programs by allowing more errors
 to be detected at compile-time by making use of the type system to impose
-constraints on programs. A notable example of the usage of proofs in real world
+constraints on programs. A notable example of the usage of proofs in real-world
 programs is the CompCert project that worked on the formal verification of a C
 compiler\cite{Leroy-Compcert-CACM}. Equality proofs may also be used as the
 backbone of more sophisticated features that improve the expressivity of a
@@ -643,10 +643,10 @@ Nat+_comm : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ m + n @$\equiv$@
 $\fn{Nat+\_comm}$ takes 2 natural numbers $\fn{m}$ and $\fn{n}$ as arguments and
 returns a proof that \fn{m + n $\equiv$ n + m}. \fn{m + n $\equiv$ n + m} is
 merely a type and can be seen as a statement of the proposition that \fn{m + n}
-and \fn{n + m} are equal. In order to prove that the proposition is actually
+and \fn{n + m} are equal. To prove that the proposition is 
 true, we would need to construct a term of this type. Such a term may be seen as
 a proof object that witnesses the validity of the proposition. Interested
-readers may find the complete proof of the commutativity of addition of natural
+readers may find the complete proof of the commutativity of the addition of natural
 numbers in \autoref{app:other-proofs}.
 
 To see how such a proof may be utilised, suppose we have a type of
@@ -666,13 +666,13 @@ without its disadvantages as programmers are now burdened with the
 responsibility of proving at various points during the program that their
 vectors have the `right length'. To humans, the fact that \fn{Vector A (m + n)}
 and \fn{Vector A (n + m)} are the same is something trivial and is often taken
-for granted. In general, the type checker of a dependently-typed language would
+for granted. In general, the type checker of a dependently typed language would
 not immediately consider the above types equal without further evidence. Hence,
 one would not be able to pass a vector of the first type to a function that
 expects a vector of the latter type. Suppose we have a function that zips
-vectors, it could reasonably expect both inputs vectors to have the \emph{same}
+vectors, it could reasonably expect both input vectors to have the \emph{same}
 length. Hence, the zipping of a \fn{Vector A (m + n)} and a \fn{Vector A (n +
-  m)} would not typecheck. Below is a typical definition of the addition
+  m)} would not type-check. Below is a typical definition of the addition
 operation on natural numbers:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
@@ -685,7 +685,7 @@ _+_ x y = case x
 The function is defined by case analysis on its first argument, it is thus not
 immediate that for arbitrary natural numbers \fn{m} and \fn{n}, \fn{m + n} and
 \fn{n + m} would evaluate to the same thing. Hence, if a programmer wishes to
-uses a term of type \fn{Vector A (n + m)} in place of one of type \fn{Vector A
+use a term of type \fn{Vector A (n + m)} in place of one of type \fn{Vector A
   (m + n)}, he would be required to state and prove the propositional equality
 \fn{Vector A (m + n) $\equiv$ Vector A (n + m)}. Once we have such a proof, we
 may then use it to cast vectors between those two types. This is achieved by
@@ -698,14 +698,14 @@ Vlength_comm+ = lambda A m n @$\Rrightarrow$@ Eq_cast (p := Nat+_comm m n) (f :=
 
 \fn{Vlength\_comm+} is a function that converts a vector of type \fn{Vector A (m
   + n)} to one of type \fn{Vector A (n + m)}. By making use of a proof that
-\fn{m + n $\equiv$ n + m}, we are able to perform type casting on a vector of
-type \fn{Vector A (m + n)} to produce one of the desired type. If we had a data
+\fn{m + n $\equiv$ n + m}, we can perform type casting on a vector of
+type \fn{Vector A (m + n)} to produce a vector of the desired type. If we had a data
 type of matrices indexed by their dimensions, the cast operation might also be
 necessary to ensure the appropriate alignment of dimensions when working with a
 function that calculates matrix products. The equality type satisfies Leibniz's
 principle of the indiscernibility of identicals, i.e.\ two identical things may
 be substituted for one another. \fn{Eq\_cast} is thus of the fact that if two
-terms are equal, then if a predicate is true of the first term, then it is
+terms are equal, then if a predicate is true of the first term, it is
 necessarily also true for the other.
 
 Now that we have seen how equality proofs may be used in programs, the next
@@ -728,8 +728,8 @@ We would not be able to do it with the \fn{Eq} constructor as \id{u} and \id{v}
 are not of the \emph{same} type, though we know that the types may be proven to
 be equal. To state equalities between terms of different types, McBride
 introduced the notion of heterogeneous equality\cite{mcbride2000dependently},
-with which we may state our desired equality as \fn{Heq u v}. However, in order
-for two things to truly be equal, they need to be one and the same, their types
+with which we may state our desired equality as \fn{Heq u v}. However, for two
+things to truly be equal, they need to be one and the same, their types
 included. This is witnessed by the constructor of \fn{Heq} which has the
 following type.
 
@@ -789,7 +789,7 @@ with proof irrelevance.
 
 In keeping with the theme of equality, we shall discuss the implementation of
 quotient types in Typer. Quotient types allow us to redefine the equality of a
-type, usually on the basis of an equivalence relation on the type. This is
+type, usually based on an equivalence relation on the type. This is
 inspired by quotients in set theory, where if we are given a set A and an
 equivalence relation $\sim$ on A, then we can construct the quotient set of A by
 $\sim$, which we denote as $A / \sim$. Equivalent elements in A are considered
@@ -802,7 +802,7 @@ this is usually denoted as $[a]$. When we take the quotient of a set, we are
 essentially partitioning the set into equivalence classes, implying that we can
 regard a quotient set as simply the set of equivalence classes induced by the
 equivalence relation. For example, consider the integers modulo \id{5} where the
-underlying relation is congruence modulo \id{5}. Here, 0, 1, 2, 3, 4 are the
+underlying relation is congruence modulo \id{5}. Here, 0, 1, 2, 3, and 4 are the
 canonical representatives of their respective equivalence classes, or more
 specifically, congruence classes.
 
@@ -845,10 +845,10 @@ different permutations of the same list equally. These nuances are not typically
 explicitly expressible in the implementation of the data types nor may they be
 encoded at the type level. They are instead treated as \emph{implementation
 details} which one hopes to encapsulate by using abstraction barriers. Quotient
-types enables elements of the same equivalence class to be treated
+types enable elements of the same equivalence class to be treated
 \textbf{equally}. Thus, they are a way of taking advantage of the type checker
 to ensure that these details are appropriately handled internally. This is the
-case becase only programs that treat these equivalences consistently may be
+case because only programs that treat these equivalences consistently may be
 well-typed. Quotient types also serve as a form of documentation that explains
 the inner workings of a data type.
 
@@ -879,26 +879,30 @@ of a new type former, i.e.\ quotients that are characterised by a normalisation
 function\cite{li2015quotient,courtieu-normalizedtypes}. For these quotients, it
 is possible to elect a canonical representative for each equivalence class. This
 idea is reminiscent of the \emph{laws} in the Miranda programming
-language\cite{thompson1986laws}. The constructors of its algebraic data types
-may be defined with rewrite rules that ensure that terms of a certain type are
-always in normal form. All this to say that ideas related to quotient types have
-been introduced to functional programming in its early years, however they did
-not gain mainstream adoption. This is probably because dependently typed
-languages were still nascent at that time, making it more challenging for
-quotient types and their entailed proof obligations to be aptly integrated into
-functional languages. In the rest of this thesis, we discuss our experience of
-introducing quotient types to Typer. We first describe the typing and reduction
-rules of the introduced quotient type, and then we discuss the library that was
-implemented to faciliate their usage in Typer. Finally, we illustrate how the
-quotient type may be used by providing examples in the form of code along with
-commentary.
+language\cite{thompson1986laws}. Its algebraic data types may be defined with
+rewrite rules that ensure that its terms are always in normal form. These rules
+are in fact just smart constructors in disguise, we are not able to reason about
+and write proofs about laws. However, the innovation of Miranda is not its smart
+constructors, but rather its introduction of the idea of stating the equivalence
+between terms of the same type. All this to say that ideas related to quotients
+have been introduced to functional programming in its early years, however, they
+did not gain mainstream adoption. Dependently typed languages were also still
+nascent at that time, making it more challenging for quotient types and their
+entailed proof obligations to be aptly integrated into functional languages.
+With the gradual maturing of dependently-typed languages, we believe that it is
+an opportune moment to bring quotients into the picture again. In the rest of
+this thesis, we discuss our experience of introducing quotient types to Typer.
+We first describe the typing and reduction rules of the introduced quotient
+type, and then we discuss the library that was implemented to facilitate their
+usage in Typer. Finally, we illustrate how the quotient type may be used by
+providing examples in the form of code along with commentary.
 
 \section{Contributions}
 
 %% SM: As mentioned in the abstract: add structure.
 %% Usually I recommend the use of a few (typically 3-5) bullet points here.
 Inspired by cubical type theory, we replace the existing implementation of the
-equality type in Typer by one that is based on the Interval type. We also
+equality type in Typer with one that is based on the Interval type. We also
 demonstrate that proofs regarding the equality type are consequently generally
 easier to realise by providing a library of theorems regarding the equality
 type. We also introduce the notion of heterogeneous equality, making it possible
@@ -986,11 +990,11 @@ detail in \autoref{subsec:congruence-eq}. We can expect the first two equations
 to hold definitionally. If we imagine that the first two computation rules were
 defined via pattern-matching, it would make sense for these equations to hold
 definitionally. The third equation is a more curious case, it suggests that by
-congruence of equality, the application of the $\kw{Interval}$ recursor with the
-the equality proof $\id{P}$ to $\id{seg}$ should yield an equality proof between
+the congruence of equality, the application of the $\kw{Interval}$ recursor with the
+equality proof $\id{P}$ to $\id{seg}$ should yield an equality proof between
 $\id{M}$ and $\id{N}$. More specifically, such an equality proof should be equal
 to $\id{P}$ itself. Equalities between equality proofs are only an important
-consideration in a proof relevant world, e.g.\ in the context of HoTT. In the
+consideration in a proof-relevant world, e.g.\ in the context of HoTT. In the
 world of Typer where we demand that equality proofs be erasable and play no role
 during computation, such considerations are not of huge importance. We mention
 nevertheless that in most cases, the third equation only holds propositionally,
@@ -1004,7 +1008,7 @@ We show that a function out of the interval into some type \id{A} is equivalent 
   & \bI \rightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}
 \end{align*}
 
-We proof this equivalence by proving that $\fn{g}$ is a quasi-inverse of
+We prove this equivalence by proving that $\fn{g}$ is a quasi-inverse of
 $\fn{f}$ as described in chapter 2 of the HoTT book\cite{HoTTbook}. To this end,
 we define a function \id{f} and its inverse \id{g} as such:
 
@@ -1038,13 +1042,13 @@ dependent pairs. And with that, the proof is complete.
 We have established that the equality type (also known as the identity type) is
 equivalent to a function out of the interval. We have also illustrated that such
 a function is expected to be constant on the unit interval. This condition is
-enforced by virtue of the fact that $\id{Interval}$ is defined as a higher
+enforced because $\id{Interval}$ is defined as a higher
 inductive type\cite{HoTTbook} with an identification of the two endpoints. The
 type system then enforces that all eliminations of the $\id{Interval}$ type be
 necessarily constant on the two endpoints. An alternate way of enforcing this is
 by using functions with erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a
 type with two distinct constructors that take no arguments, such as the Boolean
-type. An argument that is marked as erasable is one that has no computational
+type. An argument that is marked as erasable has no computational
 role during runtime. Within the function body, such an argument may only be used
 in an \emph{erasable} manner, for instance, it may be used in the computation of
 an expression that is passed as an erasable argument to yet another function. In
@@ -1067,8 +1071,7 @@ h : I @$\Rrightarrow$@ A
 In Typer, we use $\Rrightarrow$ to denote erasable arguments in function types.
 It is vacuously true that $\eqtype{h(i_0)}{h(i_1)}$ since what is returned by
 the function could not have been influenced by the argument that was passed to
-it by virtue of the fact that the argument is erasable. With that, we are able
-to postulate that
+it because the argument is erasable. With that, we can postulate that
 
 \begin{align*}
   & \bI \Rrightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} .
@@ -1122,7 +1125,8 @@ fully benefit from having an interval-based equality type.
 
 \subsubsection*{Meet}\label{subsubsec:interval-meet}
 
-The meet operator returns the minimum of two terms of the Interval type. The order of the Interval type is such that $i_0 \le i \le i_1, \forall i \in I$
+The meet operator returns the minimum of two terms of the Interval type. The
+order of the Interval type is such that $i_0 \le i \le i_1, \forall i \in I$
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 I_meet : I @$\rightarrow$@ I @$\rightarrow$@ I
@@ -1176,7 +1180,7 @@ TODO:\ So far I haven't found a need for this operator. Do some investigation to
 see if this is a worthy addition
 
 
-TODO:\ I'm leaning towards adding it anyway for completeness sake
+TODO:\ I'm leaning towards adding it anyway for completeness' sake
 
 \section{Elimination of the Interval type}
 
@@ -1244,7 +1248,7 @@ the following type signature\footnote{Although not mentioned explicitly,
 functions involving the identity type are universe polymorphic in their
 arguments and return type.} and is implemented axiomatically. Usually, when we
 define an axiom in type theory, we simply claim that it is an inhabitant of some
-type without saying anything about its behaviour. However, in our case we also
+type without saying anything about its behaviour. However, in our case, we also
 supplement it with the appropriate reduction rules so it has the right
 computational behaviour. In the absence of this, i.e.\ if we were to define the
 computation rules for axioms in the form of propositional equalities, then the
@@ -1258,7 +1262,7 @@ Heq : (t : I @$\Rrightarrow$@ Type)
 
 As we have previously proven, \fn{I $\Rrightarrow$ Type} is equivalent to an
 equality between two types. Although we say that \fn{Heq} allows us to equate
-two terms of different types, in reality the two types have to be provably
+two terms of different types, in reality, the two types have to be provably
 equal. \id{Heq\_eq}, the constructor of \id{Heq} also leverages the property of
 erasable functions out of the interval to accept an argument of that form as a
 witness of the equality being constructed.
@@ -1340,10 +1344,9 @@ Eq_uneq p i = Heq_uneq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (p := p) (i := i)
 Common properties of the equality type remain true, some of them are easier to prove than with a traditional equality type.
 
 \subsection*{Reflexivity}
-A reflexive equality is the most trivial equality that we are able to construct,
-and indeed, it is the one that we are able to construct with an erasable
-function out of $\bI$ given that such a function is necessarily a constant
-function.
+A reflexive equality is the most trivial equality that we can construct, and
+indeed, it is the one that we can construct with an erasable function out of
+$\bI$ given that such a function is necessarily a constant function.
 
 %% Eq_refl : (l : TypeLevel) ≡> (t : Type_ l)
 %%            ≡> (x : t) ≡> Eq x x
@@ -1355,16 +1358,15 @@ Eq_refl x = Eq_eq (f := |$\lambda$| _ |$\Rrightarrow$| x)
 \end{minted}
 
 \subsection*{Commutativity}
-This is the first of many properties that can be proved in an elegant manner by
-virtue of defining the equality type based on functions out of the interval.
-This property has many names, such as the commutativity of equality, the
-symmetry of equality, or the inversion of a path. Consider an equality between
-$\id{x}$ and $\id{y}$, we can think of the two terms as points, the equality
-itself can then be thought of as a continuous path between the two points. We
-think of the path as a directed path from $\id{x}$ to $\id{y}$. The
-commutativity of equality basically means that we are able to construct a path
-that goes in the opposite direction, in other words, we are able to invert the
-path. This is the intuition behind the following proof.
+This is the first of many properties that can be proved elegantly by defining
+the equality type based on functions out of the interval. This property has many
+names, such as the commutativity of equality, the symmetry of equality, or the
+inversion of a path. Consider an equality between $\id{x}$ and $\id{y}$, we can
+think of the two terms as points, the equality itself can then be thought of as
+a continuous path between the two points. We think of the path as a directed
+path from $\id{x}$ to $\id{y}$. The commutativity of equality means that we can
+construct a path that goes in the opposite direction, in other words, we can
+invert the path. This is the intuition behind the following proof.
 
 %% Eq_comm : (x : ?t) ≡> (y : ?t) ≡> Eq x y -> Eq y x
 %% Eq_comm p = Eq_eq (f := lambda i ≡> Eq_uneq (p := p) (i := I_not i))
@@ -1442,10 +1444,10 @@ recent proof assistants that implement cubical type theory, such as Cubical Agda
 as mentioned before, as well as coolTT and redTT.\@
 
 Functional extensionality is a property that often makes an appearance in
-mathematical proofs, it will especially be required in order to prove the
-effectiveness of quotients in \autoref{ch:quotient-effectiveness}. However, as
-we shall see in \autoref{sec:quot-implies-funext}, the existence of quotient
-types itself is actually sufficient to derive functional extensionality.
+mathematical proofs, it will especially be required to prove the effectiveness
+of quotients in \autoref{ch:quotient-effectiveness}. However, as we shall see in
+\autoref{sec:quot-implies-funext}, the existence of quotient types itself is
+sufficient to derive functional extensionality.
 
 It is also worth mentioning that unlike the traditional approach of adding
 functional extensionality to an ITT as an axiom, canonicity is not broken by our
@@ -1467,7 +1469,7 @@ canon0 = Eq_refl
 \end{minted}
 
 \subsection*{Congruence of equality}\label{subsec:congruence-eq}
-This is a another typical property of equality whose proof is significantly
+This is another typical property of equality whose proof is significantly
 simplified in a system with a cubical equality.
 
 %% Eq_cong : (x : ?A) => (y : ?A) =>
@@ -1531,7 +1533,7 @@ is meant to do.
 
 The $\id{I\_transp}$ function that looks slightly strange at first sight allows
 us to prove a certain property of the transport operation. Transporting across a
-reflexive path should be equivalent to a no-op, as is illustrated in the
+reflexive path should be equivalent to a no-op, as illustrated in the
 following proof.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
@@ -1547,7 +1549,7 @@ Eq_cast_refl A x = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$|
 In Typer and in intensional type theory in general, we need to explicitly invoke
 a cast function of some sort, this is in contrast with extensional type theory
 (ETT)\cite{martin1982constructive} where equality proofs in the context are
-automatically used by the typechecker to carry out casts whenever necessary.
+automatically used by the type-checker to carry out casts whenever necessary.
 This is shown by the following judgement in ETT that states that equality proofs
 can be converted to judgemental equalities.
 
@@ -1556,22 +1558,22 @@ can be converted to judgemental equalities.
   \infer1{\ctx \vdash a \simeq b}
 \end{prooftree*}
 
-This is also the reason why typechecking is not decidable in ETT as the
-necessity to invoke the above rule is not syntax directed.
+This is also the reason why type-checking is not decidable in ETT as the
+necessity to invoke the above rule is not syntax-directed.
 
 
 \subsection*{J-rule}\label{subsec:j-rule}
 The sole term former of the $\kw{Eq}$ only allows the construction of reflexive
-equalities, at first sight this leads us to believe that not much can actually
+equalities, at first sight, this leads us to believe that not much can actually
 be done with the $\kw{Eq}$ type. After all, if all we had were proofs of the
 form $x = x$, it would be difficult to imagine achieving anything with them. The
-true magic of the equality type lies in it's elimination principle.
+true magic of the equality type lies in its elimination principle.
 Traditionally, the equality type comes with an elimination principle known as
 the J-rule. This was first introduced by Per Martin-Löf
 in\cite{martin1975intuitionistic}. Suppose that we have a type family $C$ that
 is parametrised by two terms $x$ and $y$ of some type $A$ as well as a proof
 that $x$ and $y$ are equal, i.e.\ of type $\Funapp{\kw{Eq}}{x}{y}$. If we have
-have a proof term $p$ that witnesses the equality of two arbitrary terms $a$ and
+a proof term $p$ that witnesses the equality of two arbitrary terms $a$ and
 $b$ of type $A$, and we wish to produce a term of type $\Funapp{C}{a}{b}{p}$,
 then the J-rule says that it suffices for us to provide a means of producing for
 all $\oftype{x}{A}$ a term of type $\Funapp{C}{x}{x}{(\Funapp{\kw{refl}}{x})}$.
@@ -1584,12 +1586,12 @@ J : (A : Type) @$\Rrightarrow$@ (C : (x : A) @$\rightarrow$@ (y : A) @$\rightarr
     @$\rightarrow$@ C x y p;
 \end{minted}
 
-This rule is essentially saying that in order to know what to do with an
+This rule is essentially saying that to know what to do with an
 equality between an arbitrary $x$ and $y$, we merely need to know how to handle
-the case where we are dealing a reflexivity proof. Now, given the fact that the
+the case where we are dealing with a reflexivity proof. Now, given the fact that the
 reflexivity constructor is the only constructor of the $\kw{Eq}$ type, one might
 think that the above elimination principle is well justified. Recall that
-elimination principle of strictly positive types\cite{abbott2005containers} can
+the elimination principle of strictly positive types\cite{abbott2005containers} can
 usually be derived based on the constructors of the datatype itself. For
 instance, consider the below inductive definition of the Peano natural numbers.
 
@@ -1693,7 +1695,7 @@ Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
 
 The operations that we defined on the Interval correspond to
 connections\cite{cohen2016cubical} that are typically drawn as squares. Such
-connections allow us construct squares from paths by adding degeneracies.
+connections allow us to construct squares from paths by adding degeneracies.
 
 \subsubsection*{Meet}
 
@@ -1705,7 +1707,7 @@ the following expression:
 sq = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i j)))
 \end{minted}
 
-In this square, the $\fn{i}$ direction goes from left to right and the the
+In this square, the $\fn{i}$ direction goes from left to right and the
 $\fn{j}$ direction goes from bottom to up. Each side of the square corresponds
 to some equality proof. The top and right sides of the square are simply the
 original proof $\fn{p}$. The left and bottom sides of the square are fixed to be
@@ -1785,15 +1787,15 @@ By fixing $\fn{j}$ to be $i_1$, we get the expression that corresponds to the to
 Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i @$i_1$@))
 \end{minted}
 
-The construction of such a square is precisely what is required in order to
+The construction of such a square is precisely what is required to
 prove the $\fn{eqUnique}$ property mentioned in \autoref{subsec:j-rule}.
 
 \subsubsection*{Join}
 
 TODO:\ TBD if I want to do this. Joins could be used to build the same square
-that we saw as above, the only difference is that the added degeneracy would be
-a refl path on $b$ instead of $a$. The thing is, I've never really had a need
-for this.
+that we saw above, the only difference is that the added degeneracy would be
+a refl path on $b$ instead of $a$. The thing is, I've never really needed
+this.
 
 \section{Equality as a mere proposition}
 Although we say that our equality type is a proposition, it is by no means a
@@ -1812,7 +1814,7 @@ UIP is a property that is true for a certain class of types in Typer.
 \subsection{Hedberg's theorem}\label{subsec:hedberg}
 
 To set the stage, we provide a few definitions. A type is said to be
-\textbf{decidable} if we are able to decide whether the type is inhabited or
+\textbf{decidable} if we can decide whether the type is inhabited or
 not. In the case where it is inhabited, we must also have a witness of such an
 inhabitant. In Typer, decidability can be represented by the following inductive
 type.
@@ -1824,9 +1826,9 @@ type Dec (A : Type)
 \end{minted}
 
 A type is said to be \textbf{collapsed} if any two inhabitants of the type may
-be proved to be equal, this corresponds directly the notion of a mere
+be proved to be equal, this corresponds directly to the notion of a mere
 proposition. The two definitions that we just stated may also be used in the
-context of identity types. If we have say that a type has decidable equality,
+context of identity types. If we say that a type has decidable equality,
 this implies that for any two terms of this type, we can decide whether or not
 they are equal. On top of that, if the type has collapsed identity types, then
 for any pair of terms of this type, any two proofs that they are equal are also
@@ -1869,10 +1871,10 @@ We present the $\id{Quotient}$ primitives along with their typing rules.
 We introduce the $\kw{Quotient}$ type former, which takes a base type $\id{A}$
 along with a relation $\id{R}$ as arguments. At this stage, just like
 in\cite{hofmann1995simple}, we do not require the relation to be an equivalence
-relation, though in order to define a meaningful quotient type, the above
+relation, though to define a meaningful quotient type, the above
 requirement is often necessary. We also do not enforce that the relation be a
 mere proposition, however as we will see in \autoref{ch:quotient-effectiveness},
-this is required in order for the quotient to be effective.
+this is required for the quotient to be effective.
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{a}}{\id{A}}}
@@ -1951,7 +1953,7 @@ $\eta$-rule. If we wish to apply $\id{Quotient\_in}$ after applying
 $\id{Quotient\_elim}$ such that the composition amounts to the identity
 function, this would imply that $\id{Quotient\_elim}$ would need to called with
 a function $\id{f}$ such that \fn{$\forall$ a. R a (f a)} is valid.
-Unfortunately, in the general case this would not respect the underlying
+Unfortunately, in the general case, this would not respect the underlying
 relation of the quotient.
 
 \section{Implementation}
@@ -1962,7 +1964,7 @@ quotient types in the development of Typer programs and proofs.
 
 \subsection{Axioms}
 
-Quotient types are introduced in Typer in axiomatic manner, i.e.\ the existence
+Quotient types are introduced in Typer in an axiomatic manner, i.e.\ the existence
 of the type former, terms formers and eliminators are simply postulated.
 However, the appropriate computational behaviour of the above constructs are
 also added to the system whenever necessary such that we do not find ourselves
@@ -1993,7 +1995,7 @@ computations. As such, no special reduction rules needed to be added for it.
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Quotient_elim : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\Rrightarrow$| (P : Quotient A R |$\rightarrow$| Type)
                 |$\Rrightarrow$| ((a : A) |$\rightarrow$| P (Quotient_in a))
-                |$\rightarrow$| ((a a' : A) |$\rightarrow$| R a a' |$\rightarrow$| Heq (f a) (f a')
+                |$\rightarrow$| ((a a' : A) |$\rightarrow$| R a a' |$\rightarrow$| Heq (f a) (f a'))
                 |$\Rrightarrow$| (q : Quotient A R) |$\rightarrow$| P q
 \end{minted}
 
@@ -2003,11 +2005,11 @@ form $\Funapp{\id{Quotient\_in}}{\id{a}}$, the entire $\id{Quotient\_elim}$ term
 reduces to just $\Funapp{\id{f}}{\id{a}}$, ignoring the coherence proof that is
 passed to the function as it acts simply as a form of static information.
 
-\subsection{Syntaxic sugar}
+\subsection{Syntactic sugar}
 
 \subsubsection*{qcase}
 
-We provide some syntaxic sugar to simplify the non-dependent elimination
+We provide some syntactic sugar to simplify the non-dependent elimination
 quotients. The syntax we opted for is reminiscent of that of
 Arend's\cite{arend}. The elimination of a quotient expression is done in the
 style of a case analysis where both the term and path constructors have to be
@@ -2019,10 +2021,10 @@ qcase q
   | Quotient_eq x y r => e2;
 \end{minted}
 
-\id{q} is the scrutinee of the case analysis. A type annnotation may be given it
+\id{q} is the scrutinee of the case analysis. A type annotation may be given to it
 by specifying the base type and relation of the quotient, e.g. \fn{(e: A / R)}.
 The variable \id{a} is defined in the scope of \id{e1} and the variables \id{x},
-\id{y} and \id{r} are defined in the scope of \id{e2}. The bound variables are
+\id{y}, and \id{r} are defined in the scope of \id{e2}. The bound variables are
 the parameters of the two constructors of \id{Quotient}. In the first branch, we
 say what we would like to map a quotient expression to. In the second branch, we
 prove that the above mapping respects the quotient by constructing a term
@@ -4166,7 +4168,7 @@ qed : (x : ?A) @$\rightarrow$@ Eq x x
 qed x = Eq_refl
 \end{minted}
 
-To make it all come together, we wrap the above functions with some syntaxic
+To make it all come together, we wrap the above functions with some syntactic
 sugar.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
