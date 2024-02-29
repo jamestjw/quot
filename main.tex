@@ -132,7 +132,6 @@
   breaklines=true
 }
 
-
 \usepackage{minted} %% Typeset code
 \setminted{fontsize=\small}
 
@@ -144,6 +143,8 @@
 \usepackage{booktabs} %% Nicer tables
 \usepackage{multirow} %% Combines rows and columns in tables
 \usepackage{cite}
+
+\usepackage{xspace}
 
 %% Packages - END.
 
@@ -276,6 +277,11 @@
 \NewDocumentCommand{\earg}{mg}{\IfValueTF{#2}{#1:=#2}{\_:=#1}} %% Erasable argument
 
 \renewcommand\qed{\blacksquare}
+
+%% Proof assistants
+\def\Coq{\textsc{Coq}\xspace}
+\def\Agda{\textsc{Agda}\xspace}
+\def\Lean{\textsc{Lean}\xspace}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -966,7 +972,7 @@ Elimination of $\bI$ is similar to that of \id{Booleans} the only difference is
 that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected.
 The recursion principle of $\bI$ can thus be stated as follows\footnote{When we
 say recursion principle, we refer to the definition as is employed in an
-introduction to the Coq proof assistant\cite{chlipala2022certified}. This
+introduction to the \Coq{} proof assistant\cite{chlipala2022certified}. This
 terminology has also been employed in the HoTT book\cite{HoTTbook}.}:
 
 \begin{prooftree*}
@@ -999,7 +1005,7 @@ world of Typer where we demand that equality proofs be erasable and play no role
 during computation, such considerations are not of huge importance. We mention
 nevertheless that in most cases, the third equation only holds propositionally,
 as is the case when it is defined as a user-defined datatype in other type
-systems such as Agda.
+systems such as \Agda{}.
 
 \section{Motivation}
 We show that a function out of the interval into some type \id{A} is equivalent to a path between two terms of type \id{A}, in other words, we show the following
@@ -2207,7 +2213,7 @@ also for this precise reason that our version of propositional extensionality is
 weaker, as we are constrained to construct an equality proof that is not
 computationally relevant.
 
-Another worthy comparison to make is with Lean, which has a $\kw{Prop}$ sort.
+Another worthy comparison to make is with \Lean{}, which has a $\kw{Prop}$ sort.
 Terms of this sort are not autorised to be used in a proof relevant manner. Its
 version of propositional extensionality has the following form:
 
@@ -3732,15 +3738,15 @@ rule:
 
 \section{Setoid Rewriting}
 
-Quotient types are not provided as a primitive in the Coq proof assistant.
-Before we get to that, we briefly introduce the rewriting mechanism of Coq.
+Quotient types are not provided as a primitive in the \Coq{} proof assistant.
+Before we get to that, we briefly introduce the rewriting mechanism of \Coq{}.
 Every construction is congruent with respect to the equality type, hence
 rewrites using the equality type may be carried out in any context. For
 instance, if we have a certain proof goal that requires us to produce a term of
 type \fn{m + n $\le$ n + m} and we have proof that \fn{m + n $\equiv$ n + m}, we
-may use the \kw{rewrite} tactic in Coq to rewrite the goal such that it becomes
-\fn{n + m $\le$ n + m}. The simplified goal may thus be easily proven using the
-reflexivity property of $\le$.
+may use the \kw{rewrite} tactic in \Coq{} to rewrite the goal such that it
+becomes \fn{n + m $\le$ n + m}. The simplified goal may thus be easily proven
+using the reflexivity property of $\le$.
 
 Plain rewriting allows rewriting with \emph{equal} terms, generalised
 rewriting\cite{sozeau2009new, coq-gen-rewriting} on the other hand enables
@@ -3760,14 +3766,14 @@ equivalence is respected. This is in contrast to the ideal situation where such
 coherence proofs are \emph{only} required in the function that eliminates
 quotients, subsequent interaction and composition of this function should be
 free of the burden of such proof obligations. This has historically been the
-go-to way of modelling quotient types in Coq, however such an approach is known
-to be rather laborious. This phenomenon is often designated as \emph{setoid
-hell} by the community\footnote{Examples of community discussions on this topic
-may be found at
+go-to way of modelling quotient types in \Coq{}, however such an approach is
+known to be rather laborious. This phenomenon is often designated as
+\emph{setoid hell} by the community\footnote{Examples of community discussions
+on this topic may be found at
 \url{https://stackoverflow.com/questions/65493694/why-do-calculus-of-construction-based-languages-use-setoids-so-much/}
 and
 \url{https://proofassistants.stackexchange.com/questions/908/what-exactly-is-setoid-hell/}}.
-Although Coq offers numerous tactics to facilitate the usage of setoids, it
+Although \Coq{} offers numerous tactics to facilitate the usage of setoids, it
 quickly becomes unwieldy in the case of large programs.
 
 \section{Quotients by Normalisation}
@@ -3964,7 +3970,7 @@ quotient types to be satisfied automatically. In other words, most of the proofs
 that we had to write by hand in \autoref{ch:examples} while constructing the
 types \id{Rational} and \id{Multiset} could have been solved automatically
 without too much hassle. The proof development experience can also be contrasted
-to interactive proof assistants that feature tactics such as Coq and Lean.
+to interactive proof assistants that feature tactics such as \Coq{} and \Lean{}.
 Tactics generally allow us to write our proofs in a less verbose manner by
 preventing unnecessary repetition. Most of our long chains of equational
 reasoning involved the repeated application of the congruence property of
@@ -3975,17 +3981,18 @@ should occur. The more verbose proofs are indeed more readable, however it makes
 their development a laborious endeavour. During the construction of
 \id{Rational}, we had to do a lot of monotonous reasoning related to linear
 arithmetic in order to prove propositions that were seemingly obvious to the
-human eye. Such goals may typically be solved using tactics such as the Coq's
-\kw{lia} tactic and Lean's \kw{linarith} tactic that are essentially solvers for
-linear goals over $\mathbb{Z}$. For the moment, Typer also lacks the powerful
-dependent pattern matching system of Agda. This inconvenience is somewhat
-mitigated by the presence of the \fn{\kw{case} $\ldots$ \kw{as} $\ldots$
-  \kw{return} $\ldots$} construct that is reminiscent of Coq. However, while we
-are in \kw{case} branches, we lack the specialisation of types of other
-variables in the context that depend on the scrutinee. This was an inconvenience
-that we had to reckon with on numerous occassions while working with quotient
-types. The above seem to be desirable features that we should contemplate
-introducing to Typer in some shape or form to facilitate proof development.
+human eye. Such goals may typically be solved using tactics such as the \Coq{}'s
+\kw{lia} tactic and \Lean{}'s \kw{linarith} tactic that are essentially solvers
+for linear goals over $\mathbb{Z}$. For the moment, Typer also lacks the
+powerful dependent pattern matching system of \Agda{}. This inconvenience is
+somewhat mitigated by the presence of the \fn{\kw{case} $\ldots$ \kw{as}
+  $\ldots$ \kw{return} $\ldots$} construct that is reminiscent of \Coq{}.
+However, while we are in \kw{case} branches, we lack the specialisation of types
+of other variables in the context that depend on the scrutinee. This was an
+inconvenience that we had to reckon with on numerous occassions while working
+with quotient types. The above seem to be desirable features that we should
+contemplate introducing to Typer in some shape or form to facilitate proof
+development.
 
 \section*{Benchmarks}
 
@@ -4148,7 +4155,7 @@ Equational reasoning provides us with a neat way of expressing proofs in Typer.
 With the help of some syntactic sugar, this allows us to build chains of
 equality proofs by using the transitivity property of equality as shown in
 Section~\ref{subsection:eqtransitivity}. This is something that is implemented
-in the libraries of most proof assistants, such as Agda, Lean, and Lean. This
+in the libraries of most proof assistants, such as \Agda{}, and \Lean{}. This
 allows lengthy proofs to remain readable as intermediate steps are documented
 and are clearly seen.
 
