@@ -411,9 +411,9 @@ language to introduce new built-in types, such as rational numbers,
 propositional truncation, etc. Finally, this work also explores the development
 of proofs in Typer, to our knowledge this is the first attempt to really write a
 substantial amount of proofs using the language since the language is primarily
-intended to be a general use programming language. We describe our experience
-and the challenges faced in the process. Additionally, we introduce several
-constructs to streamline proof development in Typer.
+intended to be a general-purpose programming language. We describe our
+experience and the challenges faced in the process. Additionally, we introduce
+several constructs to streamline proof development in Typer.
 
 %%------------------------------------------------- %
 %%        page v --- Table de matieres              %
@@ -522,7 +522,6 @@ constructs to streamline proof development in Typer.
 
 \chapter{Introduction}
 
-%% SM: I'd use `\emph` rather than quotes.
 The \emph{propositions as types} paradigm states that proofs are analogous to
 programs. Writing programs in the form of code is equivalent to writing
 mathematical proofs. For instance, a function of the type \fn{A $\rightarrow$ B}
@@ -650,13 +649,6 @@ a proof object that witnesses the validity of the proposition. Interested
 readers may find the complete proof of the commutativity of addition of natural
 numbers in \autoref{app:other-proofs}.
 
-%% SM: you could give examples of uses of equality, ideally examples
-%% of code rather than examples of proofs (Remember that your audience
-%% are primarily programmers rather than mathematicians).
-%% Maybe show how to encode GADTs such as the classical "length indexed list"
-%% and then show how to convert a list of length (a + b) to a list of length
-%% (b + a).
-
 To see how such a proof may be utilised, suppose we have a type of
 length-indexed vectors:
 
@@ -677,7 +669,10 @@ and \fn{Vector A (n + m)} are the same is something trivial and is often taken
 for granted. In general, the type checker of a dependently-typed language would
 not immediately consider the above types equal without further evidence. Hence,
 one would not be able to pass a vector of the first type to a function that
-expects a vector of the latter type. Below is a typical definition of the addition
+expects a vector of the latter type. Suppose we have a function that zips
+vectors, it could reasonably expect both inputs vectors to have the \emph{same}
+length. Hence, the zipping of a \fn{Vector A (m + n)} and a \fn{Vector A (n +
+  m)} would not typecheck. Below is a typical definition of the addition
 operation on natural numbers:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
@@ -704,14 +699,14 @@ Vlength_comm+ = lambda A m n @$\Rrightarrow$@ Eq_cast (p := Nat+_comm m n) (f :=
 \fn{Vlength\_comm+} is a function that converts a vector of type \fn{Vector A (m
   + n)} to one of type \fn{Vector A (n + m)}. By making use of a proof that
 \fn{m + n $\equiv$ n + m}, we are able to perform type casting on a vector of
-type \fn{Vector A (m + n)} to produce one of the desired type. The equality type
-satisfies Leibniz's principle of the indiscernibility of identicals, i.e.\ two
-identical things may be substituted for one another. \fn{Eq\_cast} is thus of
-the fact that if two terms are equal, then if a predicate is true of the first
-term, then it is necessarily also true for the other.
-
-%% SM: Another example where equality is needed and that's usually easy
-%% to grasp is the matrix product to ensure the matrices are compatible.
+type \fn{Vector A (m + n)} to produce one of the desired type. If we had a data
+type of matrices indexed by their dimensions, the cast operation might also be
+necessary to ensure the appropriate alignment of dimensions when working with a
+function that calculates matrix products. The equality type satisfies Leibniz's
+principle of the indiscernibility of identicals, i.e.\ two identical things may
+be substituted for one another. \fn{Eq\_cast} is thus of the fact that if two
+terms are equal, then if a predicate is true of the first term, then it is
+necessarily also true for the other.
 
 Now that we have seen how equality proofs may be used in programs, the next
 question that ought to be answered is how are such terms introduced. The one and
@@ -745,65 +740,50 @@ Heq_refl : (x : ?A) @$\Rrightarrow$@ Heq x x;
 In subsequent sections, we discuss the introduction of heterogeneous equality to
 Typer and its role in the elimination of quotients.
 
-%% NOTE: I think I don't need to explain this. Delete when sure.
-%%
-%% One might also wonder why the $\kw{Eq}$ type is not implemented as a `native' inductive datatype in Typer. This is because Typer does not have out-of-the-box support for indexed datatypes. Consider the below definition of the $\kw{Eq}$ type in the language Coq that does support indexed datatypes:
-
-%% \begin{minted}{coq}
-%% Inductive eq {A : Type} : A -> A -> Prop :=
-%%     eq_refl : forall x : A, eq x x.
-%% \end{minted}
-
-%% To encode the above definition in Typer would require us to do something like the following:
-
-%% \begin{minted}{coq}
-%% type Eq (A ::: Type) (x : A) (y : A)
-%%     | Eq_refl (a : A) (p1 ::: Eq x a) (p2 ::: Eq y a);
-%% \end{minted}
-
-%% This implies that the definition of $\kw{Eq}$ necessitates the use of the $\kw{Eq}$ type itself and we get a definition that is unpleasant to use.
-
 %% SM: I recommend you test-run this paragraph(subsection) by passing it to
 %% some programmer friend of yours (someone not familiar with topology),
 %% to see how much they understand.
-\subsection*{Cubical Equality?}
 
-Recent advances in type theory inspired from topology propose a different
-approach to represent equality proofs by modelling them as functions out of a
-unit interval to some type A. In this alternative formulation of equality
-proofs, an equality is viewed as a continuous path along the unit interval that
-connects two terms that are equal. The return value of such functions are not
-allowed to directly depend on the value of the interval argument. For instance,
-the function may not do a case analysis on the interval and return a different
-term of type A depending on which endpoint of the interval is encountered. This
-essentially implies that such a function would indeed be constant on the unit
-interval and aptly respects the requirements of an equality proof. An equality
-type based on the interval also allows us to derive many proofs regarding the
-equality type in an alternative manner that is much cleaner and more elegant. It
-also allows to derive new theorems regarding the equality type that are
-desirable, such as functional extensionality. This flavour of equality was first
-conceived in cubical type theories in order to provide a computational
-interpretation of the univalence axiom\cite{bezem2014model}. This allows the
-encoding of equivalences as equalities. This is much like what is done in
-informal mathematics where objects with equivalent structures are just taken to
-be the ``the same''.
+%% NOTE: Someone told me that the unit interval business is not very intuitive.
+%% Maybe I should shorten this section and postpone explanations to subsequent
+%% sections instead.
+\subsection*{Cubical Equality}
+
+Recent advances in type theory inspired by topology propose a different approach
+to represent equality proofs by modeling them as functions out of a unit
+interval to some type A. In this alternative formulation of equality proofs,
+equality is viewed as a continuous path along the unit interval that connects
+two equal terms. The return value of such functions is not allowed to directly
+depend on the value of the interval argument. For instance, the function may not
+do a case analysis on the interval and return a different term of type A
+depending on which endpoint of the interval is encountered. This essentially
+implies that such a function would indeed be constant on the unit interval and
+aptly respects the requirements of an equality proof. An equality type based on
+the interval also allows us to derive many proofs regarding the equality type in
+an alternative manner that is much cleaner and more elegant. It also allows us
+to derive new theorems regarding the equality type that are desirable, such as
+functional extensionality. This flavour of equality was first conceived in
+cubical type theories to provide a computational interpretation of the
+univalence axiom\cite{bezem2014model}. This allows the encoding of equivalences
+as equalities. This is much like what is done in informal mathematics where
+objects with equivalent structures are just taken to be the ``the same''.
 
 Encoding equivalences as equalities is the bread and butter of univalence. It is
 thus crucial that equality proofs are not irrelevant in a HoTT setting, as their
-equalities could be constructed on the basis of equivalences and thus may
-participate in computation. As a general purpose programming language, Typer has
-no ambitions of supporting univalence. Thus, it is desirable for equality proofs
-in Typer to remain irrelevant so that they may be erased prior to runtime. This
-is essential so that operations involving the equality type may be treated as
+equalities could be constructed based on equivalences and thus have a
+computational role. As a general-purpose programming language, Typer has no
+ambitions of supporting univalence. Thus, it is desirable for equality proofs in
+Typer to remain irrelevant so that they may be erased before runtime. This is
+essential so that operations involving the equality type may be treated as
 no-ops during runtime. If all equality proofs are merely reflexivity proofs in
 disguise (?), then type casts using the \fn{Eq\_cast} primitive simply behave
 like the identity function at runtime as we would merely need to cast a term to
-its own type. This is in stark contrast to equalities that are really
-equivalences, a cast at runtime would actually involve applying the underlying
-function of the equivalence. In our work, we carefully adapt the cubical
-equality type to Typer to reap the benefits of having a more powerful equality
-type, all while preserving our equality type's compatibility with proof
-irrelevance.
+its own type. This is in stark contrast to equalities that are equivalences, a
+cast at runtime would involve applying the underlying function of the
+equivalence, i.e.\ casting involves computation. In our work, we carefully adapt
+the cubical equality type to Typer to reap the benefits of having a more
+powerful equality type, all while preserving our equality type's compatibility
+with proof irrelevance.
 
 \section{Quotients}
 
@@ -855,18 +835,25 @@ specifically, congruence classes.
 %% control what is ''exposed`, I would rather say that what we end up exposing
 %% is necessarily `lawful' wrt to the quotient.
 
-Quotient types often provide us with alternative ways of defining types that are
-familiar to us. Some of these definitions could potentially be better than the
-original formulations depending on the use cases of the resulting data type. For
-example, as was noted in\cite{hewer2023quotient}, by defining the List data type
-as a quotient of binary trees where the joining operation of two trees is
-associative, the resulting List datatype has a constant time append operation.
+From the perspective of programming, data types that we define are often based
+on other existing data types that are used as the \emph{internal representation}
+of the new data type. In some cases, different `configurations' of the internal
+data type may be equivalent as far as the new data type is concerned. For
+instance, different rotations of a binary tree may be treated equivalently. If
+we wish to represent unordered sets using lists, then we would like to treat
+different permutations of the same list equally. These nuances are not typically
+explicitly expressible in the implementation of the data types nor may they be
+encoded at the type level. They are instead treated as \emph{implementation
+details} which one hopes to encapsulate by using abstraction barriers. Quotient
+types enables elements of the same equivalence class to be treated
+\textbf{equally}. Thus, they are a way of taking advantage of the type checker
+to ensure that these details are appropriately handled internally. This is the
+case becase only programs that treat these equivalences consistently may be
+well-typed. Quotient types also serve as a form of documentation that explains
+the inner workings of a data type.
 
-Quotient types are especially useful when defining datatypes that have
-redundancies. By taking the quotient of such types, we ensure that redundancies
-are identified. In a way, the type system does the book-keeping for us by
-ensuring that well-typed programs necessarily treat such redundancies in a
-consistent manner. Consider the set of rational numbers defined as such:
+For a more concrete example, consider the set of rational numbers defined as
+such:
 
 \begin{equation}
 \mathbb{Q} = \{(x,y) : x \in \mathbb{Z}, y \in \mathbb{Z}, y \ne 0\}
@@ -1128,10 +1115,10 @@ The negation operator computes as follows:
 
 I-NOT-NOT is a special rule that states that the composition of \fn{I\_not} with
 itself is equal to the identity function. This is something that we could have
-proven propositionally, however, for our purposes it is crucial that this
-equality holds definitionally. (TODO:\ Actually wait, I have to check this
-claim. It's also possible that this is not entirely necessary, though it makes
-proofs that do indeed require this property a lot simpler and more elegant)
+proven propositionally, however, we have set things up such that this holds
+definitionally. This is not entirely necessary, though it makes proofs that do
+indeed require this property a lot simpler and more elegant, allowing us to
+fully benefit from having an interval-based equality type.
 
 \subsubsection*{Meet}\label{subsubsec:interval-meet}
 
@@ -1181,12 +1168,15 @@ fashion, I-MEET$_2$ is justified as everything is lesser or equal to $i_1$.
 Since the operator is commutative, I-MEET$_3$ and I-MEET$_4$ are complementary
 to I-MEET$_1$ and I-MEET$_2$. The minimum of $\id{i}$ and $\id{i}$ is $\id{i}$
 itself, justifying the I-MEET$_5$ rule. Note that since the Interval type does
-not behave like a Boolean algebra, it is not the case the
+not behave like a Boolean algebra, it is not the case that
 $\Funapp{\fn{I\_meet}}{i}{(\Funapp{\fn{I\_not}}{i})} \rightsquigarrow{} i_0$.
 
 \subsection*{Join}
 TODO:\ So far I haven't found a need for this operator. Do some investigation to
 see if this is a worthy addition
+
+
+TODO:\ I'm leaning towards adding it anyway for completeness sake
 
 \section{Elimination of the Interval type}
 
@@ -1994,9 +1984,6 @@ Quotient_in : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow
 Quotient_eq : (A : Type) |$\Rrightarrow$| (R A |$\rightarrow$| A |$\rightarrow$| Type)  |$\Rrightarrow$| (a a' : A) |$\Rrightarrow$| R a a'
               |$\rightarrow$| Eq (Quotient_in (R := R) a) (Quotient_in (R := R) a')
 \end{minted}
-
-TODO:\ In Quotient\_eq, debate the choice of not making R a a' erasable? I'm
-unsure if there are any benefits of having it as non-erasable
 
 As a constructor of equalities, $\id{Quotient\_eq}$ does not take part in
 computations. As such, no special reduction rules needed to be added for it.
