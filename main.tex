@@ -905,27 +905,47 @@ providing examples in the form of code along with commentary.
 
 \section{Contributions}
 
-%% SM: As mentioned in the abstract: add structure.
-%% Usually I recommend the use of a few (typically 3-5) bullet points here.
-Inspired by cubical type theory, we replace the existing implementation of the
-equality type in Typer with one that is based on the Interval type. We also
-demonstrate that proofs regarding the equality type are consequently generally
-easier to realise by providing a library of theorems regarding the equality
-type. We also introduce the notion of heterogeneous equality, making it possible
-to identify terms of different types\footnote{To identify A and B is to claim
-that they are equal.}. This is necessary to enable the dependent elimination of
-quotient types, notably because this enables the representation of
-pathovers\cite{licata2015cubical}. We also implemented a proof of Hedberg's
-theorem\cite{hedberg1998coherence} in Typer. The theorem states that if a type
-has decidable equalities, then its equalities are necessarily trivial. Next, we
-introduced quotient types to Typer. This work then explores the usability and
-convenience of quotient types in programming tasks. To facilitate the use of
-quotients, we developed a library of convenience functions, macros, and also
-theorems regarding quotient types. We also investigate the runtime cost of the
-utilisation of quotient types. This is the first work that has attempted to
-develop a substantial number of proofs in Typer. We introduce several constructs
-to facilitate the writing of proofs in general in Typer in the form of macros
-and axioms.
+We make several contributions:
+
+\begin{itemize}
+  \item{First, we introduce a notion of heterogeneous equality based on the
+    Interval type by drawing inspiration from cubical type theory
+    (\hyperref[ch:cubical-equality]{Chapter~\ref*{ch:cubical-equality}}).
+    Heterogeneous equality makes it possible to identify terms of different
+    types\footnote{To identify A and B is to claim that they are equal.}. }
+
+  \item{Next, we defined normal homogeneous equality as a special case of
+    heterogeneous equality. We then showed that by an interval-based equality
+    type lends itself better to proof of equality related properties
+    (\hyperref[sec:eq-examples]{Section~\ref*{sec:eq-examples}}).}
+
+  \item{We then introduced quotient types along with their typing and reduction
+    rules (\autoref{ch:quot}). Its elimination principle takes advantage of
+    heterogeneous equality by using it to express
+    pathovers\cite{licata2015cubical}. We also convince ourselves that our
+    quotients behave appropriately by proving their effectiveness
+    (\autoref{ch:quotient-effectiveness}) and that they fulfil the universal
+    property of quotients (\autoref{sec:coequaliser}). }
+
+  \item{To facilitate the use of quotients, we developed a library of
+    convenience functions, macros, and also theorems regarding quotient types
+    (\autoref{ch:quot-examples}). This work explores the usability and
+    user-friendliness of quotient types in programming tasks through the
+    constructions of examples of possible use cases of quotients. We also
+    investigate the runtime overhead of the utilisation of quotient types
+    (\autoref{sec:quot-benchmark}).}
+
+  \item{We also implemented a proof of Hedberg's
+    theorem\cite{hedberg1998coherence} in Typer
+    (\hyperref[subsec:hedberg]{Subsection~\ref*{subsec:hedberg}}). The theorem
+    states that if a type has decidable equalities, then its equalities are
+    necessarily trivial. Using such a type as the elimination motive of a
+    quotient type entails fewer proof obligations. }
+
+  \item{As the first work to develop a substantial number of proofs in Typer,
+    our experiennce lead us to introduce several constructs to facilitate the
+    development of proofs in Typer in the form of macros and axioms. }
+\end{itemize}
 
 \section{Notes and TODOs}
 - We have a proof of Hedberg's theorem to facilitate eliminations to `Sets'.
@@ -942,7 +962,7 @@ without the truncation).
 %%                Chapters                          %
 %%------------------------------------------------- %
 
-\chapter{Cubical Equality}
+\chapter{Cubical Equality}\label{ch:cubical-equality}
 \section{Interval type}
 First, we provide the typical definition of the \id{Interval} type, subsequently
 we present our alternative formulation of the \id{Interval} type and show that
@@ -1346,7 +1366,7 @@ Eq_uneq : (t : Type) @$\Rrightarrow$@ (x : t) @$\Rightarrow$@ (y : t) @$\Rightar
 Eq_uneq p i = Heq_uneq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (p := p) (i := i)
 \end{minted}
 
-\section{Examples}
+\section{Examples}\label{sec:eq-examples}
 Common properties of the equality type remain true, some of them are easier to prove than with a traditional equality type.
 
 \subsection*{Reflexivity}
@@ -1863,7 +1883,7 @@ certain class of proofs we are unable to construct? Or do we just suffer from
 some amount of inconvenience?
 
 
-\chapter{Quotient Type}
+\chapter{Quotient Type}\label{ch:quot}
 \section{Typing rules}
 We present the $\id{Quotient}$ primitives along with their typing rules.
 
@@ -2315,8 +2335,7 @@ $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ and
 $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$ are equal since they
 are both mere propositions.
 
-
-\chapter{Examples}\label{ch:examples}
+\chapter{Quotient Examples}\label{ch:quot-examples}
 The addition of quotient types to Typer allows us to define certain constructs
 that are typically defined in set theory as quotient sets. In this chapter, we
 discuss some types that are now natively definable by taking the quotient of
@@ -3345,10 +3364,21 @@ diagram commute:
 
 \end{figure}
 
-Another way of saying the above is that $\id{h}$ factorises $\id{p}$ and $\id{q}$. The universal product, if it exists, is unique up to isomorphism. Products are not guaranteed to exist in every category. In the category of sets, the universal product is none other than the Cartesian product.
+Another way of saying the above is that $\id{h}$ factorises $\id{p}$ and
+$\id{q}$. The universal product, if it exists, is unique up to isomorphism.
+Products are not guaranteed to exist in every category. In the category of sets,
+the universal product is none other than the Cartesian product.
 
-\section{Coequaliser}
-We now introduce the notion of a coequaliser. We shall see later that $\kw{Quotient}$ acts indeed as a coequaliser, or rather coequalisers are generalisation of quotients. For two arrows $\oftype{f, g}{A \rightarrow B}$, a coequaliser is an arrow $\oftype{q}{B \rightarrow Q}$ such that $qf = qg$ (we use juxtaposition to imply composition). The universal property of the coequaliser then dictates that for any other $Z$ and $\oftype{z}{B \rightarrow Z}$, if $zf = zg$, then there must exist a unique $\oftype{u}{Q \rightarrow Z}$ such that $uq = g$. This allows us to call $q$ \textbf{the} coequaliser of $f$ and $g$.
+\section{Coequaliser}\label{sec:coequaliser}
+We now introduce the notion of a coequaliser. We shall see later that
+$\kw{Quotient}$ acts indeed as a coequaliser, or rather coequalisers are
+generalisation of quotients. For two arrows $\oftype{f, g}{A \rightarrow B}$, a
+coequaliser is an arrow $\oftype{q}{B \rightarrow Q}$ such that $qf = qg$ (we
+use juxtaposition to imply composition). The universal property of the
+coequaliser then dictates that for any other $Z$ and $\oftype{z}{B \rightarrow
+  Z}$, if $zf = zg$, then there must exist a unique $\oftype{u}{Q \rightarrow
+  Z}$ such that $uq = g$. This allows us to call $q$ \textbf{the} coequaliser of
+$f$ and $g$.
 
 \begin{figure}[H]
   \centering
@@ -3967,8 +3997,8 @@ other contemporary programming languages. For instance, the Quotient Haskell
 extension\cite{hewer2023quotient} is implemented with the help of Satisfiability
 Modulo Theories (SMT) solvers. This enables many proof obligations generated by
 quotient types to be satisfied automatically. In other words, most of the proofs
-that we had to write by hand in \autoref{ch:examples} while constructing the
-types \id{Rational} and \id{Multiset} could have been solved automatically
+that we had to write by hand in \autoref{ch:quot-examples} while constructing
+the types \id{Rational} and \id{Multiset} could have been solved automatically
 without too much hassle. The proof development experience can also be contrasted
 to interactive proof assistants that feature tactics such as \Coq{} and \Lean{}.
 Tactics generally allow us to write our proofs in a less verbose manner by
@@ -3994,7 +4024,7 @@ with quotient types. The above seem to be desirable features that we should
 contemplate introducing to Typer in some shape or form to facilitate proof
 development.
 
-\section*{Benchmarks}
+\section*{Benchmarks}\label{sec:quot-benchmark}
 
 In this section, we use our implementation of \id{Rational} and \id{Multiset} to
 explore the runtime cost of using quotient types in Typer. Quotient types are
