@@ -3619,6 +3619,19 @@ itself, the proof is provided in \autoref{app:ump-quot} of the appendix.
 %% Or alternatively, I could split it up, show some of it as a
 %% background/motivation and the half at the very end to compare approaches
 
+%% SM: I expected in this section to see a presentation of Miranda's
+%% "quotient-like" types, and Courtieu's quotient types (and possibly other
+%% quotient types in Coq like Cohen's).
+%% Also, when talking about Cubical Agda (which should have its own
+%% (sub)section), I expected to see something
+%% explaining how instead of adding a separate notion of quotient type,
+%% they extended inductive types to HITs.
+%% And rather than just have a Quotient Haskell example within the QIT
+%% section, I expected a (sub)section about Quotient Haskell.
+%% IOW, this section should talk about existing implementations of
+%% (variations of) the concept rather than about variants of the
+%% concept themselves.
+
 \section{HITs}
 Higher inductive types (HITs) are a generalisation of inductive types that has
 been popularised by homotopy type theory\cite{HoTTbook}. Aside from the usual
@@ -3635,7 +3648,13 @@ data _/_ {l l'} (A : Type l) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type l') :
    eq/ : (a b : A) @$\rightarrow$@ (r : R a b) @$\rightarrow$@ [ a ] @$\equiv$@ [ b ]
    trunc/ : (a b : A / R) @$\rightarrow$@ (p q : a @$\equiv$@ b) @$\rightarrow$@ p @$\equiv$@ q
 \end{minted}
+%% SM: Read aloud your example, especially since you can't presume the
+%% reader knows Agda.
 
+%% SM: What are those "explicit side conditions"?  You should compare
+%% more pragmatically HITs to your quotients.  I.e. the fact that they
+%% kind of "hide the non-quotiented base type", or the impact this has
+%% when defining a recursive type.
 In such languages, the elimination of HITs is done in the same manner in which
 one typically eliminates normal inductive types, i.e.\ with pattern matching.
 Path constructors also need to be handled during pattern matching. Explicit side
@@ -3658,6 +3677,8 @@ type. But more curiously, we also have a path constructor $\id{loop}$ that
 identifies $\id{base}$ with itself. By visualising the type, we see that it
 indeed ressembles a circle.
 
+%% FIXME: Avoid "h" in `figure`s: if you really want it "here" then just
+%% don't use a `figure`.
 \begin{figure}[H]
   \centering
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
@@ -3690,7 +3711,11 @@ double (loop i) = (loop @$\cdot$@ loop) i
 \end{minted}
 
 Elimination is done in a cleaner manner when done using pattern matching. Aside
+%% SM: What do you mean by that?  Don't we "get" (or rather: have) to do
+%% the same with your quotients?
 from that, we get to specify how the function acts on equation constructors.
+%% SM: In this inherent to the difference between HITs and quotients,
+%% or is it a question of polish that could be added to your quotients?
 This leads to more convenient defitional equalities when using this function
 with the congruence property of equality.
 
@@ -3702,6 +3727,8 @@ without higher-dimensional paths. In other words, the definition of paths
 between paths is not allowed. Indeed, such paths are not typically required in
 day-to-day programming tasks.
 
+%% SM: Need an example to illustrate what you mean by "arbitrary equation
+%% constructors".
 Unlike the quotient types that we introduce in this work, QITs allow the
 definition of arbitrary equation constructors between terms of an inductive type
 instead of requiring these equalities to be encoded as equivalence relations.
@@ -3713,6 +3740,10 @@ an equivalence relation by adding appropriate constructors where necessary. A si
 definition in Quotient Haskell\cite{hewer2023quotient} is simpler and more straight
 to the point, as is illustrated in the following code block:
 
+%% SM: This is confusing: You say QITs are essentially a restriction of HITs,
+%% and this example is within the QIT section, but it looks syntactically
+%% different from a (restricted) HIT (e.g. because there is a non-quotiented
+%% base type).
 \begin{minted}{haskell}
 data Multiset a
   = List a
@@ -3723,6 +3754,7 @@ What is important to note here that since we are adding equation constructors,
 we do not need the counterparts of the other constructors that were required in
 the Typer definition of the relation as they are vacuously valid here by virtue
 of the congruence properties of the equality type. This seems to suggest that
+%% SM: More convenient than HITs or than QTs?
 QITs are more convenient to work with in practice. QITs are also strictly more
 expressive than the combination of ordinary inductive types with quotient
 types\cite{fiore2022quotients}. Though in practice, the additional expressivity
@@ -3783,10 +3815,16 @@ All that to say that this system lends itself well to the introduction of
 quotient types. The quotient type \fn{A/R} is interpreted as a setoid with
 \id{A} as its base type and the relation \id{R} as its setoidal equality. This
 of course requires the relation \id{R} to be reflexive, symmetric and
+%% SM: "surjections" -> "projected"?
 transitive. In the theory, equality between two terms that are surjections into
 the quotient (this is syntatically represented by $\pi(t)$) reduces to the
 underlying relation between the base terms, as is illustrated by the following
 rule:
+
+%% SM: This OITT section should maybe be a bit more careful to compare OTT
+%% to your work (and a bit less about presenting OTT in general).
+%% The rule below is directly relevant, which is good.
+%% But what's missing is for example what the elimination form looks like.
 
 \begin{prooftree*}
   \hypo{\oftype{\ctx}{t}{A}}
@@ -3800,6 +3838,7 @@ rule:
 \section{Setoid Rewriting}
 
 Quotient types are not provided as a primitive in the Coq proof assistant.
+%% SM: "that" being...?
 Before we get to that, we briefly introduce the rewriting mechanism of Coq.
 Every construction is congruent with respect to the equality type, hence
 rewrites using the equality type may be carried out in any context. For
@@ -3826,6 +3865,8 @@ interacts with the setoid needs to be accompanied with a proof that setoid
 equivalence is respected. This is in contrast to the ideal situation where such
 coherence proofs are \emph{only} required in the function that eliminates
 quotients, subsequent interaction and composition of this function should be
+%% SM: "This has historically...": not clear whether "This" refers to setoid
+%% rewriting or to "the ideal situation".
 free of the burden of such proof obligations. This has historically been the
 go-to way of modelling quotient types in Coq, however such an approach is known
 to be rather laborious. This phenomenon is often designated as \emph{setoid
@@ -3871,6 +3912,12 @@ in the resulting quotient type/set.
 \caption{Equivalence classes of $\mathbb{Z}$ under the relation $x \equiv y \ (\kw{mod} \ 4)$}
 \end{figure}
 
+%% SM: A->A is one option.  Another is "A->B": the "canonical
+%% representative" doesn't have to belong to the same type.
+%% When using a normalization function of type A->A you'll usually
+%% want it to be idempotent (otherwise you have to make extra efforts
+%% to remember if you've already applied the normalization function),
+%% whereas with A->B this is not needed (or even meaningful)  :-)
 An alternative way of defining a quotient on type $\kw{A}$ under a relation
 $\kw{R}$ is to construct a function $\oftype{\id{nf}}{A \rightarrow A}$ such
 that $\Funapp{\id{nf}}{\id{a}}$ is the canonical representative of the
@@ -3883,6 +3930,8 @@ To represent this in our system, we can simply treat this as a quotient under
 the relation $\Funapp{\id{R}}{\id{x}}{\id{y}} =
 \Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$.
 
+%% SM: Hmm... the rest of this section seems to go firmly outside "related
+%% work" territory.
 To simplify the utilisation of this class of quotients in Typer programs, we define the following helper functions:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
