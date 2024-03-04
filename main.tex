@@ -393,7 +393,16 @@
 %%   to give a feeling for how the different parts relate to each other,
 %%   and the relative importance of each one.
 
-This work describes the introduction of quotient types to Typer, a dependently
+%% SM: Rather than "related" (which refers to some ambient relation, which
+%% the reader may fail to understand), better say "equivalent" or
+%% even more explicitly something like "equivalent according to
+%% that relation" and then put emphasis on  "equivalent" and "equal" since
+%% the role of the quotient is to turn an equivalence into an equality.
+
+%% SM: "functions out of" may not be obvious to the reader either.
+%% better talk more explicitly about the domain (or even the "argument")
+%% of the function.
+This work describes the introduction of quotients types to Typer, a dependently
 typed programming language. Quotient types allow programmers to construct new
 types based on existing types by identifying (FIXME: The word `identify'
 is the most appropriate word, but only if the reader understands it, hopefully I
@@ -954,6 +963,7 @@ truncation constructor for Quotients. If we can prove that $\mathbb{Z}$ is a set
 when defined inductively (with the aforementioned theorem), then it would be odd
 if the same cannot be done if $\mathbb{Z}$ was defined as a quotient of
 $\mathbb{N} \times \mathbb{N}$. Indeed, this entails bigger consequences (as
+%% SM: Use a proper `\cite`
 mentioned in https://staff.math.su.se/anders.mortberg/papers/cubicalagda2.pdf
 section 2.4.1). (TODO:\ refer to my notes for a proof that Unit $\ne$ Unit/R
 without the truncation).
@@ -962,8 +972,30 @@ without the truncation).
 %%                Chapters                          %
 %%------------------------------------------------- %
 
+%% SM: I think we need a background / state-of-the-art chapter here, first,
+%% You could move the "related works" chapter to here as a start, but it
+%% should have a more "introductory" feel to it.
+%% That chapter would kinda repeat the intro to some extent, but going in
+%% more details and talking more concretely about what existing systems do.
+%% You could talk in general terms about HoTT and how it introduced a host of
+%% new ideas, including HITs and a refined notion of equality, then
+%% show how this has been turned into practice in existing systems
+%% (clarifying along the way the difference between quotients and HITs).
+%% In that chapter, I'd expect you'd mention also setoid rewriting, as well
+%% as various attempts to add quotients to Coq, Miranda, ...
+%% This way, when you get to talk about your work, in the next chapters
+%% you can better situate it as a kind of compromise between HoTT concepts
+%% and more traditional notions.
+%% In this new chapter, you still don't want to be technical, you want
+%% most readers to still enjoy the ride and get the illusion that they
+%% understand.
+%% You could also use this chapter to give a quick intro to the relevant
+%% part of Typer.
+
 \chapter{Cubical Equality}\label{ch:cubical-equality}
 \section{Interval type}
+
+%% SM: `\cite` where you got this definition.
 First, we provide the typical definition of the \id{Interval} type, subsequently
 we present our alternative formulation of the \id{Interval} type and show that
 it is equivalent to the traditional definition.
@@ -980,21 +1012,35 @@ it is equivalent to the traditional definition.
    \infer0{\oftype{\ctx}{i_{1}}{\bI}}
 \end{prooftree*}
 
+%% SM: How is ≡ defined?
 \begin{prooftree*}
    \infer0{\oftype{\ctx}{seg}{\eqtype{i_0}{i_1}}}
 \end{prooftree*}
 
+%% SM: Replace "unit interval" here with "interval type I", and/or explain
+%% why you call it "unit interval".
 We postulate the existence of the unit interval, along with the ends of the
 interval \id{$i_0$} and \id{$i_1$}. We also have \id{seg} which is a witness of
 a continuous path between \id{$i_0$} and \id{$i_1$}.
 
+%% SM: You use "Elimination" here and "recursion" later.
 Elimination of $\bI$ is similar to that of \id{Booleans} the only difference is
 that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected.
+%% SM: I think the footnote should explain that there is no actual recursion.
 The recursion principle of $\bI$ can thus be stated as follows\footnote{When we
 say recursion principle, we refer to the definition as is employed in an
 introduction to the \Coq{} proof assistant\cite{chlipala2022certified}. This
 terminology has also been employed in the HoTT book\cite{HoTTbook}.}:
 
+%% SM: Again, how is ≡ defined?  You don't necessarily need to explain it
+%% but at least point out the apparent circularity.
+%% SM: Here `rec` takes 2 args, but further below it takes 5!
+%% SM: You'll typically get 3 kinds of readers here:
+%% - Those who already know this stuff and will skip.
+%% - Those who don't and will skip because it's too technical.
+%% - Those who don't know but assume they should be able to follow,
+%%   so they'll try and learn from what you write and they'll find those
+%%   inconsistencies maddening!
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{A}{Type}}
    \hypo{\oftype{\ctx}{M}{A}}
@@ -1003,6 +1049,7 @@ terminology has also been employed in the HoTT book\cite{HoTTbook}.}:
    \infer4{\oftype{\ctx, \oftype{i}{\bI}}{rec_{\bI} (P, i)}{A}}
 \end{prooftree*}
 
+%% SM: Try and give some intuition for what I is like.
 The recursion principle computes as follows:
 
 \begin{align*}
@@ -1011,6 +1058,8 @@ The recursion principle computes as follows:
   & \kw{cong}_{rec_{\bI}(\_ . \bI, P)}(\id{seg}) = P
 \end{align*}
 
+%% SM: Terms like "definitionally" and "propositionally" should be explained
+%% briefly before using them.
 \kw{cong} refers to the congruence property of equality and is explained in more
 detail in \autoref{subsec:congruence-eq}. We can expect the first two equations
 to hold definitionally. If we imagine that the first two computation rules were
@@ -1022,19 +1071,30 @@ $\id{M}$ and $\id{N}$. More specifically, such an equality proof should be equal
 to $\id{P}$ itself. Equalities between equality proofs are only an important
 consideration in a proof-relevant world, e.g.\ in the context of HoTT. In the
 world of Typer where we demand that equality proofs be erasable and play no role
+%% SM: Actually, they are important enough to need K or Hedberg.
 during computation, such considerations are not of huge importance. We mention
 nevertheless that in most cases, the third equation only holds propositionally,
 as is the case when it is defined as a user-defined datatype in other type
 systems such as \Agda{}.
 
 \section{Motivation}
+%% SM: Maybe give an intuition why this is true, maybe comparing `I` to
+%% a boolean type where you are not able to distinguish true from false?
 We show that a function out of the interval into some type \id{A} is equivalent to a path between two terms of type \id{A}, in other words, we show the following
 
+%% SM: Relative precedence of those infix operators is not necessarily
+%% fresh in the readers' mind (or worse, might be different in their own
+%% field), so maybe sure you use extra spacing around ≃ to clarify the intent.
+%% You have not talked about Σ yet.
 \begin{align*}
   & \bI \rightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}
 \end{align*}
+%% SM: Maybe use an actual `theorem` LaTeX environement and an actual
+%% `proof` LaTeX environment.  So the reader who doesn't want to read the
+%% proof can skip it more easily.
 
-We prove this equivalence by proving that $\fn{g}$ is a quasi-inverse of
+%% SM: There's been no mention of any `f` or `g` yet.
+We proof this equivalence by proving that $\fn{g}$ is a quasi-inverse of
 $\fn{f}$ as described in chapter 2 of the HoTT book\cite{HoTTbook}. To this end,
 we define a function \id{f} and its inverse \id{g} as such:
 
@@ -1047,6 +1107,8 @@ we define a function \id{f} and its inverse \id{g} as such:
   & g : \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . (\eqtype{x}{y}) \rightarrow  (\bI \rightarrow A) \\
   & g \braket{x, \braket{y, p}} := \lambda \id{i} . rec_{\bI}(\_ . \id{A}, \id{p}, \id{i})
 \end{align*}
+%% SM: You need to "read aloud" to explain what this does.
+%% Alternatively, you may relegate this proof to a later chapter.
 
 Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
 
@@ -1065,11 +1127,17 @@ For the sake of simplifying the proof of $\beta$, we assume the $\eta$-rule for
 dependent pairs. And with that, the proof is complete.
 
 \section{Justification}\label{sec:eq-justification}
+%% SM: Refer more precisely to where you showed/proved those things.
+%% SM: Clarify "constant on the unit interval".
 We have established that the equality type (also known as the identity type) is
 equivalent to a function out of the interval. We have also illustrated that such
 a function is expected to be constant on the unit interval. This condition is
+%% SM: Not clear.
 enforced because $\id{Interval}$ is defined as a higher
 inductive type\cite{HoTTbook} with an identification of the two endpoints. The
+%% SM: I don't see where the type system enforces it.  AFAICT it's
+%% enforced by the fact that the eliminator (`rec`) can only choose between
+%% two things that are themselves equal.
 type system then enforces that all eliminations of the $\id{Interval}$ type be
 necessarily constant on the two endpoints. An alternate way of enforcing this is
 by using functions with erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a
@@ -3588,6 +3656,19 @@ itself, the proof is provided in \autoref{app:ump-quot} of the appendix.
 %% Or alternatively, I could split it up, show some of it as a
 %% background/motivation and the half at the very end to compare approaches
 
+%% SM: I expected in this section to see a presentation of Miranda's
+%% "quotient-like" types, and Courtieu's quotient types (and possibly other
+%% quotient types in Coq like Cohen's).
+%% Also, when talking about Cubical Agda (which should have its own
+%% (sub)section), I expected to see something
+%% explaining how instead of adding a separate notion of quotient type,
+%% they extended inductive types to HITs.
+%% And rather than just have a Quotient Haskell example within the QIT
+%% section, I expected a (sub)section about Quotient Haskell.
+%% IOW, this section should talk about existing implementations of
+%% (variations of) the concept rather than about variants of the
+%% concept themselves.
+
 \section{HITs}
 Higher inductive types (HITs) are a generalisation of inductive types that has
 been popularised by homotopy type theory\cite{HoTTbook}. Aside from the usual
@@ -3604,7 +3685,13 @@ data _/_ {l l'} (A : Type l) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type l') :
    eq/ : (a b : A) @$\rightarrow$@ (r : R a b) @$\rightarrow$@ [ a ] @$\equiv$@ [ b ]
    trunc/ : (a b : A / R) @$\rightarrow$@ (p q : a @$\equiv$@ b) @$\rightarrow$@ p @$\equiv$@ q
 \end{minted}
+%% SM: Read aloud your example, especially since you can't presume the
+%% reader knows Agda.
 
+%% SM: What are those "explicit side conditions"?  You should compare
+%% more pragmatically HITs to your quotients.  I.e. the fact that they
+%% kind of "hide the non-quotiented base type", or the impact this has
+%% when defining a recursive type.
 In such languages, the elimination of HITs is done in the same manner in which
 one typically eliminates normal inductive types, i.e.\ with pattern matching.
 Path constructors also need to be handled during pattern matching. Explicit side
@@ -3627,6 +3714,8 @@ type. But more curiously, we also have a path constructor $\id{loop}$ that
 identifies $\id{base}$ with itself. By visualising the type, we see that it
 indeed ressembles a circle.
 
+%% FIXME: Avoid "h" in `figure`s: if you really want it "here" then just
+%% don't use a `figure`.
 \begin{figure}[H]
   \centering
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
@@ -3659,7 +3748,11 @@ double (loop i) = (loop @$\cdot$@ loop) i
 \end{minted}
 
 Elimination is done in a cleaner manner when done using pattern matching. Aside
+%% SM: What do you mean by that?  Don't we "get" (or rather: have) to do
+%% the same with your quotients?
 from that, we get to specify how the function acts on equation constructors.
+%% SM: In this inherent to the difference between HITs and quotients,
+%% or is it a question of polish that could be added to your quotients?
 This leads to more convenient defitional equalities when using this function
 with the congruence property of equality.
 
@@ -3671,6 +3764,8 @@ without higher-dimensional paths. In other words, the definition of paths
 between paths is not allowed. Indeed, such paths are not typically required in
 day-to-day programming tasks.
 
+%% SM: Need an example to illustrate what you mean by "arbitrary equation
+%% constructors".
 Unlike the quotient types that we introduce in this work, QITs allow the
 definition of arbitrary equation constructors between terms of an inductive type
 instead of requiring these equalities to be encoded as equivalence relations.
@@ -3682,6 +3777,10 @@ an equivalence relation by adding appropriate constructors where necessary. A si
 definition in Quotient Haskell\cite{hewer2023quotient} is simpler and more straight
 to the point, as is illustrated in the following code block:
 
+%% SM: This is confusing: You say QITs are essentially a restriction of HITs,
+%% and this example is within the QIT section, but it looks syntactically
+%% different from a (restricted) HIT (e.g. because there is a non-quotiented
+%% base type).
 \begin{minted}{haskell}
 data Multiset a
   = List a
@@ -3692,6 +3791,7 @@ What is important to note here that since we are adding equation constructors,
 we do not need the counterparts of the other constructors that were required in
 the Typer definition of the relation as they are vacuously valid here by virtue
 of the congruence properties of the equality type. This seems to suggest that
+%% SM: More convenient than HITs or than QTs?
 QITs are more convenient to work with in practice. QITs are also strictly more
 expressive than the combination of ordinary inductive types with quotient
 types\cite{fiore2022quotients}. Though in practice, the additional expressivity
@@ -3752,10 +3852,16 @@ All that to say that this system lends itself well to the introduction of
 quotient types. The quotient type \fn{A/R} is interpreted as a setoid with
 \id{A} as its base type and the relation \id{R} as its setoidal equality. This
 of course requires the relation \id{R} to be reflexive, symmetric and
+%% SM: "surjections" -> "projected"?
 transitive. In the theory, equality between two terms that are surjections into
 the quotient (this is syntatically represented by $\pi(t)$) reduces to the
 underlying relation between the base terms, as is illustrated by the following
 rule:
+
+%% SM: This OITT section should maybe be a bit more careful to compare OTT
+%% to your work (and a bit less about presenting OTT in general).
+%% The rule below is directly relevant, which is good.
+%% But what's missing is for example what the elimination form looks like.
 
 \begin{prooftree*}
   \hypo{\oftype{\ctx}{t}{A}}
@@ -3769,6 +3875,7 @@ rule:
 \section{Setoid Rewriting}
 
 Quotient types are not provided as a primitive in the \Coq{} proof assistant.
+%% SM: "that" being...?
 Before we get to that, we briefly introduce the rewriting mechanism of \Coq{}.
 Every construction is congruent with respect to the equality type, hence
 rewrites using the equality type may be carried out in any context. For
@@ -3795,6 +3902,8 @@ interacts with the setoid needs to be accompanied with a proof that setoid
 equivalence is respected. This is in contrast to the ideal situation where such
 coherence proofs are \emph{only} required in the function that eliminates
 quotients, subsequent interaction and composition of this function should be
+%% SM: "This has historically...": not clear whether "This" refers to setoid
+%% rewriting or to "the ideal situation".
 free of the burden of such proof obligations. This has historically been the
 go-to way of modelling quotient types in \Coq{}, however such an approach is
 known to be rather laborious. This phenomenon is often designated as
@@ -3840,6 +3949,12 @@ in the resulting quotient type/set.
 \caption{Equivalence classes of $\mathbb{Z}$ under the relation $x \equiv y \ (\kw{mod} \ 4)$}
 \end{figure}
 
+%% SM: A->A is one option.  Another is "A->B": the "canonical
+%% representative" doesn't have to belong to the same type.
+%% When using a normalization function of type A->A you'll usually
+%% want it to be idempotent (otherwise you have to make extra efforts
+%% to remember if you've already applied the normalization function),
+%% whereas with A->B this is not needed (or even meaningful)  :-)
 An alternative way of defining a quotient on type $\kw{A}$ under a relation
 $\kw{R}$ is to construct a function $\oftype{\id{nf}}{A \rightarrow A}$ such
 that $\Funapp{\id{nf}}{\id{a}}$ is the canonical representative of the
@@ -3852,6 +3967,8 @@ To represent this in our system, we can simply treat this as a quotient under
 the relation $\Funapp{\id{R}}{\id{x}}{\id{y}} =
 \Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$.
 
+%% SM: Hmm... the rest of this section seems to go firmly outside "related
+%% work" territory.
 To simplify the utilisation of this class of quotients in Typer programs, we define the following helper functions:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
