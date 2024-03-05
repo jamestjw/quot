@@ -393,29 +393,19 @@
 %%   to give a feeling for how the different parts relate to each other,
 %%   and the relative importance of each one.
 
-%% SM: Rather than "related" (which refers to some ambient relation, which
-%% the reader may fail to understand), better say "equivalent" or
-%% even more explicitly something like "equivalent according to
-%% that relation" and then put emphasis on  "equivalent" and "equal" since
-%% the role of the quotient is to turn an equivalence into an equality.
-
-%% SM: "functions out of" may not be obvious to the reader either.
-%% better talk more explicitly about the domain (or even the "argument")
-%% of the function.
-This work describes the introduction of quotients types to Typer, a dependently
+This work describes the introduction of quotient types to Typer, a dependently
 typed programming language. Quotient types allow programmers to construct new
-types based on existing types by identifying (FIXME: The word `identify'
-is the most appropriate word, but only if the reader understands it, hopefully I
-can find an alternative.) certain terms of the base type. This is typically
-based on equivalence relations defined on the base type; related terms are thus
-treated as equal in the resulting quotient type. For instance, rational numbers
-may be defined as the quotient of pairs of integers under an appropriate
-equivalence relation. To better accommodate the introduction of quotient types to
-Typer, we revamped the built-in equality type by drawing inspiration from
-cubical type theory and proof assistants that implement it. As such, Typer's new
-equality type is based on functions out of a new interval primitive. Such an
-equality type is more powerful and expressive, it notably lends itself well to
-the writing of proofs related to quotient types. In this work, we also
+types based on existing types by redefining the notion of equality for the base
+type. This is typically based on equivalence relations defined on the base type;
+terms that are \emph{equivalent} according to the relation are thus treated as
+equal in the resulting quotient type. For instance, rational numbers may be
+defined as the quotient of pairs of integers under an appropriate equivalence
+relation. To better accommodate the introduction of quotient types to Typer, we
+revamped the built-in equality type by drawing inspiration from cubical type
+theory and proof assistants that implement it. As such, Typer's new equality
+type is based on functions that have our new interval primitive as an argument.
+Such an equality type is more powerful and expressive, it notably lends itself
+well to the writing of proofs related to quotient types. In this work, we also
 investigate the practicality of the usage of quotient types in a language such
 as Typer, both in terms of runtime efficiency and developer-friendliness.
 Quotient types do not exist in most modern dependently typed languages,
@@ -995,13 +985,15 @@ without the truncation).
 \chapter{Cubical Equality}\label{ch:cubical-equality}
 \section{Interval type}
 
-%% SM: `\cite` where you got this definition.
-First, we provide the typical definition of the \id{Interval} type, subsequently
-we present our alternative formulation of the \id{Interval} type and show that
-it is equivalent to the traditional definition.
+First, we provide the typical definition of the interval type as can be found in
+various sources such as the HoTT book\cite{HoTTbook}, subsequently we present
+our alternative formulation of the interval type and show that it is equivalent
+to the traditional definition. We carry out the below presentation in a system
+that already has a notion of propositional equality unrelated to the interval
+type, which we denote with $\equiv$ for aesthetic purposes.
 
 \begin{prooftree*}
-   \infer0{\oftype{\ctx}{\bI}{Type}}
+   \infer0{\oftype{\ctx}{\bI}{\kw{Type}}}
 \end{prooftree*}
 
 \begin{prooftree*}
@@ -1012,45 +1004,37 @@ it is equivalent to the traditional definition.
    \infer0{\oftype{\ctx}{i_{1}}{\bI}}
 \end{prooftree*}
 
-%% SM: How is ≡ defined?
 \begin{prooftree*}
    \infer0{\oftype{\ctx}{seg}{\eqtype{i_0}{i_1}}}
 \end{prooftree*}
 
-%% SM: Replace "unit interval" here with "interval type I", and/or explain
-%% why you call it "unit interval".
-We postulate the existence of the unit interval, along with the ends of the
-interval \id{$i_0$} and \id{$i_1$}. We also have \id{seg} which is a witness of
-a continuous path between \id{$i_0$} and \id{$i_1$}.
+We postulate the existence of the interval type $\bI$, along with its endpoints
+\id{$i_0$} and \id{$i_1$}. The intuition is that elements of $\bI$ correspond to
+points in the real unit interval $[0, 1]$. We also have \id{seg} which is a
+witness of a continuous path between \id{$i_0$} and \id{$i_1$}.
 
 %% SM: You use "Elimination" here and "recursion" later.
-Elimination of $\bI$ is similar to that of \id{Booleans} the only difference is
+%% TODO: Think about this, maybe what I should do is just introduce the entire
+%% thing as the `elimination' principle and not the `recursion' principle.
+Elimination of $\bI$ is similar to that of \id{Boolean}, the only difference is
 that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected.
-%% SM: I think the footnote should explain that there is no actual recursion.
-The recursion principle of $\bI$ can thus be stated as follows\footnote{When we
-say recursion principle, we refer to the definition as is employed in an
-introduction to the \Coq{} proof assistant\cite{chlipala2022certified}. This
-terminology has also been employed in the HoTT book\cite{HoTTbook}.}:
+The recursion principle of $\bI$ can thus be stated as follows\footnote{This has
+nothing to do with recursive function calls. When we say recursion principle, we
+refer to the definition as is employed in an introduction to the \Coq{} proof
+assistant\cite{chlipala2022certified}. This terminology has also been employed
+in the HoTT book\cite{HoTTbook}.}:
 
 %% SM: Again, how is ≡ defined?  You don't necessarily need to explain it
 %% but at least point out the apparent circularity.
-%% SM: Here `rec` takes 2 args, but further below it takes 5!
-%% SM: You'll typically get 3 kinds of readers here:
-%% - Those who already know this stuff and will skip.
-%% - Those who don't and will skip because it's too technical.
-%% - Those who don't know but assume they should be able to follow,
-%%   so they'll try and learn from what you write and they'll find those
-%%   inconsistencies maddening!
 \begin{prooftree*}
-   \hypo{\oftype{\ctx}{A}{Type}}
    \hypo{\oftype{\ctx}{M}{A}}
    \hypo{\oftype{\ctx}{N}{A}}
    \hypo{\oftype{\ctx}{P}{\eqtype{M}{N}}}
-   \infer4{\oftype{\ctx, \oftype{i}{\bI}}{rec_{\bI} (P, i)}{A}}
+   \infer3{\oftype{\ctx, \oftype{i}{\bI}}{rec_{\bI} (\_. A, P, i)}{A}}
 \end{prooftree*}
 
 %% SM: Try and give some intuition for what I is like.
-The recursion principle computes as follows:
+It has the below computation rules:
 
 \begin{align*}
   & rec_{\bI}(\_ . A, P, \ileft) = M \\
@@ -1060,17 +1044,23 @@ The recursion principle computes as follows:
 
 %% SM: Terms like "definitionally" and "propositionally" should be explained
 %% briefly before using them.
+%% TODO: Check if I have an appropriate definition of "propositional equality"
+%% as I've definitely used the term
 \kw{cong} refers to the congruence property of equality and is explained in more
 detail in \autoref{subsec:congruence-eq}. We can expect the first two equations
-to hold definitionally. If we imagine that the first two computation rules were
-defined via pattern-matching, it would make sense for these equations to hold
-definitionally. The third equation is a more curious case, it suggests that by
-the congruence of equality, the application of the $\kw{Interval}$ recursor with the
-equality proof $\id{P}$ to $\id{seg}$ should yield an equality proof between
-$\id{M}$ and $\id{N}$. More specifically, such an equality proof should be equal
-to $\id{P}$ itself. Equalities between equality proofs are only an important
-consideration in a proof-relevant world, e.g.\ in the context of HoTT. In the
-world of Typer where we demand that equality proofs be erasable and play no role
+to hold definitionally. Definitional equality of two terms is determined by
+expanding out definitions. So if we say that $rec_{\bI}(\_ . A, P, \ileft)$ is
+defintionally equal to $M$, we are saying that the former reduces to the latter
+when we check for equality. If we imagine that the first two computation rules
+were defined via pattern-matching, it would make sense for these equations to
+hold definitionally. The third equation is a more curious case, it suggests that
+by the congruence of equality, the application of the $\kw{Interval}$ recursor
+with the equality proof $\id{P}$ to $\id{seg}$ should yield an equality proof
+between $\id{M}$ and $\id{N}$. More specifically, such an equality proof should
+be equal to $\id{P}$ itself. Equalities between equality proofs are only an
+important consideration in a proof-relevant world, e.g.\ in the context of HoTT.
+In the world of Typer where we demand that equality proofs be erasable and play
+no role
 %% SM: Actually, they are important enough to need K or Hedberg.
 during computation, such considerations are not of huge importance. We mention
 nevertheless that in most cases, the third equation only holds propositionally,
@@ -1114,7 +1104,7 @@ Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
 
 \begin{align*}
   & \id{$\alpha$-helper} : (\oftype{h}{\bI \rightarrow A}) \rightarrow (\oftype{i}{\bI}) \rightarrow \eqtype{(g (f \ h)) \ i}{h \ i} \\
-  & \id{$\alpha$-helper} (h , i) = rec_{\bI}(i . \ \eqtype{(g (f \ h)) \ i}{h \ i}, \ \refl{h(\ileft)}, \ \refl{h(\iright)}, \ \kw{cong}_{\lambda i . \refl{h(i)}}(\id{seg}), \ i) \\
+  & \id{$\alpha$-helper} (h , i) = rec_{\bI}(i . \ \eqtype{(g (f \ h)) \ i}{h \ i}, \ \kw{cong}_{\lambda i . \refl{h(i)}}(\id{seg}), \ i) \\
   & \alpha : (\oftype{h}{\bI \rightarrow A}) \rightarrow \eqtype{g(f(h))}{h} \\
   & \alpha(h) =  \kw{funExt} (\id{$\alpha$-helper} (h)) \\ \\
   & \beta :  (\oftype{e}{\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}}) \rightarrow f(g(e)) = e \\
