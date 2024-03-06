@@ -105,6 +105,7 @@
 
 %% Packages - START
 \usepackage{amsmath,amsfonts,amssymb}
+
 \usepackage{hyperref} % Ajoute les hyperlien
 \hypersetup{colorlinks=true,allcolors=black}
 \usepackage{hypcap}   % Corrige la position du lien pour les images
@@ -187,6 +188,9 @@
 \newtheorem{theo}[cor]{\theoremname}
 \theoremstyle{definition}
 \newtheorem{algo}[cor]{\algoname}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
 %% NOTE : Il peut être commode de redéfinir \the<type> pour
 %% obtenir la numérotation désirée. Par exemple, pour
 %% que les corollaires soit numérotés #section.#sous-section.#sous-sous-section.#paragraphe.#corollaire,
@@ -1042,51 +1046,59 @@ It has the below computation rules:
   & \kw{cong}_{rec_{\bI}(\_ . \bI, P)}(\id{seg}) = P
 \end{align*}
 
-%% SM: Terms like "definitionally" and "propositionally" should be explained
-%% briefly before using them.
-%% TODO: Check if I have an appropriate definition of "propositional equality"
-%% as I've definitely used the term
 \kw{cong} refers to the congruence property of equality and is explained in more
 detail in \autoref{subsec:congruence-eq}. We can expect the first two equations
 to hold definitionally. Definitional equality of two terms is determined by
 expanding out definitions. So if we say that $rec_{\bI}(\_ . A, P, \ileft)$ is
-defintionally equal to $M$, we are saying that the former reduces to the latter
+definitionally equal to $M$, we are saying that the former reduces to the latter
 when we check for equality. If we imagine that the first two computation rules
 were defined via pattern-matching, it would make sense for these equations to
 hold definitionally. The third equation is a more curious case, it suggests that
 by the congruence of equality, the application of the $\kw{Interval}$ recursor
 with the equality proof $\id{P}$ to $\id{seg}$ should yield an equality proof
 between $\id{M}$ and $\id{N}$. More specifically, such an equality proof should
-be equal to $\id{P}$ itself. Equalities between equality proofs are only an
-important consideration in a proof-relevant world, e.g.\ in the context of HoTT.
-In the world of Typer where we demand that equality proofs be erasable and play
-no role
-%% SM: Actually, they are important enough to need K or Hedberg.
-during computation, such considerations are not of huge importance. We mention
-nevertheless that in most cases, the third equation only holds propositionally,
-as is the case when it is defined as a user-defined datatype in other type
-systems such as \Agda{}.
+be equal to $\id{P}$ itself. From a computational point of view, equalities
+between equality proofs are only an important consideration in a proof-relevant
+setting, e.g.\ in the context of HoTT. In the world of Typer where we demand
+that equality proofs be erasable and play no role during computation, such
+equalities are less meaningful. However, they are not completely irrelevant as
+we occasionally need to construct such proofs for coherence purposes. In most
+cases, the third equation only holds propositionally, as is the case when it is
+defined as a user-defined datatype in other type systems such as \Agda{}.
 
 \section{Motivation}
 %% SM: Maybe give an intuition why this is true, maybe comparing `I` to
 %% a boolean type where you are not able to distinguish true from false?
-We show that a function out of the interval into some type \id{A} is equivalent to a path between two terms of type \id{A}, in other words, we show the following
+We show that a function with an interval argument returning some type \id{A},
+i.e.\ a function with type \fn{$\bI \rightarrow A$} is equivalent to an equality
+proof between two terms of type \id{A}. To build an intuition as to why this
+might be true, consider a \id{Boolean} type where \id{true} and \id{false} are
+indistinguishable. Then a function with this \id{Boolean} type as an argument is
+necessarily constant on its argument. Suppose that we have such a function named
+\id{h}, we thus have a witness of the equality of \fn{h $\ileft$} and \fn{h
+  $\iright$}.
 
-%% SM: Relative precedence of those infix operators is not necessarily
-%% fresh in the readers' mind (or worse, might be different in their own
-%% field), so maybe sure you use extra spacing around ≃ to clarify the intent.
-%% You have not talked about Σ yet.
+In order to state the aforementioned theorem, we first introduce dependent
+pairs. We use the usual syntax to denote the type of dependent pairs,
+i.e.\ $\Sigma_{\oftype{x}{A}}. B$. Here, the first projection of type \id{A} and
+is named \id{x}; the type of the second projection,\id{B} may depend on the term
+\id{x}. Terms of dependent pairs have the following form $\braket{a, b}$. Now,
+we formally state the theorem that we are interested in
+
+\begin{theo}
+The following type may be inhabited:
+
 \begin{align*}
-  & \bI \rightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}
+  & \bI \rightarrow A \ \simeq \ \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}
 \end{align*}
-%% SM: Maybe use an actual `theorem` LaTeX environement and an actual
-%% `proof` LaTeX environment.  So the reader who doesn't want to read the
-%% proof can skip it more easily.
 
-%% SM: There's been no mention of any `f` or `g` yet.
-We proof this equivalence by proving that $\fn{g}$ is a quasi-inverse of
-$\fn{f}$ as described in chapter 2 of the HoTT book\cite{HoTTbook}. To this end,
-we define a function \id{f} and its inverse \id{g} as such:
+\end{theo}
+
+\begin{proof}
+We define functions \id{f} and \id{g} as inhabitants of the forward and backward
+directions of the equivalence respectively. We prove this equivalence by proving
+that \fn{g} is a quasi-inverse of \fn{f} as described in chapter 2 of the HoTT
+book\cite{HoTTbook}. To this end, we define \id{f} and \id{g} as such:
 
 %% TODO: I glossed over this detail, but the $rec_{\bI}$ actually carries out a
 %% depelim which I haven't introduced yet.
@@ -1095,10 +1107,11 @@ we define a function \id{f} and its inverse \id{g} as such:
   & f : (\bI \rightarrow A) \rightarrow \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y} \\
   & f(h) := \braket{\id{h}(\ileft), \braket{\id{h}(\iright), \kw{cong}_{\id{h}}(\id{seg})}} \\ \\
   & g : \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . (\eqtype{x}{y}) \rightarrow  (\bI \rightarrow A) \\
-  & g \braket{x, \braket{y, p}} := \lambda \id{i} . rec_{\bI}(\_ . \id{A}, \id{p}, \id{i})
+  & g \braket{x, \braket{y, p}} := \lambda \id{i} . \ rec_{\bI}(\_ . \id{A}, \id{p}, \id{i})
 \end{align*}
 %% SM: You need to "read aloud" to explain what this does.
 %% Alternatively, you may relegate this proof to a later chapter.
+%% TODO: Figure this out
 
 Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
 
@@ -1116,29 +1129,23 @@ Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
 For the sake of simplifying the proof of $\beta$, we assume the $\eta$-rule for
 dependent pairs. And with that, the proof is complete.
 
+\end{proof}
+
 \section{Justification}\label{sec:eq-justification}
-%% SM: Refer more precisely to where you showed/proved those things.
-%% SM: Clarify "constant on the unit interval".
-We have established that the equality type (also known as the identity type) is
-equivalent to a function out of the interval. We have also illustrated that such
-a function is expected to be constant on the unit interval. This condition is
-%% SM: Not clear.
-enforced because $\id{Interval}$ is defined as a higher
-inductive type\cite{HoTTbook} with an identification of the two endpoints. The
-%% SM: I don't see where the type system enforces it.  AFAICT it's
-%% enforced by the fact that the eliminator (`rec`) can only choose between
-%% two things that are themselves equal.
-type system then enforces that all eliminations of the $\id{Interval}$ type be
-necessarily constant on the two endpoints. An alternate way of enforcing this is
-by using functions with erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a
-type with two distinct constructors that take no arguments, such as the Boolean
-type. An argument that is marked as erasable has no computational
-role during runtime. Within the function body, such an argument may only be used
-in an \emph{erasable} manner, for instance, it may be used in the computation of
-an expression that is passed as an erasable argument to yet another function. In
-other words, we can first define the $\id{Interval}$ type as a normal algebraic
-data type. Next, we can model the equality type as a function with an erasable
-argument out of the $\id{Interval}$ type.
+We have established in the previous section that equality between two terms is
+equivalent to a function out of the interval. We have also illustrated that the
+output of such a function has to agree at both endpoints of the interval. This
+is enforced by the elimination principle of the $\bI$ that ensures that \id{seg}
+is respected. An alternate way of enforcing this is by using functions with
+erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a type with two distinct
+constructors that take no arguments, such as the \id{Boolean} type. An argument
+that is marked as erasable has no computational role during runtime. Within the
+function body, such an argument may only be used in an \emph{erasable} manner,
+for instance, it may be used in the computation of an expression that is passed
+as an erasable argument to yet another function. In other words, we can first
+define the \id{Interval} type as a normal algebraic data type. Next, we can
+model the equality type as a function with an erasable argument out of the
+\id{Interval} type.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 type I

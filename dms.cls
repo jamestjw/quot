@@ -1811,7 +1811,7 @@
   \item[\hskip\labelsep\itshape
     #1\@addpunct{.}]\ignorespaces
 }{%
-  \qed\endtrivlist
+  $\qed$\endtrivlist
 }
 \newenvironment{demo}[1][\proofname]{\par \normalfont \noindent
   %\topsep6\p@\@plus6\p@
@@ -1819,7 +1819,7 @@
   \item[\hskip\labelsep\itshape
     #1\@addpunct{.}]\ignorespaces
 }{%
-  \qed\endtrivlist
+  $\qed$\endtrivlist
 }
 \ifnobabel@
     \def\proofname{Proof}
