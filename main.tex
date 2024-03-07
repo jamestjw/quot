@@ -3648,10 +3648,12 @@ itself, the proof is provided in \autoref{app:ump-quot} of the appendix.
 
 \chapter{Related works}
 
-%% TODO: Set the right tone for this chapter so that it can appropriately be put
-%% after the introduction to give readers some background and motivation.
-%% Or alternatively, I could split it up, show some of it as a
-%% background/motivation and the half at the very end to compare approaches
+%% NOTE: I'm going to try to make this chapter more approachable, with the
+%% intention of moving it to to start (chapter 2). Sequence of presentation
+%% - miranda laws
+%% - normalised types
+%% - HITs
+%% - QITs
 
 %% SM: I expected in this section to see a presentation of Miranda's
 %% "quotient-like" types, and Courtieu's quotient types (and possibly other
@@ -3665,6 +3667,72 @@ itself, the proof is provided in \autoref{app:ump-quot} of the appendix.
 %% IOW, this section should talk about existing implementations of
 %% (variations of) the concept rather than about variants of the
 %% concept themselves.
+
+In this chapter, we present works that are related to ours. We show where we
+drew our inspiration from and we also take this opportunity to give readers a
+taste of what quotient types are like and what they are capable of.
+
+\section{Miranda}
+
+The Miranda programming language's\cite{thompson1986laws, thompson1990lawful}
+primary innovation that interests us is its \emph{laws}. These laws may be
+specified during the definition of algebraic data types and they act as rewrite
+rules. Rewrites are automatically applied to terms of the data type such that
+they shall always be in \emph{normal} form. To illustrate this, we show a
+definition of the integer data type.
+
+\begin{minted}{haskell}
+integer :: Zero |
+           Succ integer |
+           Pred integer
+\end{minted}
+
+Such a definition gives rise to many redundant terms, each integer has an
+infinite amount of representations. For instance, the integer \id{Zero} may also
+be represented as \fn{Succ (Pred Zero)}, \fn{Pred (Succ Zero)}, etc. This is
+where laws come into play, since the composition of \id{Succ} with \id{Pred}
+should be equal to the identity function, we define the following laws:
+
+\begin{minted}{haskell}
+Succ (Pred n) => n
+Pred (Succ n) => n
+\end{minted}
+
+Types that are constrained by laws are known as \emph{lawful types}. Laws may
+also be defined with conditions so that rewriting only takes place when the
+appropriate conditions are fulfilled. To illustrate this, we define the type of
+rational numbers on top of the built-in integer type, \id{num}. The laws are
+setup in a way such that negative rational numbers will always have a negative
+numerator and a positive denominator. We also want the rational numbers to be as
+`simplified' as possible, i.e.\ we want the numerator and denominator to be
+coprime.
+
+\begin{minted}{haskell}
+rational ::= Rat num num
+
+Rat a b => error "zero denominator", b == O
+        => Rat (-a) (-b),            b < O
+        => Rat a' b',                g > 1
+           where
+           a' = a div g
+           b' = b div g
+           g = gcd a b
+\end{minted}
+
+Functions that act on lawful types enjoy the convenience of being able to assume
+that their arguments will always be in normal form. In other words, programmers
+need not worry about normalisation both before and after computation as this is
+taken care of by the language itself. We may define the addition operation on
+rationals via pattern-matching with a syntax that is reminiscent of Haskell.
+
+\begin{minted}{haskell}
+radd :: rational -> rational -> rational
+radd (Rat x1 y1) (Rat x2 y2) = Rat ((x1 mul y2) add (x2 mul y1)) (y1 mul y2)
+\end{minted}
+
+Indeed, laws in Miranda are no more than smart constructors in disguise.
+Nevertheless, they highlight the fact that we often would like to express the
+fact certain terms of our algebraic data types are equal.
 
 \section{HITs}
 Higher inductive types (HITs) are a generalisation of inductive types that has
