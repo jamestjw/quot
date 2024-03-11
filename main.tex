@@ -3940,7 +3940,7 @@ his system.
 %% direction of this equivalence characterises the elimination principle of
 %% $\id{Qnorm}$, as was the case for $\id{Quotient}$.
 
-\section{Cubical Equality and HITs in Cubical Agda}
+\section{Cubical Equality and HITs in Cubical Agda}\label{sec:cubical-agda}
 
 Cubical Agda\cite{vezzosi2021cubical} is an extension of the \Agda{} proof
 assistant which serves to provide computational meaning to HoTT. This work is
@@ -4329,7 +4329,7 @@ At the start of this work, we first set out to augment Typer with a more
 powerful and expressive notion of equality. We achieved this by basing our new
 equality type on an Interval type. We showed the benefits of such an equality
 type by demonstrating that the manipulation of propositional equality is greatly
-simplified. To that end we illustrated the derivation of various
+simplified. To that end, we illustrated the derivation of various
 equality-related theorems in a clean and elegant manner. Some desirable
 properties such as functional extensionality that we are now able to derive were
 previously unprovable by using Typer's original equality type.
@@ -4338,7 +4338,7 @@ We then introduced quotient types to Typer. We convinced ourselves that our
 quotient types behave as they should by proving that they fulfil the universal
 property of quotients. A library was provided with proofs of many other
 properties fulfilled by our quotient types. We also explored the practical
-aspect of our quotient types by using them to construct several examples. We
+aspects of our quotient types by using them to construct several examples. We
 then observed that when the identifications that we wish to impose on the base
 type may be immediately represented as an equivalence relation, the resulting
 construction was a lot simpler as was the case with \id{Rational}. However, our
@@ -4347,9 +4347,21 @@ we require do not immediately induce an equivalence relation, we need to
 manually construct the reflexive, symmetric, and transitive closure of the
 resulting relation. This complicates the underlying relation of the quotient,
 leading to additional proof obligations that are often easily satisfied but
-nevertheless unnecessary. This may be seen as a glaring disadvantage of our
-approach as opposed to quotient inductive types that allow the direct definition
-of path constructors on inductive types.
+unnecessary. This may be seen as a glaring disadvantage of our approach as
+opposed to quotient inductive types that allow the direct definition of path
+constructors on inductive types.
+
+The introduction of \id{Quotient\_eq} as an axiom also leads to the absence of a
+desirable computational property. Suppose that the following terms \fn{a : A},
+\fn{a' : A}, and \fn{r : R a a'} as well as a function \fn{f : A $\rightarrow$
+  B} and a proof that it respects the relation \id{R}, i.e.\ \fn{p : (a a' : A)
+  $\rightarrow$ R a a' $\rightarrow$ f a $\equiv$ f a'}. Unfortunately, the
+following equality does not hold definitionally \fn{Eq\_cong (Quotient\_rec f (p
+  := p)) (Quotient\_eq r) $\equiv$ p a a' r}. This would indeed be a
+definitional equality in Cubical Agda if we were to use the construction that
+was shown in \autoref{sec:cubical-agda}. However, it was not clear to us how the
+same could be done in Typer as it would involve the hard coding of this
+equivalence in an ad hoc manner.
 
 As the examples in the previous sections would suggest, the usage of quotient
 types is often accompanied by a considerable amount of proof obligations. As we
@@ -4369,20 +4381,20 @@ reasoning involved the repeated application of the congruence property of
 equality. This is analogous to the usage of the \emph{rewrite} tactics of the
 aforementioned proof assistants with the difference that invocation of
 \id{Eq\_cong} requires us to manually specify the context in which the rewrite
-should occur. The more verbose proofs are indeed more readable, however it makes
+should occur. The more verbose proofs are indeed more readable, however, it makes
 their development a laborious endeavour. During the construction of
 \id{Rational}, we had to do a lot of monotonous reasoning related to linear
-arithmetic in order to prove propositions that were seemingly obvious to the
+arithmetic to prove propositions that were seemingly obvious to the
 human eye. Such goals may typically be solved using tactics such as the \Coq{}'s
 \kw{lia} tactic and \Lean{}'s \kw{linarith} tactic that are essentially solvers
 for linear goals over $\mathbb{Z}$. For the moment, Typer also lacks the
-powerful dependent pattern matching system of \Agda{}. This inconvenience is
+powerful dependent pattern-matching system of \Agda{}. This inconvenience is
 somewhat mitigated by the presence of the \fn{\kw{case} $\ldots$ \kw{as}
   $\ldots$ \kw{return} $\ldots$} construct that is reminiscent of \Coq{}.
 However, while we are in \kw{case} branches, we lack the specialisation of types
 of other variables in the context that depend on the scrutinee. This was an
-inconvenience that we had to reckon with on numerous occassions while working
-with quotient types. The above seem to be desirable features that we should
+inconvenience that we had to reckon with on numerous occasions while working
+with quotient types. The above seems to be desirable features that we should
 contemplate introducing to Typer in some shape or form to facilitate proof
 development.
 
@@ -4448,11 +4460,11 @@ Through a series of $\eta$-reductions and $\beta$-reductions, we can see that
 the above expression is equivalent to $\zpairplus$. This implies that with an
 appropriate optimisation phase, Elexps containing quotient primitives could be
 simplified to completely neutralise the overhead of quotient types. We leave
-this optimisation for a future work. We also note that addition and
+this optimisation for future work. We also note that addition and
 multiplication unsurprisingly have a similar constant overhead due to how
-similarly they are defined. Since negation is a unary operation operation, it
+similarly they are defined. Since negation is a unary operation, it
 was defined directly using $\fn{Quotient\_rec}$ and thus has a lesser overhead
-than the other binary operations. We also defined subtraction on the basis of
+than the other binary operations. We also defined subtraction based on
 addition combined with subtraction, so its greater overhead is well justified.
 
 \subsection*{Multiset}
@@ -4478,7 +4490,7 @@ Member & 0.28          & 0.33              & 0.05             & 17.8        \\ \
 
 The \id{Multiset\_append} operation was tested by appending multisets of 100
 integers with themselves 50000 times. For the \id{Multiset\_mem} operation, we
-run the membership test with 50 integers on a multiset containing 100 integers,
+ran the membership test with 50 integers on a multiset containing 100 integers,
 this was repeated 1000 times.
 
 %% TODO: If the number of `operations' is the same across both experiments, then
