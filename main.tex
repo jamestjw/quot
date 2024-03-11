@@ -135,6 +135,7 @@
 
 \usepackage{minted} %% Typeset code
 \setminted{fontsize=\small}
+\usemintedstyle{xcode}
 
 \usepackage{bbold} %% For blackboard font
 \usepackage{tikz} %% For drawing diagrams
@@ -3702,10 +3703,10 @@ Types that are constrained by laws are known as \emph{lawful types}. Laws may
 also be defined with conditions so that rewriting only takes place when the
 appropriate conditions are fulfilled. To illustrate this, we define the type of
 rational numbers on top of the built-in integer type, \id{num}. The laws are
-setup in a way such that negative rational numbers will always have a negative
-numerator and a positive denominator. We also want the rational numbers to be as
-`simplified' as possible, i.e.\ we want the numerator and denominator to be
-coprime.
+conceived in a way such that negative rational numbers will always have a
+negative numerator and a positive denominator. We also want the rational numbers
+to be as `simplified' as possible, i.e.\ we want the numerator and denominator
+to be coprime.
 
 \begin{minted}{haskell}
 rational ::= Rat num num
@@ -3734,92 +3735,434 @@ Indeed, laws in Miranda are no more than smart constructors in disguise.
 Nevertheless, they highlight the fact that we often would like to express the
 fact certain terms of our algebraic data types are equal.
 
-\section{HITs}
-Higher inductive types (HITs) are a generalisation of inductive types that has
-been popularised by homotopy type theory\cite{HoTTbook}. Aside from the usual
-definitions of constructors, HITs allow the definition of path constructors,
-i.e.\ equalities between terms of the inductive type. Additionally, we are
-allowed to define paths between paths. In other words, in a system that supports
-HITs, we could simply define quotient types as a HIT. For instance, here is how
-one might do it in Cubical Agda.
+\section{Normalised Types}
 
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-data _/_ {l l'} (A : Type l) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type l') : Type (l-max l l')
-   where
-   [_] : (a : A) @$\rightarrow$@ A / R
-   eq/ : (a b : A) @$\rightarrow$@ (r : R a b) @$\rightarrow$@ [ a ] @$\equiv$@ [ b ]
-   trunc/ : (a b : A / R) @$\rightarrow$@ (p q : a @$\equiv$@ b) @$\rightarrow$@ p @$\equiv$@ q
-\end{minted}
-%% SM: Read aloud your example, especially since you can't presume the
-%% reader knows Agda.
+Courtieu's normalised types\cite{courtieu-normalizedtypes} may be seen as an
+effort to introduce a system that allows us to express a normalisation scheme
+for terms of a certain type to dependent type theory. More specifically,
+Courtieu conceived the above as an extension to the Calculus of Inductive
+Constructions (CIC)\cite{werner-cic}, a dependent type theory that serves as the
+backbone of many modern proof assistants in some shape or form. The overall
+challenge was to ensure that normalised types exhibit the appropriate
+computational and logical behaviours all while maintaining the consistency of
+the system.
 
-%% SM: What are those "explicit side conditions"?  You should compare
-%% more pragmatically HITs to your quotients.  I.e. the fact that they
-%% kind of "hide the non-quotiented base type", or the impact this has
-%% when defining a recursive type.
-In such languages, the elimination of HITs is done in the same manner in which
-one typically eliminates normal inductive types, i.e.\ with pattern matching.
-Path constructors also need to be handled during pattern matching. Explicit side
-conditions are then added to ensure that the elimination of path constructors is
-coherent with the elimination of other constructors. To illustrate the above, we
-discuss some HITs that are common in the context of synthetic homotopy theory.
+In order to construct a normalised type on top of a base type \id{A}, we first
+construct a normalisation function of type \fn{A $\rightarrow$ A}. In a way,
+this is similar to Miranda's laws, but instead of enumerating them, they are
+packaged into a single function. We can then construct the type \fn{\kw{Norm}(A,
+  nf)} which represents the type \id{A} normalised by \id{nf}. Elements of the
+type have the form \fn{\kw{Class}(A, nf, t)} where \id{t} is a term of type
+\id{A}. Conceptually, when we take the quotient of a type, we are essentially
+partitioning the base type into equivalence classes as suggested by the example
+in \autoref{fig:eq-class-zmod4}. Indeed, normalised types allow us to represent
+a special case of quotient types where it is possible for us to elect a
+canonical representative for every equivalence class by means of a normalisation
+function. If we have two terms \id{t} and \id{t'} that share the same normal
+form, then we could expect \fn{\kw{Class}(A, nf, t)} and \fn{\kw{Class}(A, nf,
+  t')} to be equal. Indeed, Courtieu's extension of the CIC benefits from having
+the above equality hold judgementally by virtue of an augmentation of the
+internal conversion and equality rules.
 
-%% FIXME: Why isn't loop of the right colour?
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-data @$S^1$@ : Type where
-  base : @$S^1$@
-  loop : base @$\equiv$@ base
-\end{minted}
+In order to eliminate a term \id{u} of type \fn{\kw{Norm}(A, nf)}, we use the
+\kw{ElimNorm} primitive. By using a function \fn{f : A $\rightarrow$ B}, we can
+build the term \fn{\kw{ElimNorm}(A, nf, f, u) : B}. The eliminator has the
+expected computation rule \fn{\kw{ElimNorm}(A, nf, f, \kw{Class}(A, nf, t))
+  $\rightsquigarrow{}$ f (nf t)}.
 
-The $S^1$ type is a synthetic way of representing a circle (also known as a
-1-sphere). A reasonable way of describing a circle would be to say that it
-consists of a base point and a continuous line that joins the base point to
-itself. In this HIT, we have the $\id{base}$ as a normal constructor of the
-type. But more curiously, we also have a path constructor $\id{loop}$ that
-identifies $\id{base}$ with itself. By visualising the type, we see that it
-indeed ressembles a circle.
+The idempotence of the normalisation function is not required, and thus the
+system takes care to only apply it once to the underlying term of the base type.
+This leads to the observation that the normalisation function may be further
+generalised such that it should not be restricted to producing terms of the same
+type. For instance, if we would like to construct the type of integers mod 2, it
+would be reasonable to define a normalised type with a normalisation function of
+type \fn{Integer $\rightarrow$ Boolean}. This was not implemented in Courtieu's
+original work, but we believe that this is a perfectly reasonable extension of
+his system.
 
-%% FIXME: Avoid "h" in `figure`s: if you really want it "here" then just
-%% don't use a `figure`.
-\begin{figure}[H]
+\begin{figure}
   \centering
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
 %uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
 
-%Shape: Circle [id:dp8752212823145744]
-\draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (351,225) .. controls (351,222.79) and (352.79,221) .. (355,221) .. controls (357.21,221) and (359,222.79) .. (359,225) .. controls (359,227.21) and (357.21,229) .. (355,229) .. controls (352.79,229) and (351,227.21) .. (351,225) -- cycle ;
-%Shape: Arc [id:dp1917418004201512]
-\draw  [draw opacity=0] (342.88,223.71) .. controls (324.62,218.04) and (311.33,200.69) .. (311.33,180.17) .. controls (311.33,155.04) and (331.26,134.67) .. (355.83,134.67) .. controls (380.41,134.67) and (400.33,155.04) .. (400.33,180.17) .. controls (400.33,200.99) and (386.66,218.54) .. (367.99,223.95) -- (355.83,180.17) -- cycle ; \draw   (342.88,223.71) .. controls (324.62,218.04) and (311.33,200.69) .. (311.33,180.17) .. controls (311.33,155.04) and (331.26,134.67) .. (355.83,134.67) .. controls (380.41,134.67) and (400.33,155.04) .. (400.33,180.17) .. controls (400.33,200.99) and (386.66,218.54) .. (367.99,223.95) ;
-\draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (373.91,226.89) -- (364.82,224.59) -- (372.03,218.6) -- (368.9,223.67) -- cycle ;
+%Shape: Ellipse [id:dp4829810342761349]
+\draw  [color={rgb, 255:red, 140; green, 66; blue, 66 }  ,draw opacity=1 ][fill={rgb, 255:red, 208; green, 162; blue, 162 }  ,fill opacity=1 ] (171,152.5) .. controls (171,100.86) and (237.71,59) .. (320,59) .. controls (402.29,59) and (469,100.86) .. (469,152.5) .. controls (469,204.14) and (402.29,246) .. (320,246) .. controls (237.71,246) and (171,204.14) .. (171,152.5) -- cycle ;
+%Curve Lines [id:da7772387220169334]
+\draw    (172,165) .. controls (220,144) and (335,171) .. (320,59) ;
+%Curve Lines [id:da0576638127246778]
+\draw    (264.2,147.6) .. controls (366.2,188.6) and (355,231) .. (314,246) ;
+%Curve Lines [id:da8789468342677784fig]
+\draw    (315.4,174.4) .. controls (355.4,144.4) and (407.4,213.6) .. (455,114.8) ;
 
 % Text Node
-\draw (338,233) node [anchor=north west][inner sep=0.75pt]   [align=left] {base};
+\draw (244,97.6) node [anchor=north west][inner sep=0.75pt]   [align=left] {[ 0 ]};
 % Text Node
-\draw (294.5,131.75) node [anchor=north west][inner sep=0.75pt]   [align=left] {loop};
+\draw (356,116.8) node [anchor=north west][inner sep=0.75pt]   [align=left] {[ 1 ]};
+% Text Node
+\draw (250.4,186.4) node [anchor=north west][inner sep=0.75pt]   [align=left] {[ 2 ]};
+% Text Node
+\draw (383.6,192) node [anchor=north west][inner sep=0.75pt]   [align=left] {[ 3 ]};
 
 
 \end{tikzpicture}
-
-\caption{Visualisation of $S^1$}
+\caption{Equivalence classes of $\mathbb{Z}$ under the relation $x \equiv y \ (\kw{mod} \ 4)$}\label{fig:eq-class-zmod4}
 \end{figure}
 
-To really show how HITs shine, we briefly describe the definition of $\id{double}$ that is a function from $S^1$ to $S^1$ that sends the $\id{loop}$ to the concatenation of two
-loops.
+%% SM: Hmm... the rest of this section seems to go firmly outside "related
+%% work" territory.
+
+%% TODO: Move this to the examples section
+
+%% An alternative way of defining a quotient on type $\kw{A}$ under a relation
+%% $\kw{R}$ is to construct a function $\oftype{\id{nf}}{A \rightarrow A}$ such
+%% that $\Funapp{\id{nf}}{\id{a}}$ is the canonical representative of the
+%% equivalence class that $\id{a}$ belongs to. This approach is comparable
+%% to\cite{courtieu-normalizedtypes,cohen2013pragmatic}. In other words, for
+%% $\oftype{x, y}{A}$,
+%% $\Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})}
+%% \iff \Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$.
+%% To represent this in our system, we can simply treat this as a quotient under
+%% the relation $\Funapp{\id{R}}{\id{x}}{\id{y}} =
+%% \Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$.
+
+
+
+%% To simplify the utilisation of this class of quotients in Typer programs, we define the following helper functions:
+
+%% \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+%% Qnorm : (A : Type) @$\rightarrow$@ (nf : A @$\rightarrow$@ A) @$\rightarrow$@ Type
+%% Qnorm A nf = Quotient A (@$\lambda$@ x y @$\rightarrow$@ Eq (nf x) (nf y))
+
+%% Qnorm_in : ?A @$\rightarrow$@ Qnorm ?A ?nf;
+%% Qnorm_in a = Quotient_in a;
+
+%% Qnorm_elim : Qnorm ?A ?nf @$\rightarrow$@ (?A @$\rightarrow$@ ?B) @$\rightarrow$@ ?B
+%% Qnorm_elim q f = Quotient_rec (f @$\circ$@ nf)
+%%                               (p := @$\lambda$@ x y r @$\rightarrow$@ Eq_cong f r)
+%%                               q
+
+%% Qnorm_eq : (a a' : ?A) @$\rightarrow$@ Eq (nf a) (nf a') @$\rightarrow$@ Eq (Qnorm_in a) (Qnorm_in a')
+%% Qnorm_eq a a' eq = Quotient_eq (a := a') (a' = a') eq
+%% \end{minted}
+
+%% We could have alternatively introduced quotients to Typer by implementing the
+%% above as a built-in construct instead of what we have implemented currently.
+%% However, as we have demonstrated above, this flavour of quotients is a strict
+%% subset of our implementation. Implying that this is less expressive and flexible
+%% compared to our implementation. Indeed, it is not always possible to define a
+%% normalisation function for a certain equivalence relation. Consider the Multiset
+%% example that was presented in \autoref{sec:multiset}, if we would like to
+%% normalise a set of elements, a reasonable approach would be to sort them, but
+%% this is not ideal as this would imply that the base type of the set needs to
+%% have some sort of order. However, this approach also has its advantages, notably
+%% in Courtieu's system\cite{courtieu-normalizedtypes},
+%% $\Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}
+%% \Rightarrow
+%% \Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})}$
+%% actually deals with definitional equivalences instead of propositional
+%% equivalences as is done with \fn{Qnorm\_eq}.
+
+%% NOTE: I think that maybe its not interesting to show the entire construction,
+%% it is sufficient to simply mention the possibility of doing so and direct
+%% interested readers to the book for more details
+
+%% Quotients based on normalisation may actually be represented in Typer without
+%% extending the language. Indeed, this can be done in any language that supports
+%% coproducts, as is suggested in\cite{HoTTbook}. This is unsurprising given that
+%% Courtieu's implementation may also be translated to the Calculus of Inductive
+%% Constructions\cite{werner-cic}, a close relative of Typer. We now describe the
+%% aforementioned construction in Typer, and then provide a proof that it fulfils
+%% the universal property of a quotient.
+
+%% We define a dependent pair as follows (this is why coproducts are related):
+
+%% \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+%% type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
+%%   | sigma (fst : A) (snd : B fst);
+%% \end{minted}
+
+%% Now, we can define the type $\kw{Qnorm}$ for some type $\id{A}$ and
+%% normalisation function $\oftype{r}{A \rightarrow A}$ as a dependent pair that
+%% contains some term of type $\id{A}$ and a proof that it has been normalised.
+%% This of course requires the idempotency of the normalisation function. We note
+%% as well that generally speaking, the codomain of the normalisation function need
+%% not be of the same type as its domain, however for the purposes of this
+%% construction such a constraint is necessary.
+
+%% \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+%% Qnorm : (A : Type) @$\rightarrow$@ isSet A @$\rightarrow$@ (r : A @$\rightarrow$@ A)
+%%         @$\rightarrow$@ (i : (x : A) @$\rightarrow$@ Eq (r (r x)) (r x)) @$\rightarrow$@ Type
+%% Qnorm A p r i = Sigma A (@$\lambda$@ (x : A) @$\rightarrow$@ Eq (r x) x)
+%% \end{minted}
+
+%% The surjection into $\kw{Qnorm}$ is simply the construction of a dependent pair
+%% containing a term that has been normalised and a proof of its normalisation.
+%% This is in contrast to the construction that was described previously with
+%% $\kw{Quotient}$ which applied the normalisation upon the elimination of a
+%% quotient, whereas here, normalisation immediately occurs upon the construction
+%% of a term of type $\kw{Qnorm}$.
+
+%% We can prove that the equality of $\kw{Qnorm}$ terms is characterised by the
+%% equality between the normalised forms of the underlying terms. As usual, we
+%% require $\Funapp{\kw{isSet}}{\id{A}}$ to prove this equality. A simple
+%% invocation of the \fn{${\Sigma}{\equiv}$\_prop} lemma completes the proof.
+
+%% \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+%% Qnorm_eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\Rightarrow$@ (p : HoTT_isSet A)
+%%            @$\Rightarrow$@ (r : A @$\rightarrow$@ A) @$\Rightarrow$@ (i : (x : A) @$\rightarrow$@ Eq (r (r x)) (r x))
+%%            @$\Rightarrow$@ Eq (r x) (r y) @$\rightarrow$@ Eq (Qnorm_in (p := p) (r := r) (i := i) x)
+%%                                    (Qnorm_in (p := p) (r := r) (i := i) y)
+%% Qnorm_eq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x y p r i @$\Rightarrow$@ @$\lambda$@ rx@$\equiv$@ry @$\rightarrow$@
+%%   @${\Sigma}{\equiv}$@_prop (B := @$\lambda$@ x @$\rightarrow$@ Eq (r x) x)
+%%            (@$\lambda$@ x @$\rightarrow$@ p (r x) x)
+%%            (sigma (B := @$\lambda$@ x @$\rightarrow$@ Eq (r x) x) (r x) (i x))
+%%            (sigma (B := @$\lambda$@ x @$\rightarrow$@ Eq (r x) x) (r y) (i y))
+%%            rx@$\equiv$@ry
+%% \end{minted}
+
+%% We can easily prove the reverse of this too, i.e.\ if we have that
+%% $\Funapp{\kw{Eq}}{(\Funapp{\kw{Qnorm\_in}}{x})}{(\Funapp{\kw{Qnorm\_in}}{y})}$,
+%% then $\Funapp{\kw{Eq}}{(\Funapp{r}{x})}{(\Funapp{r}{y})}$ is immediate by taking
+%% the first projection of the pairs.
+
+%% Finally, we can also show that $\kw{Qnorm}$ fulfils the universal property of a
+%% quotient. In other words, we want show the following equivalence:
+
+%% \begin{align*}
+%%   & (\Funapp{\kw{Qnorm}}{A}{p}{r}{i} \rightarrow B) \simeq \Sigma \ (A
+%%   \rightarrow B) \ (\lambda g \rightarrow (x \ y : A) \rightarrow \Funapp{r}{x}
+%%   \equiv \Funapp{r}{y} \rightarrow \Funapp{g}{x} \equiv \Funapp{g}{y})
+%% \end{align*}
+
+%% The proof itself is not very interesting as it is largely similar to the proof
+%% of the universal property of \id{Quotient} that is provided in
+%% \autoref{app:ump-quot} of the appendix. We note however that the reverse
+%% direction of this equivalence characterises the elimination principle of
+%% $\id{Qnorm}$, as was the case for $\id{Quotient}$.
+
+\section{Cubical Equality and HITs in Cubical Agda}
+
+Cubical Agda\cite{vezzosi2021cubical} is an extension of the \Agda{} proof
+assistant which serves to provide computational meaning to HoTT. This work is
+of particular interest to us because of two of its prominent features, cubical
+equality and higher inductive types (HITs). The thing that makes the type theory
+cubical is its notion of equality that is represented by functions out of an
+interval type, i.e.\ of type \fn{I $\rightarrow$ A}. More specifically, such
+equality types are known as \emph{paths} in the literature. If an equality
+between two terms is seen as a line, then we may construct an equality between
+two lines to produce a square. This process may be iterated to produce cubes,
+hypercubes, etc, justifying the name of the type theory. Cubical Agda introduced
+the interval type as a primitive with two endpoints \fn{i0 : I} and \fn{i1 : I}.
+Unlike normal types, pattern matching on an interval variable is disallowed. The
+type of homogeneous equality is represented by $\equiv$ with the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-double : @$S^1$@ @$\rightarrow$@ @$S^1$@
-double base = base
-double (loop i) = (loop @$\cdot$@ loop) i
+_@$\equiv$@_ : {A : Set @$\ell$@} @$\rightarrow$@ A @$\rightarrow$@ A @$\rightarrow$@ Set @$\ell$@
 \end{minted}
 
-Elimination is done in a cleaner manner when done using pattern matching. Aside
-%% SM: What do you mean by that?  Don't we "get" (or rather: have) to do
-%% the same with your quotients?
-from that, we get to specify how the function acts on equation constructors.
-%% SM: In this inherent to the difference between HITs and quotients,
-%% or is it a question of polish that could be added to your quotients?
-This leads to more convenient defitional equalities when using this function
-with the congruence property of equality.
+Readers that are not familiar with \Agda{} are reminded that \fn{\_$\equiv$\_}
+means that $\equiv$ is an infix operator\footnote{The underscores indicate where
+the arguments should go, in this case there should be an argument before and
+after the $\equiv$ operator.}. We mention as well that parameters that are
+within brackets are implicit. So if we have two terms \id{x} and \id{y} of type
+\id{A}, the type representing a path between the two terms is \fn{x $\equiv$ y}.
+In order to construct such an equality, we need to construct a function \id{f:I
+  $\rightarrow$ A} such that \fn{f i0} is equal to \id{x} and \fn{f i1} is equal
+to \id{y}. For example, we construct the reflexive proof of equality.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+refl : {A : Set @$\ell$@} {x : A} @$\rightarrow$@ x @$\equiv$@ x
+refl {x = x} = @$\lambda$@ i @$\rightarrow$@ x
+\end{minted}
+
+\fn{\{x = x\}} is how we tell \Agda{} that we would like to bind the implicit
+argument \id{x} (left) to the variable \id{x} (right) such that it may be used
+on the right-hand side. We constructed a constant function that returns \id{x}
+and ignores that interval argument \id{i}. This example also illustrates why
+explicit pattern matching on \id{i} is not allowed; if we could arbitrarily
+assign return values to each endpoint of the interval, we could then prove
+equalities between arbitrary terms. To emphasise that the equality proof is
+indeed nothing more than a typical function in Agda, we could move the argument
+\id{i} to the left-hand side of the equation as would be possible with normal
+function arguments.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+refl : {A : Set @$\ell$@} {x : A} @$\rightarrow$@ x @$\equiv$@ x
+refl {x = x} i = x
+\end{minted}
+
+Although pattern matching is forbidden on interval variables, numerous primitives
+act on the interval type, allowing us to manipulate them. We illustrate this with
+a proof of the commutativity of equality.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+comm : {A : Type} {x y : A} @$\rightarrow$@ x @$\equiv$@ y @$\rightarrow$@ y @$\equiv$@ x
+comm p i = p (~ i)
+\end{minted}
+
+Like before, we introduced a new interval variable \id{i} since we are
+constructing an equality proof which is simply a function. We also make use of
+the fact that the proof \id{p} of \fn{x $\equiv$ y} is also a function, hence we
+may freely use function application on it. The primitive operator \id{\~{}}
+negates an interval endpoint. We can thus verify that \fn{comm p i0 = y} and
+\fn{comm p i1 = x} as required.
+
+Having equality proofs that are based on functions out of the interval type also
+allows us to derive the theorem of functional extensionality. This theorem says
+that says that functions that are pointwise equal are equal. This is a desirable
+property that is not typically provable in Martin-Löf type
+theory\cite{martin1975intuitionistic}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+funext : {A B : Type} {f g : A @$\rightarrow$@ B} @$\rightarrow$@ (@$\forall$@ (a : A) @$\rightarrow$@ f a @$\equiv$@ g a) @$\rightarrow$@ f @$\equiv$@ g
+funext p i = @$\lambda$@ x @$\rightarrow$@ p x i
+\end{minted}
+
+The proof \id{p} is a witness that the functions \id{f} and \id{g} agree on all
+possible input arguments \id{a} of type \id{A}. An example of such a proof could
+be constructed for the functions \fn{$\lambda$ x $\rightarrow$ x + 1} and
+\fn{$\lambda$ x $\rightarrow$ 1 + x} which are extensionally equal. To prove the
+aforementioned theorem, we need to construct a term such that \fn{funext p i0 =
+  f} and \fn{funext p i1 = g}. Hence, we construct a lambda function that passes
+its argument \id{x} to \id{p} to obtain a proof that \fn{f x $\equiv$ g x}, then
+it applies the interval argument \id{i} obtain either \fn{f x} or \fn{g x}.
+Summarising the above, \fn{funext p i0 = $\lambda$ x $\rightarrow$ f x} and
+\fn{funext p i1 = $\lambda$ x $\rightarrow$ g x}. The $\eta$-equivalence of
+functions makes it such that the proof is complete\footnote{For clarity's sake
+we did not move the argument \id{x} to the left-hand side of the definition.} as
+it implies that \fn{$\lambda$ x $\rightarrow$ f x} is definitionally equal to
+\id{f}.
+
+%% The type of paths is the following:
+
+%% \begin{minted}[escapeinside=@@,mathescape=true]{agda}
+%% PathP : @$\forall$@ {@$\ell$@} (A : I @$\rightarrow$@ Set @$\ell$@) @$\rightarrow$@ A i0 @$\rightarrow$@ A i1 @$\rightarrow$@ Set @$\ell$@
+%% \end{minted}
+
+%% TODO: Talk about cubical equality here first
+
+HITs are a generalisation of inductive types that has been popularised by
+homotopy type theory\cite{HoTTbook}. Aside from the usual term constructors of
+inductive types, HITs allow the definition of equality constructors,
+i.e.\ equalities between terms of the inductive type. Additionally, we are
+allowed to define equalities between equalities. HITs provide us with an
+expressive and convenient way of defining quotients. For instance, we could
+define the type of integers that we previously saw.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+data Int : Type where
+  zero : Int
+  pred : Int @$\rightarrow$@ Int
+  succ : Int @$\rightarrow$@ Int
+  predsucc@$\equiv$@id : (n : Int) @$\rightarrow$@ pred (succ n) @$\equiv$@ n
+  succpred@$\equiv$@id : (n : Int) @$\rightarrow$@ succ (pred n) @$\equiv$@ n
+\end{minted}
+
+Here we define a new type \id{Int}. The first three constructors are known as
+\emph{term constructors} and are no different from the constructors that one
+defines with normal inductive types. While defining the term constructors, we
+may simultaneously define equality constructors\footnote{They are more commonly
+known as path constructors in a HoTT setting.} between terms of the inductive
+type. The \id{predsucc$\equiv$id} constructor says that for any integer \id{n},
+we may construct a proof of (propositional) equality between \fn{pred (succ n)}
+and \id{n}, ditto for \id{succpred$\equiv$id}. Not only can we prove such
+equalities, but they also have to be respected during elimination. Equality
+constructors have to be handled as separate branches when we carry out case
+analysis. We illustrate this by constructing a function that negates integers by
+recursively switching every \id{pred} to a \id{succ} and vice versa.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+Int-negate : Int @$\rightarrow$@ Int
+Int-negate zero = zero
+Int-negate (pred n) = succ (Int-negate n)
+Int-negate (succ n) = pred (Int-negate n)
+Int-negate (predsucc@$\equiv$@id n i) = succpred@$\equiv$@id (Int-negate n) i
+Int-negate (succpred@$\equiv$@id n i) = predsucc@$\equiv$@id (Int-negate n) i
+\end{minted}
+
+In the first three branches, we say what the function should do to the term
+constructors. The last two branches are proof that the function behaves
+coherently with respect to the two equality constructors of $\id{Int}$.
+According to \fn{predsucc$\equiv$id n}, we know that \fn{pred (succ n)} and
+\fn{n} are supposed to be equal. By congruence of equality, the application of
+\id{Int-negate} to both sides of this equality should again yield two equal
+terms, i.e.\ \fn{succ (pred (Int-negate n))} and \fn{Int-negate n} should be
+equal. We can easily construct a proof of this equality by using the term
+\fn{succpred$\equiv$id (Int-negate n)}. The other branch that deals with
+\fn{succpred$\equiv$id n} may be handled similarly.
+
+We could also define quotient types as formulated by
+Hoffman\cite{hofmann1995extensional} as a higher inductive type in \Agda{}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+data _/_ {l l'} (A : Type l) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type l') : Type (l-max l l')
+   where
+   [_] : A @$\rightarrow$@ A / R
+   eq/ : (a b : A) @$\rightarrow$@ (r : R a b) @$\rightarrow$@ [ a ] @$\equiv$@ [ b ]
+\end{minted}
+
+We define the quotient type former \fn{\_/\_} which has two parameters. \id{A}
+is the base type of the quotient, and \id{R} a binary relation defined on the
+type \id{A}. \fn{[\_]} is a mixfix operator that acts as the only term
+constructor of the quotient type; conceptually it acts as the surjection of a
+term of the base type into the quotient. \fn{eq/} on the other hand is an
+equality constructor that says that if we can provide a witness of \fn{R a b},
+i.e.\ a proof that terms \id{a} and \id{b} fulfil the underlying relation of the
+quotient, then their surjections into the quotient are also equal.
+
+To illustrate how this works, we present an example of a quotient type in the
+form of unordered pairs. The type of pairs is \fn{A $\times$ B} and its terms
+have the form \fn{(x , y)}. The concept of unordered pairs is such that \fn{(x ,
+  y)} should be equal to \fn{(y , x)}. We thus define a relation on the type of
+pairs such that permutations of the elements are equivalent.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+UPairR : @$\forall$@ {l} {A : Type l} @$\rightarrow$@ A @$\times$@ A @$\rightarrow$@ A @$\times$@ A @$\rightarrow$@ Type l
+UPairR (x1 , y1) (x2 , y2) = ((x1 @$\equiv$@ x2) @$\times$@ (y1 @$\equiv$@ y2)) @$\uplus$@ ((x1 @$\equiv$@ y2) @$\times$@ (y1 @$\equiv$@ x2))
+\end{minted}
+
+$\uplus$ is the type theoretical equivalent of disjunction. We say that two
+pairs are equivalent if they are equal element-wise or if by swapping the second
+pair we get element-wise equality. With that, we can now define the type of
+unordered pairs.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+UnorderedPair : @$\forall$@ {l} @$\rightarrow$@ Type l @$\rightarrow$@ Type l
+UnorderedPair A = (A @$\times$@ A) / UPairR
+\end{minted}
+
+If we would like to define a map from \fn{UnorderedPair A} to some type \id{B},
+intuitively speaking we would require some function \id{f} of type \fn{A
+  $\times$ A $\rightarrow$ B} such that it is a commutative function so that the
+ordering of the pairs does not matter, i.e.\ that \fn{$\forall$ x y. f x y
+  $\equiv$ f y x}. Indeed, we can define the function \id{UPairR-elim} that
+captures the above idea.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+UPairR-elim : @$\forall$@ {A B} @$\rightarrow$@ (f : A × A @$\rightarrow$@ B)
+              @$\rightarrow$@ ((x y : A) @$\rightarrow$@ f (x , y) @$\equiv$@ f (y , x))
+              @$\rightarrow$@ UnorderedPair A @$\rightarrow$@ B
+UPairR-elim f h [ p ] = f p
+UPairR-elim f h (eq/ (x1 , y1) (x2 , y2) r i) = ?
+\end{minted}
+
+Pattern matching on an unordered pair gives us two cases to cover. The \id{[\_]}
+constructor is handled easily as we simply pass the pair \id{p} to the function
+\id{f}. The branch for the equality constructor on the other hand is more
+interesting. The placeholder needs to be equal to \fn{f (x1 , y1)} when \fn{i =
+  i0} and it needs to be \fn{f (x2 , y2)} when \fn{i = i1}, in other hands we
+need to construct an equality between \fn{f (x1 , y1)} and \fn{f (x2 , y2)} and
+apply \id{i} to it. We provide a brief sketch of the proof, it may be
+constructed by doing case analysis on \id{r}, a term of type \fn{UPairR (x1 ,
+  y1) (x2 , y2)}. In the case of the left injection into the disjunction, we
+prove the required equality using the congruence property of equality; in the
+other case, we just use the substitution property of equality along with \id{h},
+a proof that \id{f} is commutative.
+
+%% TODO : Mention later or in the evaluation chapter that congruence on the eq
+%% constructor of our quotients doesn't have the more desirable equivalences
+%% that one might hope to get, as opposed to the quotient definition we have in
+%% Cubical Agda
 
 \section{Quotient Inductive Types}\label{sec:related-qit}
 
@@ -3979,169 +4322,6 @@ and
 \url{https://proofassistants.stackexchange.com/questions/908/what-exactly-is-setoid-hell/}}.
 Although \Coq{} offers numerous tactics to facilitate the usage of setoids, it
 quickly becomes unwieldy in the case of large programs.
-
-\section{Quotients by Normalisation}
-When we take the quotient of a type/set based on an equivalence relation, we are
-essentially partitioning the elements of the type into their respective
-equivalence classes. Elements of the same equivalence class are then identified
-in the resulting quotient type/set.
-
-\begin{figure}[H]
-  \centering
-\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
-%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
-
-%Shape: Ellipse [id:dp4829810342761349]
-\draw  [color={rgb, 255:red, 140; green, 66; blue, 66 }  ,draw opacity=1 ][fill={rgb, 255:red, 208; green, 162; blue, 162 }  ,fill opacity=1 ] (171,152.5) .. controls (171,100.86) and (237.71,59) .. (320,59) .. controls (402.29,59) and (469,100.86) .. (469,152.5) .. controls (469,204.14) and (402.29,246) .. (320,246) .. controls (237.71,246) and (171,204.14) .. (171,152.5) -- cycle ;
-%Curve Lines [id:da7772387220169334]
-\draw    (172,165) .. controls (220,144) and (335,171) .. (320,59) ;
-%Curve Lines [id:da0576638127246778]
-\draw    (264.2,147.6) .. controls (366.2,188.6) and (355,231) .. (314,246) ;
-%Curve Lines [id:da8789468342677784]
-\draw    (315.4,174.4) .. controls (355.4,144.4) and (407.4,213.6) .. (455,114.8) ;
-
-% Text Node
-\draw (244,97.6) node [anchor=north west][inner sep=0.75pt]   [align=left] {[ 0 ]};
-% Text Node
-\draw (356,116.8) node [anchor=north west][inner sep=0.75pt]   [align=left] {[ 1 ]};
-% Text Node
-\draw (250.4,186.4) node [anchor=north west][inner sep=0.75pt]   [align=left] {[ 2 ]};
-% Text Node
-\draw (383.6,192) node [anchor=north west][inner sep=0.75pt]   [align=left] {[ 3 ]};
-
-
-\end{tikzpicture}
-\caption{Equivalence classes of $\mathbb{Z}$ under the relation $x \equiv y \ (\kw{mod} \ 4)$}
-\end{figure}
-
-%% SM: A->A is one option.  Another is "A->B": the "canonical
-%% representative" doesn't have to belong to the same type.
-%% When using a normalization function of type A->A you'll usually
-%% want it to be idempotent (otherwise you have to make extra efforts
-%% to remember if you've already applied the normalization function),
-%% whereas with A->B this is not needed (or even meaningful)  :-)
-An alternative way of defining a quotient on type $\kw{A}$ under a relation
-$\kw{R}$ is to construct a function $\oftype{\id{nf}}{A \rightarrow A}$ such
-that $\Funapp{\id{nf}}{\id{a}}$ is the canonical representative of the
-equivalence class that $\id{a}$ belongs to. This approach is comparable
-to\cite{courtieu-normalizedtypes,cohen2013pragmatic}. In other words, for
-$\oftype{x, y}{A}$,
-$\Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})}
-\iff \Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$.
-To represent this in our system, we can simply treat this as a quotient under
-the relation $\Funapp{\id{R}}{\id{x}}{\id{y}} =
-\Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$.
-
-%% SM: Hmm... the rest of this section seems to go firmly outside "related
-%% work" territory.
-To simplify the utilisation of this class of quotients in Typer programs, we define the following helper functions:
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Qnorm : (A : Type) @$\rightarrow$@ (nf : A @$\rightarrow$@ A) @$\rightarrow$@ Type
-Qnorm A nf = Quotient A (@$\lambda$@ x y @$\rightarrow$@ Eq (nf x) (nf y))
-
-Qnorm_in : ?A @$\rightarrow$@ Qnorm ?A ?nf;
-Qnorm_in a = Quotient_in a;
-
-Qnorm_elim : Qnorm ?A ?nf @$\rightarrow$@ (?A @$\rightarrow$@ ?B) @$\rightarrow$@ ?B
-Qnorm_elim q f = Quotient_rec (f @$\circ$@ nf)
-                              (p := @$\lambda$@ x y r @$\rightarrow$@ Eq_cong f r)
-                              q
-
-Qnorm_eq : (a a' : ?A) @$\rightarrow$@ Eq (nf a) (nf a') @$\rightarrow$@ Eq (Qnorm_in a) (Qnorm_in a')
-Qnorm_eq a a' eq = Quotient_eq (a := a') (a' = a') eq
-\end{minted}
-
-We could have alternatively introduced quotients to Typer by implementing the
-above as a built-in construct instead of what we have implemented currently.
-However, as we have demonstrated above, this flavour of quotients is a strict
-subset of our implementation. Implying that this is less expressive and flexible
-compared to our implementation. Indeed, it is not always possible to define a
-normalisation function for a certain equivalence relation. Consider the Multiset
-example that was presented in \autoref{sec:multiset}, if we would like to
-normalise a set of elements, a reasonable approach would be to sort them, but
-this is not ideal as this would imply that the base type of the set needs to
-have some sort of order. However, this approach also has its advantages, notably
-in Courtieu's system\cite{courtieu-normalizedtypes},
-$\Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}
-\Rightarrow
-\Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})}$
-actually deals with definitional equivalences instead of propositional
-equivalences as is done with \fn{Qnorm\_eq}.
-
-Quotients based on normalisation may actually be represented in Typer without
-extending the language. Indeed, this can be done in any language that supports
-coproducts, as is suggested in\cite{HoTTbook}. This is unsurprising given that
-Courtieu's implementation may also be translated to the Calculus of Inductive
-Constructions\cite{werner-cic}, a close relative of Typer. We now describe the
-aforementioned construction in Typer, and then provide a proof that it fulfils
-the universal property of a quotient.
-
-We define a dependent pair as follows (this is why coproducts are related):
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
-  | sigma (fst : A) (snd : B fst);
-\end{minted}
-
-Now, we can define the type $\kw{Qnorm}$ for some type $\id{A}$ and
-normalisation function $\oftype{r}{A \rightarrow A}$ as a dependent pair that
-contains some term of type $\id{A}$ and a proof that it has been normalised.
-This of course requires the idempotency of the normalisation function. We note
-as well that generally speaking, the codomain of the normalisation function need
-not be of the same type as its domain, however for the purposes of this
-construction such a constraint is necessary.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Qnorm : (A : Type) @$\rightarrow$@ isSet A @$\rightarrow$@ (r : A @$\rightarrow$@ A)
-        @$\rightarrow$@ (i : (x : A) @$\rightarrow$@ Eq (r (r x)) (r x)) @$\rightarrow$@ Type
-Qnorm A p r i = Sigma A (@$\lambda$@ (x : A) @$\rightarrow$@ Eq (r x) x)
-\end{minted}
-
-The surjection into $\kw{Qnorm}$ is simply the construction of a dependent pair
-containing a term that has been normalised and a proof of its normalisation.
-This is in contrast to the construction that was described previously with
-$\kw{Quotient}$ which applied the normalisation upon the elimination of a
-quotient, whereas here, normalisation immediately occurs upon the construction
-of a term of type $\kw{Qnorm}$.
-
-We can prove that the equality of $\kw{Qnorm}$ terms is characterised by the
-equality between the normalised forms of the underlying terms. As usual, we
-require $\Funapp{\kw{isSet}}{\id{A}}$ to prove this equality. A simple
-invocation of the \fn{${\Sigma}{\equiv}$\_prop} lemma completes the proof.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Qnorm_eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\Rightarrow$@ (p : HoTT_isSet A)
-           @$\Rightarrow$@ (r : A @$\rightarrow$@ A) @$\Rightarrow$@ (i : (x : A) @$\rightarrow$@ Eq (r (r x)) (r x))
-           @$\Rightarrow$@ Eq (r x) (r y) @$\rightarrow$@ Eq (Qnorm_in (p := p) (r := r) (i := i) x)
-                                   (Qnorm_in (p := p) (r := r) (i := i) y)
-Qnorm_eq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x y p r i @$\Rightarrow$@ @$\lambda$@ rx@$\equiv$@ry @$\rightarrow$@
-  @${\Sigma}{\equiv}$@_prop (B := @$\lambda$@ x @$\rightarrow$@ Eq (r x) x)
-           (@$\lambda$@ x @$\rightarrow$@ p (r x) x)
-           (sigma (B := @$\lambda$@ x @$\rightarrow$@ Eq (r x) x) (r x) (i x))
-           (sigma (B := @$\lambda$@ x @$\rightarrow$@ Eq (r x) x) (r y) (i y))
-           rx@$\equiv$@ry
-\end{minted}
-
-We can easily prove the reverse of this too, i.e.\ if we have that
-$\Funapp{\kw{Eq}}{(\Funapp{\kw{Qnorm\_in}}{x})}{(\Funapp{\kw{Qnorm\_in}}{y})}$,
-then $\Funapp{\kw{Eq}}{(\Funapp{r}{x})}{(\Funapp{r}{y})}$ is immediate by taking
-the first projection of the pairs.
-
-Finally, we can also show that $\kw{Qnorm}$ fulfils the universal property of a
-quotient. In other words, we want show the following equivalence:
-
-\begin{align*}
-  & (\Funapp{\kw{Qnorm}}{A}{p}{r}{i} \rightarrow B) \simeq \Sigma \ (A
-  \rightarrow B) \ (\lambda g \rightarrow (x \ y : A) \rightarrow \Funapp{r}{x}
-  \equiv \Funapp{r}{y} \rightarrow \Funapp{g}{x} \equiv \Funapp{g}{y})
-\end{align*}
-
-The proof itself is not very interesting as it is largely similar to the proof
-of the universal property of \id{Quotient} that is provided in
-\autoref{app:ump-quot} of the appendix. We note however that the reverse
-direction of this equivalence characterises the elimination principle of
-$\id{Qnorm}$, as was the case for $\id{Quotient}$.
 
 \chapter{Evaluation}
 
