@@ -2435,19 +2435,19 @@ Given that the equivalence of rational numbers is captured by a relation, we do
 not need to normalise our rational numbers before or after each computation,
 instead we prove that all of our operations respect the equivalence of rational
 numbers. We hoped that this would give us better runtime efficiency, as opposed
-to more naives implementations. To make this clearer, we illustrate one possible
+to more naive implementations. To make this clearer, we illustrate one possible
 naive implementation. To ensure that operations on the base type of the quotient
 type that we intend to use to represent the rational numbers respect the
 equivalence relation, we may be tempted to simply normalise the operands before
 actually carrying out any computation. This implies that if the operands were
 indeed equivalent, then the normalisation of the operands would have yielded two
-terms that are provably equal. Hence by the congruence property of equality, the
+provably equal terms. Hence by the congruence property of equality, the
 operation would necessarily respect the underlying relation. However, it is
-clear that such an approach might possibly be expensive. In order to normalise
-the base type, which we could imagine to be a pair of integers, we would have to
-divide both integers by their greatest commmon divisor (GCD). The calculation of
-their GCD could in itself be more costly that the actual operation itself. Thus,
-this unnecessary normalisation could potentially adversely affect the runtime
+clear that such an approach might be expensive. To normalise the base type,
+which we could imagine to be a pair of integers, we would have to divide both
+integers by their greatest common divisor (GCD). The calculation of their GCD
+could in itself be more costly than the actual operation itself. Thus, this
+unnecessary normalisation could potentially adversely affect the runtime
 efficiency of our operations on rational numbers. Hence, our definitions of
 operations on the rational numbers do not rely on normalisation. However, this
 is not without its downsides as it entails heavier proof obligations, this is a
@@ -2455,7 +2455,7 @@ topic that we shall discuss subsequently.
 
 Typer has a built-in $\kw{Integer}$ type. Behind the scenes, this is based on
 big integers in OCaml, leveraging the Zarith library. Operations on the typer
-$\kw{Integer}$ type such as addition, multiplication etc are implemented as
+$\kw{Integer}$ type such as addition, multiplication, etc are implemented as
 axioms. At runtime, the responsibilities of these functions are simply delegated
 to their corresponding OCaml functions to carry out the necessary computations.
 So far, we are unable to reason about these operations in Typer as they are
@@ -2483,7 +2483,10 @@ Integer_*-assoc : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z
                         (Integer_* (Integer_* x y) z)
 \end{minted}
 
-We also want to be able to show that multipication is distributive with respect to addition. We only add left distributivity as an axiom, as right distributivity can be easily proven as a theorem, this is also the case for the other axioms that we will describe below.
+We also want to be able to show that multiplication is distributive with respect
+to addition. We only add left distributivity as an axiom, as right
+distributivity can be easily proven as a theorem, this is also the case for the
+other axioms that we will describe below.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Integer_*DistL+ : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z : Integer)
@@ -2491,7 +2494,9 @@ Integer_*DistL+ : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z
                         (Integer_+ (Integer_* x z) (Integer_* y z))
 \end{minted}
 
-The above properties can also be stated for the subtraction operation. We also want to be able to say that we have additive inverses for all integers and that 0 is the additive identity.
+The above properties can also be stated for the subtraction operation. We also
+want to be able to say that we have additive inverses for all integers and that
+0 is the additive identity.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Integer_+Linv : (x : Integer) |$\rightarrow$| Eq (Integer_+ (Integer_- 0 x) x) 0
@@ -2505,7 +2510,12 @@ Of course, we should also be able to say that 1 is the multiplicative identity.
 Integer_*Lid : (x : Integer) |$\rightarrow$| Eq (Integer_* 1 x) x
 \end{minted}
 
-Now that we have all these axioms, we can say that $\kw{Integer}$ fulfills the properties of a commutative ring. Aside from these axioms, there are some other properties that we require in order to be able to construct some useful operations on the resulting $\kw{Rational}$ type. Notably, we need to be able to say that if the product of two integers is zero, then at least one of them is zero. We formulate this in the following manner:
+Now that we have all these axioms, we can say that $\kw{Integer}$ fulfills the
+properties of a commutative ring. Aside from these axioms, there are some other
+properties that we require in order to be able to construct some useful
+operations on the resulting $\kw{Rational}$ type. Notably, we need to be able to
+say that if the product of two integers is zero, then at least one of them is
+zero. We formulate this in the following manner:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Integer_isIntegral : (x : Integer) |$\rightarrow$| (y : Integer)
@@ -2513,9 +2523,13 @@ Integer_isIntegral : (x : Integer) |$\rightarrow$| (y : Integer)
                      |$\rightarrow$| Eq y 0
 \end{minted}
 
-Here, $\kw{Void}$ is the $\mathbb{0}$ type (also known as the empty type or bottom). This axiom essentially states that if a product $x \cdot y = 0$, then $x \ne 0 \rightarrow y = 0$.
+Here, $\kw{Void}$ is the $\mathbb{0}$ type (also known as the empty type or
+bottom). This axiom essentially states that if a product $x \cdot y = 0$, then
+$x \ne 0 \rightarrow y = 0$.
 
-Another useful axiom to have is one that asserts that 0 is an absorbing element with respect to multiplication. In other words, multiplying by 0 always yields 0 as a result.
+Another useful axiom to have is one that asserts that 0 is an absorbing element
+with respect to multiplication. In other words, multiplying by 0 always yields 0
+as a result.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Integer_*Lzero : (x : Integer) |$\rightarrow$| Eq (Integer_* 0 x) 0
@@ -2739,7 +2753,7 @@ Rational_- a b = Rational_+ a (Rational_negate b)
 
 $\id{Quotient\_rec2}$ is a library function that allows us to simultaneously
 eliminate two quotient expressions, more details are given in
-\autoref{subsec:rec2}. Finally, we want to prove that negation of a rational
+\autoref{subsec:rec2}. Finally, we want to prove that the negation of a rational
 produces its additive inverse. We define $\id{Rational\_0}$ to be the additive
 identity using a trivial representative of its equivalence class.
 
@@ -2794,7 +2808,7 @@ Rational_+Rinv q = Eq_trans (Rational_+-Comm q (Rational_negate q))
 
 For brevity, we do not describe the proofs for multiplication as they can be
 carried out in a similar fashion as above. As a sanity check of the validity of
-our construction of the rational nnumbers, we provided proofs of other
+our construction of the rational numbers, we provided proofs of other
 interesting properties of \id{Rational} in the actual file, proving that it does
 indeed satisfy the characteristics of a \emph{ring}.
 
@@ -3774,7 +3788,9 @@ effort to introduce a system that allows us to express a normalisation scheme
 for terms of a certain type to dependent type theory. More specifically,
 Courtieu conceived the above as an extension to the Calculus of Inductive
 Constructions (CIC)\cite{werner-cic}, a dependent type theory that serves as the
-backbone of many modern proof assistants in some shape or form. The overall
+backbone of many modern proof assistants in some shape or form. It turns out
+that the extended calculus may be translated to the CIC itself, implying that
+desirable properties of the CIC are preserved by this extension. The overall
 challenge was to ensure that normalised types exhibit the appropriate
 computational and logical behaviours all while maintaining the consistency of
 the system.
@@ -4138,7 +4154,10 @@ prove the required equality using the congruence property of equality; in the
 other case, we just use the substitution property of equality along with \id{h},
 a proof that \id{f} is commutative.
 
-\section{Quotient Inductive Types}\label{sec:related-qit}
+\section{Quotient Haskell}\label{sec:related-qit}
+
+Quotient Haskell is an extension that introduces quotient inductive types to the
+Haskell programming language.
 
 Quotient inductive types (QITs) are essentially HITs that are set-truncated.
 This essentially provides us with the full range of expressiveness of HITs
