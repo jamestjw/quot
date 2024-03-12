@@ -3003,6 +3003,38 @@ By partially applying a proof that P is a proposition and a function of type
 $\id{A} \rightarrow \id{P}$ to $\id{propTruncRec}$, we obtain the second
 property.
 
+\section{Normalised Types}
+
+Nomalised types introduced in \autoref{sec:normalised-types-courtieu} are a
+strict subset of our quotient types, we show how we encode them in our system.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+Qnorm : (A : Type) @$\rightarrow$@ (nf : A @$\rightarrow$@ A) @$\rightarrow$@ Type
+Qnorm A nf = Quotient A (@$\lambda$@ x y @$\rightarrow$@ Eq (nf x) (nf y))
+
+Qnorm_in : ?A @$\rightarrow$@ Qnorm ?A ?nf
+Qnorm_in a = Quotient_in a
+
+Qnorm_elim : Qnorm ?A ?nf @$\rightarrow$@ (?A @$\rightarrow$@ ?B) @$\rightarrow$@ ?B
+Qnorm_elim q f = Quotient_rec (f @$\circ$@ nf)
+                              (p := @$\lambda$@ x y r @$\rightarrow$@ Eq_cong f r)
+                              q
+
+Qnorm_eq : (a a' : ?A) @$\rightarrow$@ Eq (nf a) (nf a') @$\rightarrow$@ Eq (Qnorm_in a) (Qnorm_in a')
+Qnorm_eq a a' eq = Quotient_eq (a := a') (a' = a') eq
+\end{minted}
+
+The \id{Qnorm} type former is constructed as a quotient with a relation defined
+by the equality of normalised terms. The construction of a term of type
+\id{Qnorm A nf} is simply a surjection into the quotient. The elimination
+principle simply applies the function \id{f} after normalising the term of the
+base type. The user is not required to provide additional coherence proofs as we
+immediately appeal to the congruence property of equality. We can also construct
+\id{Qnorm\_eq}, a proof that terms that share the same normal form are
+necessarily equal after their surjection into the quotient. We mention however
+that this may only be proven propositionally, as opposed to Courtieu's system
+where such an equality would hold judgementally.
+
 \section{Elimination (Special cases)}
 
 The elimination of quotients involves numerous proof obligations, and this
@@ -3170,7 +3202,7 @@ elimProp2 = @$\lambda$@ _ _ _ _ _ A B R S P @$\Rrightarrow$@ @$\lambda$@ prop f 
 \section{Functional Extensionality}\label{sec:quot-implies-funext}
 
 In intensional type theory, functional extensionality is a property that is
-respected by all functions, however typically this may not be proven. In this
+respected by all functions, however, typically this may not be proven. In this
 section, we demonstrate that the existence of quotient types implies functional
 extensionality.
 
@@ -3204,7 +3236,7 @@ $\eta$-equivalence of functions, we construct the desired proof by using the
 congruence property of equality.
 
 \chapter{Relationship to Category Theory}
-There is an intricate relationship between logic, programming (type theory) and
+There is an intricate relationship between logic, programming (type theory), and
 category theory, as was proposed by Harper\cite{harpertrinity}. Everything that
 exists in each of these domains necessarily has an interesting analogue in the
 other two. In previous chapters, we have motivated quotients by drawing
@@ -3229,7 +3261,7 @@ be related to other objects via morphisms (also known as arrows, these two terms
 shall be used interchangeably in the following discussion). Assuming that
 readers are familiar with programming and/or type theory, one could think of
 categories as types, objects as terms of a particular type, and morphisms as
-functions. Every object has an identity arrow that relates it with itself.
+functions. Every object has an identity arrow that relates it to itself.
 
 \begin{figure}[H]
 \centering
@@ -3324,7 +3356,7 @@ At the heart of category theory, we have the notion of composition. Suppose that
 
 \end{figure}
 
-To conclude our short introduction to category theory, we would like to present the category theoretic equivalent of a ubiqituous construct in type theory, i.e.\ products (also known as tuples). One should be familiar with the notion of products being defined as pairs of elements, however in category theory, we have to define such objects in terms of its morphisms that relate it to other objects. If some object C were to be the product of objects A and B, then we require that it has two morphisms that behave as the first and second projections out of the product. In other words, we require the two morphisms $\id{p} : \id{C} \rightarrow \id{A}$ and $\id{q} : \id{C} \rightarrow \id{B}$.
+To conclude our short introduction to category theory, we would like to present the category-theoretic equivalent of a ubiquitous construct in type theory, i.e.\ products (also known as tuples). One should be familiar with the notion of products being defined as pairs of elements, however in category theory, we have to define such objects in terms of its morphisms that relate it to other objects. If some object C were to be the product of objects A and B, then we require that it has two morphisms that behave as the first and second projections out of the product. In other words, we require the two morphisms $\id{p} : \id{C} \rightarrow \id{A}$ and $\id{q} : \id{C} \rightarrow \id{B}$.
 
 \begin{figure}[H]
   \centering
@@ -3363,7 +3395,7 @@ To conclude our short introduction to category theory, we would like to present 
 \end{figure}
 
 However, we notice that this is far too general of a definition since it is
-likely that there are many objects that fulfil these criteria. Here, we
+likely that many objects fulfil these criteria. Here, we
 introduce the notion of a universal property which allows us to identify
 \emph{the best product}. The best product is the one that is not too general,
 and yet not too restrictive, it is \emph{just right}. More formally, the product
@@ -3735,7 +3767,7 @@ Indeed, laws in Miranda are no more than smart constructors in disguise.
 Nevertheless, they highlight the fact that we often would like to express the
 fact certain terms of our algebraic data types are equal.
 
-\section{Normalised Types}
+\section{Normalised Types}\label{sec:normalised-types-courtieu}
 
 Courtieu's normalised types\cite{courtieu-normalizedtypes} may be seen as an
 effort to introduce a system that allows us to express a normalisation scheme
@@ -3747,24 +3779,24 @@ challenge was to ensure that normalised types exhibit the appropriate
 computational and logical behaviours all while maintaining the consistency of
 the system.
 
-In order to construct a normalised type on top of a base type \id{A}, we first
-construct a normalisation function of type \fn{A $\rightarrow$ A}. In a way,
-this is similar to Miranda's laws, but instead of enumerating them, they are
-packaged into a single function. We can then construct the type \fn{\kw{Norm}(A,
-  nf)} which represents the type \id{A} normalised by \id{nf}. Elements of the
-type have the form \fn{\kw{Class}(A, nf, t)} where \id{t} is a term of type
-\id{A}. Conceptually, when we take the quotient of a type, we are essentially
+To construct a normalised type on top of a base type \id{A}, we first construct
+a normalisation function of type \fn{A $\rightarrow$ A}. In a way, this is
+similar to Miranda's laws, but instead of enumerating them, they are packaged
+into a single function. We can then construct the type \fn{\kw{Norm}(A, nf)}
+which represents the type \id{A} normalised by \id{nf}. Elements of the type
+have the form \fn{\kw{Class}(A, nf, t)} where \id{t} is a term of type \id{A}.
+Conceptually, when we take the quotient of a type, we are essentially
 partitioning the base type into equivalence classes as suggested by the example
 in \autoref{fig:eq-class-zmod4}. Indeed, normalised types allow us to represent
-a special case of quotient types where it is possible for us to elect a
-canonical representative for every equivalence class by means of a normalisation
-function. If we have two terms \id{t} and \id{t'} that share the same normal
-form, then we could expect \fn{\kw{Class}(A, nf, t)} and \fn{\kw{Class}(A, nf,
-  t')} to be equal. Indeed, Courtieu's extension of the CIC benefits from having
-the above equality hold judgementally by virtue of an augmentation of the
-internal conversion and equality rules.
+a special case of quotient types where we can elect a canonical representative
+for every equivalence class using a normalisation function. If we have two terms
+\id{t} and \id{t'} that share the same normal form, then we could expect
+\fn{\kw{Class}(A, nf, t)} and \fn{\kw{Class}(A, nf, t')} to be equal. Indeed,
+Courtieu's extension of the CIC benefits from having the above equality hold
+judgementally by virtue of an augmentation of the internal conversion and
+equality rules.
 
-In order to eliminate a term \id{u} of type \fn{\kw{Norm}(A, nf)}, we use the
+To eliminate a term \id{u} of type \fn{\kw{Norm}(A, nf)}, we use the
 \kw{ElimNorm} primitive. By using a function \fn{f : A $\rightarrow$ B}, we can
 build the term \fn{\kw{ElimNorm}(A, nf, f, u) : B}. The eliminator has the
 expected computation rule \fn{\kw{ElimNorm}(A, nf, f, \kw{Class}(A, nf, t))
@@ -3810,57 +3842,6 @@ his system.
 
 %% SM: Hmm... the rest of this section seems to go firmly outside "related
 %% work" territory.
-
-%% TODO: Move this to the examples section
-
-%% An alternative way of defining a quotient on type $\kw{A}$ under a relation
-%% $\kw{R}$ is to construct a function $\oftype{\id{nf}}{A \rightarrow A}$ such
-%% that $\Funapp{\id{nf}}{\id{a}}$ is the canonical representative of the
-%% equivalence class that $\id{a}$ belongs to. This approach is comparable
-%% to\cite{courtieu-normalizedtypes,cohen2013pragmatic}. In other words, for
-%% $\oftype{x, y}{A}$,
-%% $\Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})}
-%% \iff \Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$.
-%% To represent this in our system, we can simply treat this as a quotient under
-%% the relation $\Funapp{\id{R}}{\id{x}}{\id{y}} =
-%% \Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}$.
-
-
-
-%% To simplify the utilisation of this class of quotients in Typer programs, we define the following helper functions:
-
-%% \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-%% Qnorm : (A : Type) @$\rightarrow$@ (nf : A @$\rightarrow$@ A) @$\rightarrow$@ Type
-%% Qnorm A nf = Quotient A (@$\lambda$@ x y @$\rightarrow$@ Eq (nf x) (nf y))
-
-%% Qnorm_in : ?A @$\rightarrow$@ Qnorm ?A ?nf;
-%% Qnorm_in a = Quotient_in a;
-
-%% Qnorm_elim : Qnorm ?A ?nf @$\rightarrow$@ (?A @$\rightarrow$@ ?B) @$\rightarrow$@ ?B
-%% Qnorm_elim q f = Quotient_rec (f @$\circ$@ nf)
-%%                               (p := @$\lambda$@ x y r @$\rightarrow$@ Eq_cong f r)
-%%                               q
-
-%% Qnorm_eq : (a a' : ?A) @$\rightarrow$@ Eq (nf a) (nf a') @$\rightarrow$@ Eq (Qnorm_in a) (Qnorm_in a')
-%% Qnorm_eq a a' eq = Quotient_eq (a := a') (a' = a') eq
-%% \end{minted}
-
-%% We could have alternatively introduced quotients to Typer by implementing the
-%% above as a built-in construct instead of what we have implemented currently.
-%% However, as we have demonstrated above, this flavour of quotients is a strict
-%% subset of our implementation. Implying that this is less expressive and flexible
-%% compared to our implementation. Indeed, it is not always possible to define a
-%% normalisation function for a certain equivalence relation. Consider the Multiset
-%% example that was presented in \autoref{sec:multiset}, if we would like to
-%% normalise a set of elements, a reasonable approach would be to sort them, but
-%% this is not ideal as this would imply that the base type of the set needs to
-%% have some sort of order. However, this approach also has its advantages, notably
-%% in Courtieu's system\cite{courtieu-normalizedtypes},
-%% $\Funapp{\kw{Eq}}{(\Funapp{\id{nf}}{\id{x}})}{(\Funapp{\id{nf}}{\id{y}})}
-%% \Rightarrow
-%% \Funapp{\kw{Eq}}{(\Funapp{\kw{Quotient\_in}}{\id{x}})}{(\Funapp{\kw{Quotient\_in}}{\id{y}})}$
-%% actually deals with definitional equivalences instead of propositional
-%% equivalences as is done with \fn{Qnorm\_eq}.
 
 %% NOTE: I think that maybe its not interesting to show the entire construction,
 %% it is sufficient to simply mention the possibility of doing so and direct
@@ -3962,7 +3943,7 @@ _@$\equiv$@_ : {A : Set @$\ell$@} @$\rightarrow$@ A @$\rightarrow$@ A @$\rightar
 
 Readers that are not familiar with \Agda{} are reminded that \fn{\_$\equiv$\_}
 means that $\equiv$ is an infix operator\footnote{The underscores indicate where
-the arguments should go, in this case there should be an argument before and
+the arguments should go, in this case, there should be an argument before and
 after the $\equiv$ operator.}. We mention as well that parameters that are
 within brackets are implicit. So if we have two terms \id{x} and \id{y} of type
 \id{A}, the type representing a path between the two terms is \fn{x $\equiv$ y}.
@@ -4038,8 +4019,6 @@ it implies that \fn{$\lambda$ x $\rightarrow$ f x} is definitionally equal to
 %% \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 %% PathP : @$\forall$@ {@$\ell$@} (A : I @$\rightarrow$@ Set @$\ell$@) @$\rightarrow$@ A i0 @$\rightarrow$@ A i1 @$\rightarrow$@ Set @$\ell$@
 %% \end{minted}
-
-%% TODO: Talk about cubical equality here first
 
 HITs are a generalisation of inductive types that has been popularised by
 homotopy type theory\cite{HoTTbook}. Aside from the usual term constructors of
@@ -4159,11 +4138,6 @@ prove the required equality using the congruence property of equality; in the
 other case, we just use the substitution property of equality along with \id{h},
 a proof that \id{f} is commutative.
 
-%% TODO : Mention later or in the evaluation chapter that congruence on the eq
-%% constructor of our quotients doesn't have the more desirable equivalences
-%% that one might hope to get, as opposed to the quotient definition we have in
-%% Cubical Agda
-
 \section{Quotient Inductive Types}\label{sec:related-qit}
 
 Quotient inductive types (QITs) are essentially HITs that are set-truncated.
@@ -4202,7 +4176,7 @@ of the congruence properties of the equality type. This seems to suggest that
 %% SM: More convenient than HITs or than QTs?
 QITs are more convenient to work with in practice. QITs are also strictly more
 expressive than the combination of ordinary inductive types with quotient
-types\cite{fiore2022quotients}. Though in practice, the additional expressivity
+types\cite{fiore2022quotients}. However in practice, the additional expressivity
 offered by QITs is often unrequired for general programming. The example
 provided by the aforementioned paper of a QIT that we may not trivially define
 using quotient types in the form of unordered infinitely branching trees is
@@ -4226,7 +4200,7 @@ observational equality type is denoted as \fn{t $\sim_A$ u}, this type
 represents the equality of terms \id{t} and \id{u} at type \id{A}. However, this
 is not a typical type former of equality types as we have previously seen,
 $\sim$ in reality pattern matches on the type \id{A} and the two endpoints and
-computes to a type. We show two reductions rules to illustrate this point.
+computes to a type. We show two reduction rules to illustrate this point.
 First, we show the reduction rule for observational equality between two
 propositions. Note that in TT$^{obs}$, $\Omega_i$ is a universe of proof
 irrelevant propositions.
@@ -4262,7 +4236,7 @@ quotient types. The quotient type \fn{A/R} is interpreted as a setoid with
 of course requires the relation \id{R} to be reflexive, symmetric and
 %% SM: "surjections" -> "projected"?
 transitive. In the theory, equality between two terms that are surjections into
-the quotient (this is syntatically represented by $\pi(t)$) reduces to the
+the quotient (this is syntactically represented by $\pi(t)$) reduces to the
 underlying relation between the base terms, as is illustrated by the following
 rule:
 
@@ -4309,7 +4283,7 @@ is compatible with the relation. However, every function definition that
 interacts with the setoid needs to be accompanied with a proof that setoid
 equivalence is respected. This is in contrast to the ideal situation where such
 coherence proofs are \emph{only} required in the function that eliminates
-quotients, subsequent interaction and composition of this function should be
+quotients, subsequent interaction, and composition of this function should be
 %% SM: "This has historically...": not clear whether "This" refers to setoid
 %% rewriting or to "the ideal situation".
 free of the burden of such proof obligations. This has historically been the
