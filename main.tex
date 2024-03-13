@@ -325,6 +325,7 @@
 
 \copyrightyear{2024}
 
+%% SM: Vraiment?
 \department{Département de mathématiques et de statistique}
 
 \date{\today} %Date du DÉPÔT INITIAL (ou du 2e dépôt s'il y a corrections majeures)
@@ -759,6 +760,8 @@ Typer and its role in the elimination of quotients.
 %% sections instead.
 \subsection*{Cubical Equality}
 
+%% SM: The formulation "function out of" is not very common, so I wouldn't
+%% be surprised if it catches some readers off-guard.
 Recent advances in type theory inspired by topology propose a different approach
 to represent equality proofs by modeling them as functions out of a unit
 interval to some type A. In this alternative formulation of equality proofs,
@@ -988,15 +991,33 @@ without the truncation).
 %% part of Typer.
 
 \chapter{Cubical Equality}\label{ch:cubical-equality}
+%% SM: You need some introductory text here (between \chapter and \section).
+%% Or maybe just move the \section header after its first paragraph.
 \section{Interval type}
 
+%% SM: Give some indication of the context in which such a definition
+%% might be considered "typical".
 First, we provide the typical definition of the interval type as can be found in
+%% SM: When citing articles, we typically cite just the article
+%% but when citing a subject treated in some part of a book, you don't
+%% want to just cite the book, you want to additionally mention which
+%% chapter you're referring to.
 various sources such as the HoTT book\cite{HoTTbook}, subsequently we present
 our alternative formulation of the interval type and show that it is equivalent
 to the traditional definition. We carry out the below presentation in a system
 that already has a notion of propositional equality unrelated to the interval
 type, which we denote with $\equiv$ for aesthetic purposes.
+%% SM: Clarify what's up with this \equiv.  E.g. say that *for now* we presume we
+%% have such a thing, just while we try to help the reader build an intuition
+%% about what we're presenting, but that later on we're going to actually
+%% define it.  Or maybe, actually give a definition of \equiv like HoTT-Book does.
+%% IIUC in this section you want to stay close to "an standard
+%% presentation", so a good choice is to literally copy the notation
+%% and the definitions from a known references (like HoTT-Book) and say
+%% so explicitly.
 
+%% SM: Put those 4 axioms together so they use the space better, e.g. with
+%% a `mathpar` environment.
 \begin{prooftree*}
    \infer0{\oftype{\ctx}{\bI}{\kw{Type}}}
 \end{prooftree*}
@@ -1015,13 +1036,21 @@ type, which we denote with $\equiv$ for aesthetic purposes.
 
 We postulate the existence of the interval type $\bI$, along with its endpoints
 \id{$i_0$} and \id{$i_1$}. The intuition is that elements of $\bI$ correspond to
+%% SM: Your readers might still not intuitively equate "\equiv" with "continuous
+%% path", so state it both ways to remind them that we're considering both
+%% notions as interchangeable.
 points in the real unit interval $[0, 1]$. We also have \id{seg} which is a
 witness of a continuous path between \id{$i_0$} and \id{$i_1$}.
 
 %% SM: You use "Elimination" here and "recursion" later.
 %% TODO: Think about this, maybe what I should do is just introduce the entire
 %% thing as the `elimination' principle and not the `recursion' principle.
+%% SM: Sounds good to me (there's no actual recursion involved anyway).
+%% SM: Also, some readers may not be fully familiar with the terminology
+%% of "elimination principle", so you can explicitly mention
+%% "if/then/else" as the elimination principle for booleans.
 Elimination of $\bI$ is similar to that of \id{Boolean}, the only difference is
+%% SM: "a proof ... to prove" 🙁
 that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected.
 The recursion principle of $\bI$ can thus be stated as follows\footnote{This has
 nothing to do with recursive function calls. When we say recursion principle, we
@@ -1031,6 +1060,8 @@ in the HoTT book\cite{HoTTbook}.}:
 
 %% SM: Again, how is ≡ defined?  You don't necessarily need to explain it
 %% but at least point out the apparent circularity.
+%% SM: Before showing this rule, you also want to present the
+%% {rec_{\bI} (\_. A, P, i)} syntax
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{M}{A}}
    \hypo{\oftype{\ctx}{N}{A}}
@@ -1041,12 +1072,15 @@ in the HoTT book\cite{HoTTbook}.}:
 %% SM: Try and give some intuition for what I is like.
 It has the below computation rules:
 
+%% SM: These don't look computational at all, since you reduce to "M"
+%% something that doesn't include any M anywhere.
 \begin{align*}
   & rec_{\bI}(\_ . A, P, \ileft) = M \\
   & rec_{\bI}(\_ . A, P, \iright) = N \\
   & \kw{cong}_{rec_{\bI}(\_ . \bI, P)}(\id{seg}) = P
 \end{align*}
 
+%% SM: State what is "the congruence property of equality".
 \kw{cong} refers to the congruence property of equality and is explained in more
 detail in \autoref{subsec:congruence-eq}. We can expect the first two equations
 to hold definitionally. Definitional equality of two terms is determined by
@@ -1054,6 +1088,11 @@ expanding out definitions. So if we say that $rec_{\bI}(\_ . A, P, \ileft)$ is
 definitionally equal to $M$, we are saying that the former reduces to the latter
 when we check for equality. If we imagine that the first two computation rules
 were defined via pattern-matching, it would make sense for these equations to
+%% SM: Since you haven't actually explained what each part of
+%% \kw{cong}_{rec_{\bI}(\_ . \bI, P)}(\id{seg}) stands for (or even "is"),
+%% your readers have probably no idea whether it's curious or not.
+%% This said, at least that reduction does include the resulting "P"
+%% somewhere on the left hand side, so it does look "computational".
 hold definitionally. The third equation is a more curious case, it suggests that
 by the congruence of equality, the application of the $\kw{Interval}$ recursor
 with the equality proof $\id{P}$ to $\id{seg}$ should yield an equality proof
@@ -1087,8 +1126,10 @@ is named \id{x}; the type of the second projection,\id{B} may depend on the term
 we formally state the theorem that we are interested in
 
 \begin{theo}
+  %% SM: "may be"?
 The following type may be inhabited:
 
+%% SM: There's too much space around this math element.
 \begin{align*}
   & \bI \rightarrow A \ \simeq \ \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}
 \end{align*}
@@ -1099,11 +1140,16 @@ The following type may be inhabited:
 We define functions \id{f} and \id{g} as inhabitants of the forward and backward
 directions of the equivalence respectively. We prove this equivalence by proving
 that \fn{g} is a quasi-inverse of \fn{f} as described in chapter 2 of the HoTT
+%% SM: Use \cite[Chap. 2]{...} instead of "in chapter 2 of \cite{...}".
 book\cite{HoTTbook}. To this end, we define \id{f} and \id{g} as such:
 
 %% TODO: I glossed over this detail, but the $rec_{\bI}$ actually carries out a
 %% depelim which I haven't introduced yet.
 
+%% SM: I think a "paper proof" would be a better choice than a formal proof
+%% because you use here many constructs that you haven't presented.
+%% IOW, start with g(f(h)), then show how it reduces to (something equivalent
+%% to) h, then same thing for f(g(e)).
 \begin{align*}
   & f : (\bI \rightarrow A) \rightarrow \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y} \\
   & f(h) := \braket{\id{h}(\ileft), \braket{\id{h}(\iright), \kw{cong}_{\id{h}}(\id{seg})}} \\ \\
@@ -1189,6 +1235,7 @@ I_not : I @$\rightarrow$@ I
 
 The negation operator computes as follows:
 
+%% SM: A common practice is to use \textsc to name rules.
 \begin{mdframed}[nobreak=true]
   \begin{center}
     \begin{prooftree}
@@ -1265,9 +1312,13 @@ Since the operator is commutative, I-MEET$_3$ and I-MEET$_4$ are complementary
 to I-MEET$_1$ and I-MEET$_2$. The minimum of $\id{i}$ and $\id{i}$ is $\id{i}$
 itself, justifying the I-MEET$_5$ rule. Note that since the Interval type does
 not behave like a Boolean algebra, it is not the case that
+%% SM: I think you mean that it does not hold definitionally, but it does
+%% hold propositionally, right?
 $\Funapp{\fn{I\_meet}}{i}{(\Funapp{\fn{I\_not}}{i})} \rightsquigarrow{} i_0$.
 
 \subsection*{Join}
+%% SM: AFAIK, with De Morgan (and not&meet) you can define any function
+%% on intervals.  The only question is which equivalences hold definitionally.
 TODO:\ So far I haven't found a need for this operator. Do some investigation to
 see if this is a worthy addition
 
@@ -1276,10 +1327,23 @@ TODO:\ I'm leaning towards adding it anyway for completeness' sake
 
 \section{Elimination of the Interval type}
 
+%% SM: I think this needs some discussion about what kind of behavior
+%% we want from an elimination rule.  As it currently stands, this
+%% section present a funny rule I_transp with very little explanation about
+%% why it was defined this way.  What's so good about it?
+%% I can see the answers in your text, but someone who doesn't know what
+%% problems might need to be solved here will completely miss them
+%% and feel completely puzzled by this definition, just like you didn't
+%% found Cubical Agda's transport puzzlingly complicated at first.
+
+%% SM: Why the negation?
+
 We present the one and only elimination rule of our \type{Interval} type. It is
 largely inspired by the (generalised) transport operation used in Cubical
 Agda\cite{vezzosi2021cubical}. It has the following typing rule:
 
+%% SM: Shouldn't the `r` param to `transp` be erased as well?
+%% How 'bout passing it last (so that `transp A a` is the equality proof?
 \begin{prooftree*}
   \hypo{\oftype{\ctx}{\id{A}}{\id{I} \Rrightarrow \type{Type}}}
   \hypo{\oftype{\ctx}{\id{r}}{\type{Interval}}}
@@ -1294,6 +1358,8 @@ argument \id{r} dictates when \id{I\_transp} should behave like the identity
 function. When $\id{r} = \id{i}_1$, then the type of
 $\Funapp{\id{I\_transp}}{\id{A}}{\id{r}}$ is $\Funapp{\id{A}}{(\earg{\id{i}_0})}
 \rightarrow \Funapp{\id{A}}{(\earg{\id{i}_0})}$, i.e. it behaves like the
+%% SM: Don't make such comments about details of Agda's rule
+%% unless you actually first describe Agda's rule.
 identity function. Since our version of $\id{I\_transp}$ is slightly different
 from that of Cubical Agda, we do not need the additional side condition that
 states that A needs to be a constant function when $\id{r} = \id{i}_1$ in order
@@ -1312,6 +1378,8 @@ may not have the same type}.
 
 The computational behaviour of the function is as follows:
 
+%% SM: Hmm... doesn't this break type-preservation since `a` has type `A i₀`
+%% whereas `transp A i₀ a` has type `A i₁`?
 \begin{prooftree*}
   \infer0{\Funapp{\id{I\_transp}}{\id{A}}{\ileft}{\id{a}} \rightsquigarrow \id{a}}
 \end{prooftree*}
