@@ -2827,7 +2827,7 @@ thus need a constructor of the following form:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 swapPerm : (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ (l : List A)
-           @$\rightarrow$@ ListPerm ?A (cons (y (cons x l))) (cons x (cons y l))
+           @$\rightarrow$@ ListPerm ?A (cons y (cons x l)) (cons x (cons y l))
 \end{minted}
 
 The relation is symmetric as it is, however, for it to be an equivalence
@@ -3961,11 +3961,12 @@ Readers that are not familiar with \Agda{} are reminded that \fn{\_$\equiv$\_}
 means that $\equiv$ is an infix operator\footnote{The underscores indicate where
 the arguments should go, in this case, there should be an argument before and
 after the $\equiv$ operator.}. We mention as well that parameters that are
-within brackets are implicit. So if we have two terms \id{x} and \id{y} of type
-\id{A}, the type representing a path between the two terms is \fn{x $\equiv$ y}.
-In order to construct such an equality, we need to construct a function \id{f:I
-  $\rightarrow$ A} such that \fn{f i0} is equal to \id{x} and \fn{f i1} is equal
-to \id{y}. For example, we construct the reflexive proof of equality.
+within brackets are implicit, i.e.\ to be inferred. So if we have two terms
+\id{x} and \id{y} of type \id{A}, the type representing a path between the two
+terms is \fn{x $\equiv$ y}. In order to construct such an equality, we need to
+construct a function \id{f:I $\rightarrow$ A} such that \fn{f i0} is equal to
+\id{x} and \fn{f i1} is equal to \id{y}. For example, we construct the reflexive
+proof of equality.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 refl : {A : Set @$\ell$@} {x : A} @$\rightarrow$@ x @$\equiv$@ x
@@ -4040,9 +4041,13 @@ HITs are a generalisation of inductive types that has been popularised by
 homotopy type theory\cite{HoTTbook}. Aside from the usual term constructors of
 inductive types, HITs allow the definition of equality constructors,
 i.e.\ equalities between terms of the inductive type. Additionally, we are
-allowed to define equalities between equalities. HITs provide us with an
-expressive and convenient way of defining quotients. For instance, we could
-define the type of integers that we previously saw.
+allowed to define equalities between equalities, also known as \emph{higher
+paths}. HITs provide us with an expressive and convenient way of defining
+quotients. For instance, we could define the type of integers that we previously
+saw\footnote{This definition could have benefited from another constructor that
+produces a proof that all equality proofs between two integers are themselves
+equal. This is known as the set truncation of the type. We decided not to do it
+however as higher paths are not immediately relevant to our work}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 data Int : Type where
@@ -4156,54 +4161,129 @@ a proof that \id{f} is commutative.
 
 \section{Quotient Haskell}\label{sec:related-qit}
 
-Quotient Haskell is an extension that introduces quotient inductive types to the
-Haskell programming language.
+Quotient Haskell\cite{hewer2023quotient} is an extension that introduces
+quotients to the Haskell programming language. It was built on top of Liquid
+Haskell\cite{vazou2016liquid}, an existing extension that implements a type
+checker for refinement types in Haskell. Refinement types are types equipped
+with predicates that must be respected by all elements of the refined type, this
+is also known as predicate subtyping. In Liquid Haskell, this is represented
+using the set comprehension notation. For instance, a refined type that
+represents the type of positive integers is \fn{\{ i : Int | i >= 0 \}}. Such
+types may be used to annotate the arguments and return types of functions so
+that we can define the pre-conditions and post-conditions of functions. The type
+checker then makes use of the extra information to verify that function bodies
+and function applications respect the appropriate constraints by feeding them to
+a satisfiability modulo theories (SMT) solver. As such, the predicates that one
+may define have to be compatible with the decidable logic of SMT solvers which
+supports all logical connectives, integer and real linear arithmetic, etc. All
+this to say that a system such as Liquid Haskell is an attractive system to
+introduce quotient types to as proof obligations introduced by quotients may be
+translated to constraints solvable by SMT solvers.
 
-Quotient inductive types (QITs) are essentially HITs that are set-truncated.
-This essentially provides us with the full range of expressiveness of HITs
-without higher-dimensional paths. In other words, the definition of paths
-between paths is not allowed. Indeed, such paths are not typically required in
-day-to-day programming tasks.
+Quotient Haskell's flavour of quotients allows us to define new types on top of
+existing types by introducing arbitrary equation constructors between terms of
+the base type. We illustrate this by using the unordered pairs example we saw in
+the previous section. We first define the type of pairs, and
+then we use it to construct unordered pairs with the introduction of the
+\id{swap} equation constructor. \id{swap} says that for two terms \id{x} and
+\id{y} of the base type, swapping their positions in a pair produces an equal
+pair.
 
-%% SM: Need an example to illustrate what you mean by "arbitrary equation
-%% constructors".
-Unlike the quotient types that we introduce in this work, QITs allow the
-definition of arbitrary equation constructors between terms of an inductive type
-instead of requiring these equalities to be encoded as equivalence relations.
-This can prove to be very helpful when defining certain quotients. In
-\autoref{sec:multiset}, we defined a relation on the \id{List} data type such
-that all permutations of a list are considered equivalent. The relation was
-slightly tedious to define as we had to be careful to ensure that it was indeed
-an equivalence relation by adding appropriate constructors where necessary. A similar
-definition in Quotient Haskell\cite{hewer2023quotient} is simpler and more straight
-to the point, as is illustrated in the following code block:
+\begin{minted}{haskell}
+data Pair a = Pair a a
+
+data UnorderedPair a = Pair a
+  |/ swap :: x:a -> y:a -> pair x y == pair y x
+\end{minted}
+
+%% TODO: Again, verify that the formulation came from Hoffman
+Unlike our encoding of quotient types à la Hoffman\cite{hofmann1995extensional}
+in Cubical Agda, a surjection into the quotient is unnecessary in the present
+setting. Depending on the context, a term \fn{Pair x y} may be treated as a term
+of type of \fn{Pair a} or of \fn{UnorderedPair a} due to subtyping, i.e.\ the
+quotient of a base type is a subtype of the base type. Suppose that we would
+like to eliminate a term of type \fn{UnorderedPair a}, unsurprisingly we start
+off by defining a function \fn{f::Pair a -> b}\footnote{\fn{a::A} is the syntax
+used in Haskell to say that the term \id{a} has type \id{A}.}. If \id{f}
+respects the equations introduced by \fn{UnorderedPair a}, then Quotient Haskell
+would allow us to treat \id{f} as a function of type \fn{f::UnorderedPair a ->
+  b}, more specifically it would allow \id{f} to be \emph{refined} over
+unordered pairs. In some cases, such proofs may even be automatically discharged
+by the SMT solver. For instance, if we were dealing with pairs of integers and
+\id{f} was simply the integer addition operation, then such a proof would be
+automatically fulfilled. This highlights the advantages of the integration of
+quotients into a system with refinement types as a big class of mundane proofs
+may simply be automated away. In the case where the required proof is not
+trivial enough to be constructed automatically, the user would then be allowed
+to provide a manual proof. We refer interested readers to the original work for
+more details on this.
+
+From the point of view of general programming tasks, these quotients are as
+expressive as the HITs of Cubical Agda. Quotient Haskell does not permit the
+reasoning of equalities between equalities, however, though this should not
+bother the average Haskell programmer. Indeed, the class of quotients that are
+expressible in Quotient Haskell are what is known as quotient inductive types
+(QITs)\cite{fiore2022quotients, HoTTbook}. The lack of \emph{higher} paths is
+what distinguishes QITs from HITs.
+
+The fact that the original term constructors of the base type may be used to
+construct terms of a quotient type allows Quotient Haskell to support an
+interesting feature that allows us to take the quotient of an already quotiented
+type. The paper illustrates this by defining a family of data types known as the
+Boom hierarchy\cite{meertens1986algorithmics} which is made of trees, lists,
+bags, and sets. The hierarchy stems from the fact that each type is defined on
+top of the type that is below it in the hierarchy. For instance, lists are
+constructed by quotienting trees, bags are defined by quotienting lists, and so
+on. When we define such a hierarchy of quotients, the subtyping relationship
+that relates them also enables code reuse. For instance, a function that takes a
+list as an argument could also be called with a tree as it could be regarded as
+a supertype of the list type.
+
+%% TODO: This reflection can be brought elsewhere too I think, I don't have to
+%% rush with this passage
+
+%% Unlike the quotient types that we introduce in this work, QITs allow the
+%% definition of arbitrary equation constructors between terms of an inductive type
+%% instead of requiring these equalities to be encoded as equivalence relations.
+%% This can prove to be very helpful when defining certain quotients. In
+%% \autoref{sec:multiset}, we defined a relation on the \id{List} data type such
+%% that all permutations of a list are considered equivalent. The relation was
+%% slightly tedious to define as we had to be careful to ensure that it was indeed
+%% an equivalence relation by adding appropriate constructors where necessary. A
+%% similar definition in Quotient Haskell\cite{hewer2023quotient} is simpler and
+%% more straight to the point, as is illustrated in the following code block:
 
 %% SM: This is confusing: You say QITs are essentially a restriction of HITs,
 %% and this example is within the QIT section, but it looks syntactically
 %% different from a (restricted) HIT (e.g. because there is a non-quotiented
 %% base type).
-\begin{minted}{haskell}
-data Multiset a
-  = List a
-  |/ swap :: x:a -> y:a -> l:Multiset a -> cons x (cons y l) == cons y (cons x l)
-\end{minted}
+%% \begin{minted}{haskell}
+%% data Multiset a
+%%   = List a
+%%   |/ swap :: x:a -> y:a -> l:Multiset a -> cons x (cons y l) == cons y (cons x l)
+%% \end{minted}
 
-What is important to note here that since we are adding equation constructors,
-we do not need the counterparts of the other constructors that were required in
-the Typer definition of the relation as they are vacuously valid here by virtue
-of the congruence properties of the equality type. This seems to suggest that
-%% SM: More convenient than HITs or than QTs?
-QITs are more convenient to work with in practice. QITs are also strictly more
-expressive than the combination of ordinary inductive types with quotient
-types\cite{fiore2022quotients}. However in practice, the additional expressivity
-offered by QITs is often unrequired for general programming. The example
-provided by the aforementioned paper of a QIT that we may not trivially define
-using quotient types in the form of unordered infinitely branching trees is
-indeed not a data type that one would expect to make a frequent appearance in
-daily programming tasks. Hence, we opted to introduce plain quotient types to
-Typer instead of QITs primarily because of its simpler implementation. Aside
-from that, we get the added benefit of preserving the modularity of the current
-implementation of inductive types.
+%% TODO: Move this reflection elsewhere, to the evaluation chapter probably It
+%% is valuable to mention what tradeoffs we get by going for own version of
+%% quotients, but this seems like a deeper reflection that is not trivially
+%% understandable
+
+%% What is important to note here that since we are adding equation constructors,
+%% we do not need the counterparts of the other constructors that were required in
+%% the Typer definition of the relation as they are vacuously valid here by virtue
+%% of the congruence properties of the equality type. This seems to suggest that
+%% %% SM: More convenient than HITs or than QTs?
+%% QITs are more convenient to work with in practice. QITs are also strictly more
+%% expressive than the combination of ordinary inductive types with quotient
+%% types\cite{fiore2022quotients}. However in practice, the additional expressivity
+%% offered by QITs is often unrequired for general programming. The example
+%% provided by the aforementioned paper of a QIT that we may not trivially define
+%% using quotient types in the form of unordered infinitely branching trees is
+%% indeed not a data type that one would expect to make a frequent appearance in
+%% daily programming tasks. Hence, we opted to introduce plain quotient types to
+%% Typer instead of QITs primarily because of its simpler implementation. Aside
+%% from that, we get the added benefit of preserving the modularity of the current
+%% implementation of inductive types.
 
 \section{Quotients in Observational Type Theory}
 
