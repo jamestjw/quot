@@ -993,6 +993,9 @@ without the truncation).
 \chapter{Cubical Equality}\label{ch:cubical-equality}
 %% SM: You need some introductory text here (between \chapter and \section).
 %% Or maybe just move the \section header after its first paragraph.
+%% SM: It's probably a good place to talk about (as a kind of self-reflection)
+%% the fact that your thesis on "quotient types in Typer" talks almost
+%% more about equalities than about quotients.
 \section{Interval type}
 
 %% SM: Give some indication of the context in which such a definition
@@ -1236,6 +1239,9 @@ I_not : I @$\rightarrow$@ I
 The negation operator computes as follows:
 
 %% SM: A common practice is to use \textsc to name rules.
+%% SM: Here you use "↝" but in the computation rules for recI you used "=".
+%% I think "↝" is preferable (if possible) since we already have
+%% enough other uses for "=" around here :-)
 \begin{mdframed}[nobreak=true]
   \begin{center}
     \begin{prooftree}
@@ -1400,6 +1406,10 @@ untouched when \id{r} is a canonical value of \id{Interval}.
 
 \section{Identity type}\label{sec:identity}
 
+%% SM: You need some text here.
+%% SM: Try and stick to one terminology rather than sometimes using
+%% "identity" and other times "equality".
+
 \subsection{Heterogeneous equality}
 With the above definition of $\bI$, we are now ready to introduce the notion of
 heterogeneous equality. Such an equality type allows us to identify two terms
@@ -1409,6 +1419,9 @@ functions involving the identity type are universe polymorphic in their
 arguments and return type.} and is implemented axiomatically. Usually, when we
 define an axiom in type theory, we simply claim that it is an inhabitant of some
 type without saying anything about its behaviour. However, in our case, we also
+%% SM: Then it's not an "axiom".  Don't confused our Builtin data constructor
+%% with an axiom (I know I also sometimes call those things axioms, but it's
+%% not right).
 supplement it with the appropriate reduction rules so it has the right
 computational behaviour. In the absence of this, i.e.\ if we were to define the
 computation rules for axioms in the form of propositional equalities, then the
@@ -1426,6 +1439,9 @@ two terms of different types, in reality, the two types have to be provably
 equal. \id{Heq\_eq}, the constructor of \id{Heq} also leverages the property of
 erasable functions out of the interval to accept an argument of that form as a
 witness of the equality being constructed.
+
+%% SM: You might want to say more explicitly that Heq_eq and Heq_uneq
+%% correspond to your f&g functions in your earlier proof.
 
 %% Heq_eq : (l : TypeLevel) ≡> (t : I ≡> Type_ l) ≡> (f : (i : I) ≡> t (_ := i))
 %%           ≡> Heq (f (_ := i0)) (f (_ := i1))
@@ -1477,6 +1493,7 @@ that allows derive theorems such as functional extensionality in
 
 \subsection{Homogeneous equality}
 Homogeneous equality is by far the more typical notion of equality. We are able
+%% SM: special special
 to define it as a special case of heterogeneous equality as a special case of of
 $\fn{Heq x y}$ where $\fn{x}$ and $\fn{y}$ are of the same type.
 
@@ -1487,6 +1504,7 @@ $\fn{Heq x y}$ where $\fn{x}$ and $\fn{y}$ are of the same type.
 %%             lambda _ => lambda _ =>
 %%               lambda p ≡> lambda i ≡>
 %%                 Heq_uneq (t := lambda _ ≡> t) (p := p) (i := i)
+%% SM: Here you use `lambda` once and `λ` other times.  Stick to one.
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Eq : (t : Type) @$\Rrightarrow$@ t @$\rightarrow$@ t @$\rightarrow$@ Type
 Eq x y = Heq (t := lambda _ @$\Rrightarrow$@ t) x y
@@ -1501,6 +1519,10 @@ Eq_uneq p i = Heq_uneq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (p := p) (i := i)
 \end{minted}
 
 \section{Examples}\label{sec:eq-examples}
+%% SM: You can't presume the reader knows what is the "normal" equality
+%% type.  I suggest you present Typer's old `Eq` type at some earlier time
+%% (maybe in the new chapter between Intro and this one), so you can
+%% refer to it here.
 Common properties of the equality type remain true, some of them are easier to prove than with a traditional equality type.
 
 \subsection*{Reflexivity}
@@ -1530,6 +1552,8 @@ invert the path. This is the intuition behind the following proof.
 
 %% Eq_comm : (x : ?t) ≡> (y : ?t) ≡> Eq x y -> Eq y x
 %% Eq_comm p = Eq_eq (f := lambda i ≡> Eq_uneq (p := p) (i := I_not i))
+%% SM: You might want to compare it to the old `Eq_comm` proof.
+%% SM: Here you use `!` for the negation instead of `I_not`.
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Eq_comm : (x y : ?t) |$\Rrightarrow$| Eq x y |$\rightarrow$| Eq y x
 Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := !i))
@@ -1582,12 +1606,22 @@ Eq_funExt p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| |$\lambda$| x |$\righta
 
 We note that the above proof makes use of the $\eta$-equivalence of functions,
 i.e. $\lambda \id{x} \rightarrow \Funapp{\id{f}}{\id{x}} \equiv \id{f}$. Another
+%% SM: Funny, I tend to think of it the other way around, i.e. that
+%% Eq_uneq lets us treat the equality type as a function from I.
 thing that is worth noting is that we interpret erasable functions out of $\bI$
 themselves as an equality type, i.e.\ if we do without the $\id{Eq\_eq}$
 constructor, and if we think of $\id{Eq\_uneq}$ as the direct application of an
 expression of type $\bI$ to such a function, we obtain the following
 interpretation of $\id{Eq\_funExt}$ as is the case in Cubical Agda.
 
+%% SM: You can't presume the readers are familiar with Cubical Agda and
+%% its syntax.  So you need to hand-hold them through the code.
+%% Maybe you can avoid some of it by showing it using a Typer-style syntax
+%% and explaining the changes that would need to be taken from Cubical Agda
+%% to make it work.
+%% SM: IOW always keep in mind that the PL world loves to introduce
+%% new notations but that makes our work impenetrable to outsiders.
+%% So try and use as few different notations as possible.
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
 funExt : |$\forall$| {A B : Type |$\ell$|} {f g: A |$\rightarrow$| B}
          |$\rightarrow$| (p : (x : A) |$\rightarrow$| f x |$\equiv$| g x)
@@ -1603,6 +1637,11 @@ merely needs to swap the order of its two arguments. This is observed in several
 recent proof assistants that implement cubical type theory, such as Cubical Agda
 as mentioned before, as well as coolTT and redTT.\@
 
+%% SM: Maybe this should be moved to the beginning of this
+%% subsection, and more generally it is worth pointing out that
+%% in most proof assistants, functional extensionality is not provided
+%% directly but requires the use of an axiom and that this tends to
+%% introduce problems.
 Functional extensionality is a property that often makes an appearance in
 mathematical proofs, it will especially be required to prove the effectiveness
 of quotients in \autoref{ch:quotient-effectiveness}. However, as we shall see in
@@ -1616,6 +1655,10 @@ given in\cite{altenkirch2007observational} is not a problem in our system as
 performing a cast on an equality proof constructed by functionality
 extensionality does not lead to a stuck term as shown in the following code snippet:
 
+%% SM: You need to explain what this code snippet does, step by step.
+%% SM: It might be worth showing in a bit more detail where the reduction
+%% gets stuck with funext as an axiom, since the readers may be
+%% unfamiliar with the problem.
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 plus0 : (x : Nat) -> zero + x @$\equiv$@ x + zero
 plus0 x = Nat+_comm zero x
@@ -1642,7 +1685,7 @@ Eq_cong : (x y : ?A) |$\Rightarrow$| (f : (?A |$\rightarrow$| ?)) |$\rightarrow$
           |$\rightarrow$| Eq (f x) (f y)
 Eq_cong f p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| f (Eq_uneq (p := p) (i := i)))
 \end{minted}
-
+%% SM: Read it aloud for your readers.
 
 Like before, we examine the definition of the theorem in Cubical Agda for a
 change of perspective. We observe that the congruence of equality merely
@@ -1654,6 +1697,8 @@ congS : |$\forall$| {A B : Type |$\ell$|} |$\rightarrow$| (f : A |$\rightarrow$|
 congS f p i = f (p i)
 \end{minted}
 
+%% SM: "By appealing" make it sound like we have to request it explicitly,
+%% and could be misunderstood that you need to add some annotation somewhere.
 By appealing to the $\eta$-equivalence of the equality type described in
 \autoref{sec:identity}, we also have that $\fn{Eq\_cong id p $\equiv$ p}$ holds
 definitionally.
@@ -1676,6 +1721,11 @@ have a proof that $\eqtype{\id{A}}{\id{B}}$.
 %%                          (r := i0) fx
 %%
 
+%% SM: The three lines above don't explain enough to understand the 4 lines
+%% below.  Worse, it does not describe the same operation and uses
+%% different names (A and B i.s.o `f x` and `f y`).
+%% SM: You might want to explain it in terms of something like Leibniz equality.
+%% SM: 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Eq_cast : (x y : ?A) |$\Rrightarrow$| (p : Eq x y) |$\Rrightarrow$| (f : (? |$\rightarrow$| ?)) |$\Rrightarrow$| f x
           |$\rightarrow$| f y
@@ -1787,6 +1837,9 @@ J-rule can be derived from $\kw{Eq\_cast}$, in other words we would like to know
 if the two elimination principles are equivalent. It turns out that one way of
 doing it hinges upon whether we are able to inhabit the following type:
 
+%% SM: Weird alignment.
+%% SM: You have not yet defined `Sigma` and `sigma`.
+%% Maybe use the Σ/<a,b> notation you used earlier?
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 eqUnique : (A : Type) @$\Rrightarrow$@ (a b : A) (p : Eq a b)
            @$\rightarrow$@ Eq (t := Sigma A (lambda a' -> Eq a a'))
@@ -1797,6 +1850,7 @@ This can be seen as a justification of the J-rule, by fixing one endpoint of an
 equality proof to be $\fn{a}$, it is provable that any equality proof between
 $\fn{a}$ and some other arbitrary $\fn{b}$ may be proved to be equal to the
 reflexivity proof at $\fn{a}$. More details are given in
+%% SM: This ends up referring to the section in which we already are!
 \autoref{subsec:interval-connections} on how to construct the above. Once we have that,
 we may easily define the J-rule.
 
@@ -1852,6 +1906,10 @@ Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
 \end{figure}
 
 \subsection*{Connections}\label{subsec:interval-connections}
+
+%% SM: AFAICT this is needed to prove J, but it is not needed for the reader
+%% to understand the rest of your work, so maybe it's best to move it to
+%% the appendix.
 
 The operations that we defined on the Interval correspond to
 connections\cite{cohen2016cubical} that are typically drawn as squares. Such
@@ -1923,6 +1981,9 @@ $\fn{i}$ to be $i_0$ in $\fn{sq}$, the resulting expression is the following,
 which we can reduce to the constant path on $\fn{a}$ by using the reduction
 rules of $\fn{I\_meet}$ defined in \autoref{subsubsec:interval-meet}:
 
+%% SM: You need to show more details to explain why these correspond
+%% to the sides of your square.
+
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet @$i_0$@ j))
 \end{minted}
@@ -1973,6 +2034,10 @@ UIP is a property that is true for a certain class of types in Typer.
 
 \subsection{Hedberg's theorem}\label{subsec:hedberg}
 
+%% FIXME: I think this should be moved to a later part of your thesis,
+%% because it delays discussion of quotient types.
+%% Maybe the same applies to some of the previous examples, actually.
+
 To set the stage, we provide a few definitions. A type is said to be
 \textbf{decidable} if we can decide whether the type is inhabited or
 not. In the case where it is inhabited, we must also have a witness of such an
@@ -2018,9 +2083,16 @@ some amount of inconvenience?
 
 
 \chapter{Quotient Type}\label{ch:quot}
+
+%% SM: as before, you need text here.
+
 \section{Typing rules}
+%% SM: First present the syntax of the new elements (explaining what
+%% each thing is supposed to mean), then present their typing rules.
+%% The same holds for the previous chapter, actually.
 We present the $\id{Quotient}$ primitives along with their typing rules.
 
+%% SM: Can we remove the implicit arguments to make the presentation lighter?
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{A}}{\kw{Type}}}
    \hypo{\oftype{\ctx}{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}}}
@@ -2034,6 +2106,7 @@ in\cite{hofmann1995simple}, we do not require the relation to be an equivalence
 relation, though to define a meaningful quotient type, the above
 requirement is often necessary. We also do not enforce that the relation be a
 mere proposition, however as we will see in \autoref{ch:quotient-effectiveness},
+%% SM: Define what you mean by "effective" (and put it in \emph).
 this is required for the quotient to be effective.
 
 \begin{prooftree*}
@@ -2076,6 +2149,7 @@ is a witness of the above property.
                                         {\Funapp{\id{P}}{\id{q}}}}
 \end{prooftree*}
 
+%% SM: Give an example of dependent elimination on a quotient.
 We would like to enable the dependent elimination of quotients, in other words
 we would like to be able to eliminate a term of some quotient type
 $\Funapp{\id{Quotient}}{\id{A}}{\id{R}}$ to some type family $\id{P}$ that is
@@ -2095,6 +2169,7 @@ Li\cite{li2015quotient}.
 \section{Reduction rules}
 We present the computation rule for the elimination of quotients.
 
+%% SM: Usually this would be shown on a single line with no hypothesis.
 \begin{prooftree*}
    \hypo{\id{q} \rightsquigarrow \Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}}}
    \infer1[]{\Funapp{\id{Quotient\_elim}}{\id{A}}{\id{R}}{\id{f}}{\id{h}}{\id{q}}
@@ -2108,6 +2183,9 @@ proof that the elimination respects the quotient is unused during computation
 and is merely utilised during type-checking justifies our subsequent choice of
 making the proof an erasable argument of $\id{Quotient\_elim}$.
 
+%% SM: The generalization of η to eliminators like Quotient_elim is
+%% sufficiently different from the usual η that you need to spell it out.
+%% SM: IIRC there are even different notions of η for such eliminators.
 It is also interesting to note that we are not able to derive a meaningful
 $\eta$-rule. If we wish to apply $\id{Quotient\_in}$ after applying
 $\id{Quotient\_elim}$ such that the composition amounts to the identity
