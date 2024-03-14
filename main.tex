@@ -855,12 +855,13 @@ different permutations of the same list equally. These nuances are not typically
 explicitly expressible in the implementation of the data types nor may they be
 encoded at the type level. They are instead treated as \emph{implementation
 details} which one hopes to encapsulate by using abstraction barriers. Quotient
-types enable elements of the same equivalence class to be treated
-\textbf{equally}. Thus, they are a way of taking advantage of the type checker
-to ensure that these details are appropriately handled internally. This is the
-case because only programs that treat these equivalences consistently may be
-well-typed. Quotient types also serve as a form of documentation that explains
-the inner workings of a data type.
+types ensure that elements of the same equivalence class are treated
+\textbf{equally}. In a sense, quotient types allow us to expose the internal
+details of a type, but at the same time they also enforce a contract that
+ensures that all interactions with it are lawful with respect to the quotient.
+This is the case because only programs that treat these equivalences
+consistently may be well-typed. Quotient types also serve as a form of
+documentation that explains the inner workings of a data type.
 
 For a more concrete example, consider the set of rational numbers defined as
 such:
@@ -3856,9 +3857,6 @@ his system.
 \caption{Equivalence classes of $\mathbb{Z}$ under the relation $x \equiv y \ (\kw{mod} \ 4)$}\label{fig:eq-class-zmod4}
 \end{figure}
 
-%% SM: Hmm... the rest of this section seems to go firmly outside "related
-%% work" territory.
-
 %% NOTE: I think that maybe its not interesting to show the entire construction,
 %% it is sufficient to simply mention the possibility of doing so and direct
 %% interested readers to the book for more details
@@ -4299,10 +4297,10 @@ observational equality type is denoted as \fn{t $\sim_A$ u}, this type
 represents the equality of terms \id{t} and \id{u} at type \id{A}. However, this
 is not a typical type former of equality types as we have previously seen,
 $\sim$ in reality pattern matches on the type \id{A} and the two endpoints and
-computes to a type. We show two reduction rules to illustrate this point.
-First, we show the reduction rule for observational equality between two
-propositions. Note that in TT$^{obs}$, $\Omega_i$ is a universe of proof
-irrelevant propositions.
+computes to a type. We show two reduction rules to illustrate this point. First,
+we show the reduction rule for observational equality between two propositions.
+Note that in TT$^{obs}$, $\Omega_i$ is a universe of proof irrelevant
+propositions.
 
 \begin{prooftree*}
   \hypo{\oftype{\ctx}{A}{\Omega_i}}
@@ -4329,20 +4327,24 @@ We observe that observational equality between functions simply reduces to a
 proof of pointwise equality of these functions, in other words, functional
 extensionality is built into the system.
 
-All that to say that this system lends itself well to the introduction of
-quotient types. The quotient type \fn{A/R} is interpreted as a setoid with
-\id{A} as its base type and the relation \id{R} as its setoidal equality. This
-of course requires the relation \id{R} to be reflexive, symmetric and
-%% SM: "surjections" -> "projected"?
-transitive. In the theory, equality between two terms that are surjections into
-the quotient (this is syntactically represented by $\pi(t)$) reduces to the
-underlying relation between the base terms, as is illustrated by the following
-rule:
+All that to say this system lends itself well to the introduction of quotient
+types. The quotient type \fn{A/R} is interpreted as a setoid with \id{A} as its
+base type and the relation \id{R} as its setoidal equality. This of course
+requires the relation \id{R} to be reflexive, symmetric, and transitive. In the
+theory, equality between two terms that are projections into the quotient
+(syntactically represented by $\pi(t)$) reduces to the underlying relation
+between the base terms, as is illustrated by the following rule:
 
 %% SM: This OITT section should maybe be a bit more careful to compare OTT
 %% to your work (and a bit less about presenting OTT in general).
 %% The rule below is directly relevant, which is good.
 %% But what's missing is for example what the elimination form looks like.
+
+%% NOTE: I want to aggressively summarise this section, and maybe mention it
+%% again at the very end (i.e. not in this related works section that's going to
+%% the front). Especially since all this is theoretical and hasn't really been
+%% realised in a real proof assistant yet. For now, too many explanations need
+%% to be given in order for readers to be able to make sense of this
 
 \begin{prooftree*}
   \hypo{\oftype{\ctx}{t}{A}}
@@ -4352,6 +4354,34 @@ rule:
     }{\Omega_i}}
 \end{prooftree*}
 
+The fact that quotient equality shares the representation as the underlying
+relation has interesting implications. This means that when we have a term of
+type \fn{R t u}, the same term also doubles as a proof of equality between the
+projections of \id{u} and \id{t} into the quotient, as opposed to our system
+where such a proof would need to be constructed using the \id{Quotient\_eq}
+constructor. Consider the (dependent) elimination rule of quotients:
+
+\begin{prooftree*}
+  \hypo{\oftype{\ctx}{B}{A/R \rightarrow U}}
+  \hypo{\oftype{\ctx}{t_\pi}{\Pi (x: A). \Funapp{B}{\pi(x)}}}
+  \hypo{\oftype{\ctx}{u}{A/R}}
+  \infer[no rule]3{\oftype{\ctx}{t_{\sim{}}}{\Pi(x,y : A).\Pi(e : \Funapp{R}{x}{y}). (\Funapp{t_\pi}{x}) \sim_{\Funapp{B}{\pi(x)}} \kw{cast}(\Funapp{B}{\pi(y)}, \Funapp{B}{\pi(x)}, \Funapp{B}{e^{-1}}, \Funapp{t_\pi}{y})}}
+
+  \infer1{\oftype{\ctx}{\Funapp{\kw{Q-elim}}(B, t_\pi, t_\sim, u)}{\Funapp{B}{u}}}
+\end{prooftree*}
+
+%% Assuming that this would be presented after our quotients get presented
+\id{t$_\pi$} is the function that gets to act on the term of the base type, not
+unlike what we require in our implementation of quotients. \id{t$_\sim$}, the
+proof that \id{t$_\pi$} respects the quotient, is stated somewhat differently
+from ours because of how quotient equality works in this setting. We require a
+proof that \fn{t$_\pi$ x} is equal to \fn{t$_\pi$ y} cast to the same type as
+the former, i.e.\ from \fn{B $\pi$(y)} to \fn{B $\pi$(x)}. The third argument of
+\kw{cast} is a witness that the two types are equal. Since \id{e} is a term of
+type \fn{R x y}, it is effectively a proof of \fn{$\pi$(t) $\sim_{A/R}$
+  $\pi$(u)}. \fn{B e$^{-1}$} is thus the functorial action of \id{B} on the
+inversion of the equality proof \id{e}, in other words, this is the application
+of the congruence property of equality.
 
 \section{Setoid Rewriting}
 
