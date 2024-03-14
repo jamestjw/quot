@@ -4385,16 +4385,15 @@ of the congruence property of equality.
 
 \section{Setoid Rewriting}
 
-Quotient types are not provided as a primitive in the \Coq{} proof assistant.
-%% SM: "that" being...?
-Before we get to that, we briefly introduce the rewriting mechanism of \Coq{}.
-Every construction is congruent with respect to the equality type, hence
-rewrites using the equality type may be carried out in any context. For
-instance, if we have a certain proof goal that requires us to produce a term of
-type \fn{m + n $\le$ n + m} and we have proof that \fn{m + n $\equiv$ n + m}, we
-may use the \kw{rewrite} tactic in \Coq{} to rewrite the goal such that it
-becomes \fn{n + m $\le$ n + m}. The simplified goal may thus be easily proven
-using the reflexivity property of $\le$.
+Quotient types are not provided as a primitive in the \Coq{} proof assistant. To
+explain how quotient types are emulated in \Coq{}, we briefly introduce the
+rewriting mechanism of \Coq{}. Every construction is congruent with respect to
+the equality type, hence rewrites using the equality type may be carried out in
+any context. For instance, if we have a certain proof goal that requires us to
+produce a term of type \fn{m + n $\le$ n + m} and we have proof that \fn{m + n
+  $\equiv$ n + m}, we may use the \kw{rewrite} tactic in \Coq{} to rewrite the
+goal such that it becomes \fn{n + m $\le$ n + m}. The simplified goal may thus
+be easily proven using the reflexivity property of $\le$.
 
 Plain rewriting allows rewriting with \emph{equal} terms, generalised
 rewriting\cite{sozeau2009new, coq-gen-rewriting} on the other hand enables
@@ -4413,13 +4412,11 @@ interacts with the setoid needs to be accompanied with a proof that setoid
 equivalence is respected. This is in contrast to the ideal situation where such
 coherence proofs are \emph{only} required in the function that eliminates
 quotients, subsequent interaction, and composition of this function should be
-%% SM: "This has historically...": not clear whether "This" refers to setoid
-%% rewriting or to "the ideal situation".
-free of the burden of such proof obligations. This has historically been the
-go-to way of modelling quotient types in \Coq{}, however such an approach is
-known to be rather laborious. This phenomenon is often designated as
-\emph{setoid hell} by the community\footnote{Examples of community discussions
-on this topic may be found at
+free of the burden of such proof obligations. The generalised rewriting approach
+has historically been the go-to way of modelling quotient types in \Coq{},
+however such an approach is known to be rather laborious. This phenomenon is
+often designated as \emph{setoid hell} by the community\footnote{Examples of
+community discussions on this topic may be found at
 \url{https://stackoverflow.com/questions/65493694/why-do-calculus-of-construction-based-languages-use-setoids-so-much/}
 and
 \url{https://proofassistants.stackexchange.com/questions/908/what-exactly-is-setoid-hell/}}.
