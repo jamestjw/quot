@@ -325,12 +325,11 @@
 
 \copyrightyear{2024}
 
-%% SM: Vraiment?
-\department{Département de mathématiques et de statistique}
+\department{Département d'informatique et de recherche opérationnelle}
 
 \date{\today} %Date du DÉPÔT INITIAL (ou du 2e dépôt s'il y a corrections majeures)
 
-\sujet{Discipline}
+\sujet{Informatique}
 %%\orientation{orientation}%Ce champ est optionnel
 %%
 %% Voici les disciplines possibles (voir avec votre directeur):
@@ -613,7 +612,7 @@ the Glasgow Haskell Compiler (GHC) as they form the backbone of features such as
 generalised algebraic data types, functional dependencies, and associated
 types\cite{sulzmann2007systemfeq}.
 
-\section{Equality}
+\section{Equality}\label{sec:intro-eq}
 
 %% SM: This gets technical very quickly.  I think some of it may not
 %% belong in the intro.  E.g. I think we can skip the definition of Vector
@@ -760,26 +759,27 @@ Typer and its role in the elimination of quotients.
 %% sections instead.
 \subsection*{Cubical Equality}
 
-%% SM: The formulation "function out of" is not very common, so I wouldn't
-%% be surprised if it catches some readers off-guard.
 Recent advances in type theory inspired by topology propose a different approach
-to represent equality proofs by modeling them as functions out of a unit
-interval to some type A. In this alternative formulation of equality proofs,
-equality is viewed as a continuous path along the unit interval that connects
-two equal terms. The return value of such functions is not allowed to directly
-depend on the value of the interval argument. For instance, the function may not
-do a case analysis on the interval and return a different term of type A
-depending on which endpoint of the interval is encountered. This essentially
-implies that such a function would indeed be constant on the unit interval and
-aptly respects the requirements of an equality proof. An equality type based on
-the interval also allows us to derive many proofs regarding the equality type in
-an alternative manner that is much cleaner and more elegant. It also allows us
-to derive new theorems regarding the equality type that are desirable, such as
-functional extensionality. This flavour of equality was first conceived in
-cubical type theories to provide a computational interpretation of the
-univalence axiom\cite{bezem2014model}. This allows the encoding of equivalences
-as equalities. This is much like what is done in informal mathematics where
-objects with equivalent structures are just taken to be the ``the same''.
+to represent equality proofs by modeling them as functions whose argument is of
+the interval type, i.e.\ functions of the type \fn{I $\rightarrow$ A} given that
+\id{I} represents the interval type and \id{A} is an arbitrary other type. We
+refer to the above hereafter as functions out of the unit interval. In this
+alternative formulation of equality proofs, equality is viewed as a continuous
+path along the unit interval that connects two equal terms. The return value of
+such functions is not allowed to directly depend on the value of the interval
+argument. For instance, the function may not do a case analysis on the interval
+and return a different term of type A depending on which endpoint of the
+interval is encountered. This essentially implies that such a function would
+indeed be constant on the unit interval and aptly respects the requirements of
+an equality proof. An equality type based on the interval also allows us to
+derive many proofs regarding the equality type in an alternative manner that is
+much cleaner and more elegant. It also allows us to derive new theorems
+regarding the equality type that are desirable, such as functional
+extensionality. This flavour of equality was first conceived in cubical type
+theories to provide a computational interpretation of the univalence
+axiom\cite{bezem2014model}. This allows the encoding of equivalences as
+equalities. This is much like what is done in informal mathematics where objects
+with equivalent structures are just taken to be the ``the same''.
 
 Encoding equivalences as equalities is the bread and butter of univalence. It is
 thus crucial that equality proofs are not irrelevant in a HoTT setting, as their
@@ -992,51 +992,44 @@ without the truncation).
 %% part of Typer.
 
 \chapter{Cubical Equality}\label{ch:cubical-equality}
-%% SM: You need some introductory text here (between \chapter and \section).
-%% Or maybe just move the \section header after its first paragraph.
 %% SM: It's probably a good place to talk about (as a kind of self-reflection)
 %% the fact that your thesis on "quotient types in Typer" talks almost
 %% more about equalities than about quotients.
+
+We first present the typical definition of the \emph{interval type} defined as a
+higher inductive type as can be found in various sources such as the HoTT
+book\cite[Chap~6.3]{HoTTbook}. We subsequently we present our alternative
+formulation of the interval type and show that it is equivalent to the
+traditional definition. Finally, we define \emph{cubical} equality, a different
+take on the equality type, based on the aforementioned interval type.
+
 \section{Interval type}
 
-%% SM: Give some indication of the context in which such a definition
-%% might be considered "typical".
-First, we provide the typical definition of the interval type as can be found in
-%% SM: When citing articles, we typically cite just the article
-%% but when citing a subject treated in some part of a book, you don't
-%% want to just cite the book, you want to additionally mention which
-%% chapter you're referring to.
-various sources such as the HoTT book\cite{HoTTbook}, subsequently we present
-our alternative formulation of the interval type and show that it is equivalent
-to the traditional definition. We carry out the below presentation in a system
-that already has a notion of propositional equality unrelated to the interval
-type, which we denote with $\equiv$ for aesthetic purposes.
-%% SM: Clarify what's up with this \equiv.  E.g. say that *for now* we presume we
-%% have such a thing, just while we try to help the reader build an intuition
-%% about what we're presenting, but that later on we're going to actually
-%% define it.  Or maybe, actually give a definition of \equiv like HoTT-Book does.
-%% IIUC in this section you want to stay close to "an standard
-%% presentation", so a good choice is to literally copy the notation
-%% and the definitions from a known references (like HoTT-Book) and say
-%% so explicitly.
+In this section, we base our definitions on the assumption that we have an
+existing equality type as was described in \autoref{sec:intro-eq}, i.e.\ that we
+have a type former \fn{\_$\equiv$\_ : A $\rightarrow$ A $\rightarrow$ Type}
+along with its constructor and eliminator. This helps us to introduce the
+interval type and its relationship to the equality type. We will ultimately
+define a new equality type that will then form the backbone of the rest of this
+work.
 
-%% SM: Put those 4 axioms together so they use the space better, e.g. with
-%% a `mathpar` environment.
-\begin{prooftree*}
-   \infer0{\oftype{\ctx}{\bI}{\kw{Type}}}
-\end{prooftree*}
-
-\begin{prooftree*}
-   \infer0{\oftype{\ctx}{i_{0}}{\bI}}
-\end{prooftree*}
-
-\begin{prooftree*}
-   \infer0{\oftype{\ctx}{i_{1}}{\bI}}
-\end{prooftree*}
-
-\begin{prooftree*}
-   \infer0{\oftype{\ctx}{seg}{\eqtype{i_0}{i_1}}}
-\end{prooftree*}
+\begin{center}
+  \begin{prooftree}
+      \infer0{\oftype{\ctx}{\bI}{\kw{Type}}}
+  \end{prooftree}
+  \qquad
+  \begin{prooftree}
+      \infer0{\oftype{\ctx}{i_{0}}{\bI}}
+  \end{prooftree}
+  \qquad
+  \begin{prooftree}
+      \infer0{\oftype{\ctx}{i_{1}}{\bI}}
+  \end{prooftree}
+  \qquad
+  \begin{prooftree}
+      \infer0{\oftype{\ctx}{\id{seg}}{\eqtype{i_0}{i_1}}}
+  \end{prooftree}
+\end{center}
 
 We postulate the existence of the interval type $\bI$, along with its endpoints
 \id{$i_0$} and \id{$i_1$}. The intuition is that elements of $\bI$ correspond to
@@ -1046,69 +1039,70 @@ We postulate the existence of the interval type $\bI$, along with its endpoints
 points in the real unit interval $[0, 1]$. We also have \id{seg} which is a
 witness of a continuous path between \id{$i_0$} and \id{$i_1$}.
 
-%% SM: You use "Elimination" here and "recursion" later.
-%% TODO: Think about this, maybe what I should do is just introduce the entire
-%% thing as the `elimination' principle and not the `recursion' principle.
-%% SM: Sounds good to me (there's no actual recursion involved anyway).
-%% SM: Also, some readers may not be fully familiar with the terminology
-%% of "elimination principle", so you can explicitly mention
-%% "if/then/else" as the elimination principle for booleans.
-Elimination of $\bI$ is similar to that of \id{Boolean}, the only difference is
-%% SM: "a proof ... to prove" 🙁
-that a proof must be provided to prove that $\eqtype{i_0}{i_1}$ is respected.
-The recursion principle of $\bI$ can thus be stated as follows\footnote{This has
-nothing to do with recursive function calls. When we say recursion principle, we
-refer to the definition as is employed in an introduction to the \Coq{} proof
-assistant\cite{chlipala2022certified}. This terminology has also been employed
-in the HoTT book\cite{HoTTbook}.}:
+All inductive types have their own \emph{elimination principles}, which is a way
+to \emph{eliminate} a term of the inductive type \id{A} to some other type
+\id{B}. For instance, the elimination principle of \id{Boolean} is the
+\fn{\kw{if}...\kw{then}...\kw{else}} construct where both \kw{then} and
+\kw{else} branches should both have a term of some type \id{B}. The elimination
+of $\bI$ is similar to that of \id{Boolean}, the only difference is that we need
+to prove that $\id{seg} : \eqtype{i_0}{i_1}$ is respected. We define the
+elimination principle of $\bI$ using the \fn{elim$_{\bI}^{\_.A}$ (M, N, P, i)}
+syntax. $\_.A$ is the \emph{motive} of the elimination, i.e.\ the type we wish
+to eliminate to. The underscore indicates that the output type does not depend
+on the interval term \id{i} that we wish to eliminate. \id{M} and \id{N} are
+what we would like the output of the elimination to be when \id{i} is equal to
+$\ileft$ and $\iright$ respectively, this is analagous to what we would place in
+the \kw{then} and \kw{else} branches during \id{Boolean} elimination. \id{P} is
+a proof that \id{M} and \id{N} are equal, thus ensuring that the elimination is
+coherent. More formally, the typing rule of the elimination rule may be stated
+as follows:
 
-%% SM: Again, how is ≡ defined?  You don't necessarily need to explain it
-%% but at least point out the apparent circularity.
-%% SM: Before showing this rule, you also want to present the
-%% {rec_{\bI} (\_. A, P, i)} syntax
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{M}{A}}
    \hypo{\oftype{\ctx}{N}{A}}
    \hypo{\oftype{\ctx}{P}{\eqtype{M}{N}}}
-   \infer3{\oftype{\ctx, \oftype{i}{\bI}}{rec_{\bI} (\_. A, P, i)}{A}}
+   \infer3{\oftype{\ctx, \oftype{i}{\bI}}{elim_{\bI}^{\_.A} (M, N, P, i)}{A}}
 \end{prooftree*}
 
 %% SM: Try and give some intuition for what I is like.
 It has the below computation rules:
 
-%% SM: These don't look computational at all, since you reduce to "M"
-%% something that doesn't include any M anywhere.
 \begin{align*}
-  & rec_{\bI}(\_ . A, P, \ileft) = M \\
-  & rec_{\bI}(\_ . A, P, \iright) = N \\
-  & \kw{cong}_{rec_{\bI}(\_ . \bI, P)}(\id{seg}) = P
+  & elim_{\bI}^{\_.A}(M, N, P, \ileft) \rightsquigarrow{} M \\
+  & elim_{\bI}^{\_.A}(M, N, P, \iright) \rightsquigarrow{} N \\
+  & \kw{cong}_{elim_{\bI}^{\_.A}(M, N, P)}(\id{seg}) \rightsquigarrow{} P
 \end{align*}
 
 %% SM: State what is "the congruence property of equality".
-\kw{cong} refers to the congruence property of equality and is explained in more
-detail in \autoref{subsec:congruence-eq}. We can expect the first two equations
+\kw{cong} refers to the congruence property of equality, if we have a proof
+\id{p} of \fn{x $\equiv$ y} and some function \id{f}, then $\kw{cong}_f(p)$
+constructs a proof of \fn{f x $\equiv$ f y}. We can expect the first two rules
 to hold definitionally. Definitional equality of two terms is determined by
-expanding out definitions. So if we say that $rec_{\bI}(\_ . A, P, \ileft)$ is
-definitionally equal to $M$, we are saying that the former reduces to the latter
-when we check for equality. If we imagine that the first two computation rules
-were defined via pattern-matching, it would make sense for these equations to
+expanding out definitions. So when we say that $elim_{\bI}^{_.A}(M, N , P,
+\ileft)$ is definitionally equal to \id{M}, we are saying that the former
+reduces to the latter when we check for equality. If we imagine that the first
+two computation rules were defined via pattern-matching, it would make sense for
+these equations to
 %% SM: Since you haven't actually explained what each part of
 %% \kw{cong}_{rec_{\bI}(\_ . \bI, P)}(\id{seg}) stands for (or even "is"),
 %% your readers have probably no idea whether it's curious or not.
 %% This said, at least that reduction does include the resulting "P"
 %% somewhere on the left hand side, so it does look "computational".
-hold definitionally. The third equation is a more curious case, it suggests that
-by the congruence of equality, the application of the $\kw{Interval}$ recursor
-with the equality proof $\id{P}$ to $\id{seg}$ should yield an equality proof
-between $\id{M}$ and $\id{N}$. More specifically, such an equality proof should
-be equal to $\id{P}$ itself. From a computational point of view, equalities
-between equality proofs are only an important consideration in a proof-relevant
-setting, e.g.\ in the context of HoTT. In the world of Typer where we demand
-that equality proofs be erasable and play no role during computation, such
-equalities are less meaningful. However, they are not completely irrelevant as
-we occasionally need to construct such proofs for coherence purposes. In most
-cases, the third equation only holds propositionally, as is the case when it is
-defined as a user-defined datatype in other type systems such as \Agda{}.
+hold definitionally. The third rule is a more curious case, by the congruence of
+equality, the application of the $\kw{Interval}$ eliminator with the equality
+proof $\id{P}$ to $\id{seg}$ should yield an equality proof between $\id{M}$ and
+$\id{N}$. The rule suggests that this should compute to $\id{P}$ itself. From a
+computational point of view, equalities between equality proofs are only an
+important consideration in a proof-relevant setting, e.g.\ in the context of
+HoTT. In the world of Typer where we demand that equality proofs be erasable and
+play no role during computation, such equalities are less meaningful. However,
+they are not completely irrelevant as we occasionally need to construct such
+proofs for coherence purposes. In most cases, the third equation does not hold
+definitionally as the \kw{cong} construct is defined independently and it would
+be highly unusual to separately define how it should compute on new constructs
+such as the interval type. In cases where we are unable to make the third rule hold
+definitionally, we should then postulate a propositional equality between
+$\kw{cong}_{elim_{\bI}^{\_.A}(M, N, P)}(\id{seg})$ and P.
 
 \section{Motivation}
 %% SM: Maybe give an intuition why this is true, maybe comparing `I` to
@@ -1130,24 +1124,22 @@ is named \id{x}; the type of the second projection,\id{B} may depend on the term
 we formally state the theorem that we are interested in
 
 \begin{theo}
-  %% SM: "may be"?
-The following type may be inhabited:
+The following type is inhabited:
 
 %% SM: There's too much space around this math element.
-\begin{align*}
-  & \bI \rightarrow A \ \simeq \ \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}
-\end{align*}
+\begin{align}
+  & \bI \rightarrow A \ \simeq \ \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}\nonumber
+\end{align}
 
 \end{theo}
 
 \begin{proof}
 We define functions \id{f} and \id{g} as inhabitants of the forward and backward
 directions of the equivalence respectively. We prove this equivalence by proving
-that \fn{g} is a quasi-inverse of \fn{f} as described in chapter 2 of the HoTT
-%% SM: Use \cite[Chap. 2]{...} instead of "in chapter 2 of \cite{...}".
-book\cite{HoTTbook}. To this end, we define \id{f} and \id{g} as such:
+that \fn{g} is a quasi-inverse of \fn{f} as described in \cite[Chap.
+  2]{HoTTbook}. To this end, we define \id{f} and \id{g} as such:
 
-%% TODO: I glossed over this detail, but the $rec_{\bI}$ actually carries out a
+%% TODO: I glossed over this detail, but the $elim_{\bI}$ actually carries out a
 %% depelim which I haven't introduced yet.
 
 %% SM: I think a "paper proof" would be a better choice than a formal proof
@@ -1158,7 +1150,7 @@ book\cite{HoTTbook}. To this end, we define \id{f} and \id{g} as such:
   & f : (\bI \rightarrow A) \rightarrow \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y} \\
   & f(h) := \braket{\id{h}(\ileft), \braket{\id{h}(\iright), \kw{cong}_{\id{h}}(\id{seg})}} \\ \\
   & g : \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . (\eqtype{x}{y}) \rightarrow  (\bI \rightarrow A) \\
-  & g \braket{x, \braket{y, p}} := \lambda \id{i} . \ rec_{\bI}(\_ . \id{A}, \id{p}, \id{i})
+  & g \braket{x, \braket{y, p}} := \lambda \id{i} . \ elim_{\bI}^{\_.A}(\id{x}, \id{y}, \id{p}, \id{i})
 \end{align*}
 %% SM: You need to "read aloud" to explain what this does.
 %% Alternatively, you may relegate this proof to a later chapter.
@@ -1168,7 +1160,7 @@ Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
 
 \begin{align*}
   & \id{$\alpha$-helper} : (\oftype{h}{\bI \rightarrow A}) \rightarrow (\oftype{i}{\bI}) \rightarrow \eqtype{(g (f \ h)) \ i}{h \ i} \\
-  & \id{$\alpha$-helper} (h , i) = rec_{\bI}(i . \ \eqtype{(g (f \ h)) \ i}{h \ i}, \ \kw{cong}_{\lambda i . \refl{h(i)}}(\id{seg}), \ i) \\
+  & \id{$\alpha$-helper} (h , i) = elim_{\bI}(i . \ \eqtype{(g (f \ h)) \ i}{h \ i}, \ \kw{cong}_{\lambda i . \refl{h(i)}}(\id{seg}), \ i) \\
   & \alpha : (\oftype{h}{\bI \rightarrow A}) \rightarrow \eqtype{g(f(h))}{h} \\
   & \alpha(h) =  \kw{funExt} (\id{$\alpha$-helper} (h)) \\ \\
   & \beta :  (\oftype{e}{\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}}) \rightarrow f(g(e)) = e \\
@@ -1178,9 +1170,7 @@ Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
 %% The proof of beta is done via refl by leveraging the eta-equivalence of the
 %% sigma type
 For the sake of simplifying the proof of $\beta$, we assume the $\eta$-rule for
-dependent pairs. And with that, the proof is complete.
-
-\end{proof}
+dependent pairs. And with that, the proof is complete.\end{proof}
 
 \section{Justification}\label{sec:eq-justification}
 We have established in the previous section that equality between two terms is
@@ -1220,7 +1210,7 @@ it because the argument is erasable. With that, we can postulate that
   \eqtype{x}{y}
 \end{align*}
 
-The above shall be the basis of our new definition of identity types.
+The above shall be the basis of our new definition of equality types.
 
 \section{Manipulation of the Interval type}
 
@@ -1240,34 +1230,35 @@ I_not : I @$\rightarrow$@ I
 The negation operator computes as follows:
 
 %% SM: A common practice is to use \textsc to name rules.
-%% SM: Here you use "↝" but in the computation rules for recI you used "=".
-%% I think "↝" is preferable (if possible) since we already have
-%% enough other uses for "=" around here :-)
 \begin{mdframed}[nobreak=true]
   \begin{center}
     \begin{prooftree}
-        \infer0[I-NOT$_1$]{\Funapp{\fn{I\_not}}{i_0} \rightsquigarrow{} i_1}
+        \infer0[\textsc{I-Not$_1$}]{\Funapp{\fn{I\_not}}{i_0} \rightsquigarrow{} i_1}
     \end{prooftree}
     \qquad
     \begin{prooftree}
-        \infer0[I-NOT$_2$]{\Funapp{\fn{I\_not}}{i_1} \rightsquigarrow{} i_0}
+        \infer0[\textsc{I-Not$_2$}]{\Funapp{\fn{I\_not}}{i_1} \rightsquigarrow{} i_0}
     \end{prooftree}
 
     \hfill \break
 
     \begin{prooftree}
-        \infer0[I-NOT-NOT]{\Funapp{\fn{I\_not}}{(\Funapp{\fn{I\_not}}{i})}
+        \infer0[\textsc{I-Not-Not}]{\Funapp{\fn{I\_not}}{(\Funapp{\fn{I\_not}}{i})}
             \rightsquigarrow{} i}
     \end{prooftree}
   \end{center}
 \end{mdframed}
 
-I-NOT-NOT is a special rule that states that the composition of \fn{I\_not} with
+\textsc{I-Not-Not} is a special rule that states that the composition of \fn{I\_not} with
 itself is equal to the identity function. This is something that we could have
 proven propositionally, however, we have set things up such that this holds
 definitionally. This is not entirely necessary, though it makes proofs that do
 indeed require this property a lot simpler and more elegant, allowing us to
 fully benefit from having an interval-based equality type.
+
+%% TODO: I don't have de Morgan's law, i.e. ~ (i ∨ j) = ~ i ∧ ~ j (and the other
+%% one ~ (i ∧ j) = ~ i ∨ ~ j)
+%% I guess I should add this huh?
 
 \subsubsection*{Meet}\label{subsubsec:interval-meet}
 
@@ -1283,45 +1274,46 @@ It has the following reduction rules:
 \begin{mdframed}[nobreak=true]
     \begin{center}
         \begin{prooftree}
-            \infer0[I-MEET$_1$]{\Funapp{\fn{I\_meet}}{i_0}{i}
+            \infer0[\textsc{I-Meet$_1$}]{\Funapp{\fn{I\_meet}}{i_0}{i}
                 \rightsquigarrow{} i_0}
         \end{prooftree}
         \qquad
         \begin{prooftree}
-            \infer0[I-MEET$_2$]{\Funapp{\fn{I\_meet}}{i_1}{i}
+            \infer0[\textsc{I-Meet$_2$}]{\Funapp{\fn{I\_meet}}{i_1}{i}
                 \rightsquigarrow{} i}
         \end{prooftree}
 
         \hfill \break
 
         \begin{prooftree}
-            \infer0[I-MEET$_3$]{\Funapp{\fn{I\_meet}}{i}{i_0}
+            \infer0[\textsc{I-Meet$_3$}]{\Funapp{\fn{I\_meet}}{i}{i_0}
                 \rightsquigarrow{} i_0}
         \end{prooftree}
         \qquad
         \begin{prooftree}
-            \infer0[I-MEET$_4$]{\Funapp{\fn{I\_meet}}{i}{i_1}
+            \infer0[\textsc{I-Meet$_4$}]{\Funapp{\fn{I\_meet}}{i}{i_1}
                 \rightsquigarrow{} i}
         \end{prooftree}
 
         \hfill \break
 
         \begin{prooftree}
-            \infer0[I-MEET$_5$]{\Funapp{\fn{I\_meet}}{i}{i}
+            \infer0[\textsc{I-Meet$_5$}]{\Funapp{\fn{I\_meet}}{i}{i}
                 \rightsquigarrow{} i}
         \end{prooftree}
     \end{center}
 \end{mdframed}
 
-I-MEET$_1$ is valid as $i_0$ is lesser or equal to anything else. In a similar
-fashion, I-MEET$_2$ is justified as everything is lesser or equal to $i_1$.
-Since the operator is commutative, I-MEET$_3$ and I-MEET$_4$ are complementary
-to I-MEET$_1$ and I-MEET$_2$. The minimum of $\id{i}$ and $\id{i}$ is $\id{i}$
-itself, justifying the I-MEET$_5$ rule. Note that since the Interval type does
+\textsc{I-Meet$_1$} is valid as $i_0$ is lesser or equal to anything else. In a
+similar fashion, \textsc{I-Meet$_2$} is justified as everything is lesser or
+equal to $i_1$. Since the operator is commutative, \textsc{I-Meet$_3$} and
+\textsc{I-Meet$_4$} are complementary to \textsc{I-Meet$_1$} and
+\textsc{I-Meet$_2$}. The minimum of $\id{i}$ and $\id{i}$ is $\id{i}$ itself,
+justifying the \textsc{I-Meet$_5$} rule. Note that since the Interval type does
 not behave like a Boolean algebra, it is not the case that
-%% SM: I think you mean that it does not hold definitionally, but it does
-%% hold propositionally, right?
-$\Funapp{\fn{I\_meet}}{i}{(\Funapp{\fn{I\_not}}{i})} \rightsquigarrow{} i_0$.
+$\Funapp{\fn{I\_meet}}{i}{(\Funapp{\fn{I\_not}}{i})} \rightsquigarrow{} i_0$
+holds definitionally, however, the two terms may be proven to be propositionally
+equal.
 
 \subsection*{Join}
 %% SM: AFAIK, with De Morgan (and not&meet) you can define any function
@@ -1345,50 +1337,65 @@ TODO:\ I'm leaning towards adding it anyway for completeness' sake
 
 %% SM: Why the negation?
 
+%% Note: Hmm good point, probably not for any particular reason since i0 and i1
+%% are symmetrical for all intents and purposes
+
 We present the one and only elimination rule of our \type{Interval} type. It is
 largely inspired by the (generalised) transport operation used in Cubical
 Agda\cite{vezzosi2021cubical}. It has the following typing rule:
 
-%% SM: Shouldn't the `r` param to `transp` be erased as well?
-%% How 'bout passing it last (so that `transp A a` is the equality proof?
 \begin{prooftree*}
-  \hypo{\oftype{\ctx}{\id{A}}{\id{I} \Rrightarrow \type{Type}}}
-  \hypo{\oftype{\ctx}{\id{r}}{\type{Interval}}}
+  \hypo{\oftype{\ctx}{\id{A}}{\bI \Rrightarrow \type{Type}}}
   \hypo{\oftype{\ctx}{\id{a}}{\Funapp{\id{A}}{(\earg{\id{i}_0})}}}
+  \hypo{\oftype{\ctx}{\id{r}}{\bI}}
   \infer3{\oftype{\ctx}
-                 {\Funapp{\id{I\_transp}}{\id{A}}{\id{r}}{\id{a}}}
+                 {\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{r}})}}
                  {\Funapp{\id{A}}{(\earg{\Funapp{\id{I\_not}}{\id{r}}})}}}
 \end{prooftree*}
 
 We claim that this is a generalised version of the transport operation as the
 argument \id{r} dictates when \id{I\_transp} should behave like the identity
-function. When $\id{r} = \id{i}_1$, then the type of
-$\Funapp{\id{I\_transp}}{\id{A}}{\id{r}}$ is $\Funapp{\id{A}}{(\earg{\id{i}_0})}
-\rightarrow \Funapp{\id{A}}{(\earg{\id{i}_0})}$, i.e. it behaves like the
+function. This is the case when $\id{r} = \id{i}_1$, the type of
+$\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_1})}$ is
+$\Funapp{\id{A}}{(\earg{\id{i}_0})}$, i.e.\ this is coherent with its behaviour
+as the identity function on \id{a}.
+
 %% SM: Don't make such comments about details of Agda's rule
 %% unless you actually first describe Agda's rule.
-identity function. Since our version of $\id{I\_transp}$ is slightly different
-from that of Cubical Agda, we do not need the additional side condition that
-states that A needs to be a constant function when $\id{r} = \id{i}_1$ in order
-for the above expression to typecheck. This is primarily because the ultimate
-return type of the function is dependent on $\id{r}$ itself. When $\id{r} =
-\id{i}_0$, then the type of $\Funapp{\id{I\_transp}}{\id{A}}{\id{r}}$ is
-$\Funapp{\id{A}}{(\earg{\id{i}_0})} \rightarrow
-\Funapp{\id{A}}{(\earg{\id{i}_1})}$, this gives us a function that transports an
-expression of type $\Funapp{\id{A}}{(\earg{\id{i}_0})}$ to type
+
+%% TODO: I think I don't actually want to describe their rule? It's not easy to
+%% make sense of and it wouldn't help people understand what's happening here
+%% anyway
+
+%% Since our version of $\id{I\_transp}$ is slightly different from that of
+%% Cubical Agda, we do not need the additional side condition that states that A
+%% needs to be a constant function when $\id{r} = \id{i}_1$ in order for the
+%% above expression to typecheck. This is primarily because the ultimate return
+%% type of the function is dependent on $\id{r}$ itself.
+
+When $\id{r} = \id{i}_0$, then the type of
+$\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_0})}$ is
+$\Funapp{\id{A}}{(\earg{\id{i}_1})}$, this gives us a function that transports
+an expression of type $\Funapp{\id{A}}{(\earg{\id{i}_0})}$ to type
 $\Funapp{\id{A}}{(\earg{\id{i}_1})}$. We shall make use of this property
-subsequently to define the actual transport function. However, the other
+subsequently to define the actual transport function. The other
 property of the $\id{I\_transp}$ function may appear bizarre at first sight, but
-in reality it ensures that $\Funapp{\id{I\_transp}}{\id{A}}{\id{r}}{\id{a}}$ is
-equal to $\id{a}$\footnote{This equality would be heterogeneous as the two terms
-may not have the same type}.
+in reality it allows us to relate the transported value of \id{a} with \id{a}
+itself by allowing us to prove that
+$\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_0})}$ is equal to
+$\id{a}$\footnote{This equality would be heterogeneous as the two terms may not
+have the same type}. Indeed, $\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}$ has the
+type $(\id{r} : \bI) \Rrightarrow
+\Funapp{\id{A}}{(\earg{\Funapp{\id{I\_not}}{\id{r}}})}$ and by evaluating this
+function at both endpoints of $\bI$, we see that we have an equivalent of an
+equality proof between
+$\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_0})}$ and \id{a}.
 
 The computational behaviour of the function is as follows:
 
-%% SM: Hmm... doesn't this break type-preservation since `a` has type `A i₀`
-%% whereas `transp A i₀ a` has type `A i₁`?
 \begin{prooftree*}
-  \infer0{\Funapp{\id{I\_transp}}{\id{A}}{\ileft}{\id{a}} \rightsquigarrow \id{a}}
+  \hypo{\Funapp{\id{A}}{(\earg{\ileft})} \simeq \Funapp{\id{A}}{(\earg{\iright})}}
+  \infer1{\Funapp{\id{I\_transp}}{\id{A}}{\ileft}{\id{a}} \rightsquigarrow \id{a}}
 \end{prooftree*}
 
 \begin{prooftree*}
@@ -1399,13 +1406,13 @@ The function is implemented in Typer as a primitive with the following type
 signature:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (r : I) @$\Rrightarrow$@ A (_ := i0) @$\rightarrow$@ A (_ := I_not r)
+I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ A (_ := i0) @$\rightarrow$@ (r : I) @$\Rrightarrow$@ A (_ := I_not r)
 \end{minted}
 
 Its implementation is simple in that it simply returns the argument $\id{a}$
 untouched when \id{r} is a canonical value of \id{Interval}.
 
-\section{Identity type}\label{sec:identity}
+\section{Equality type}\label{sec:identity}
 
 %% SM: You need some text here.
 %% SM: Try and stick to one terminology rather than sometimes using
@@ -1416,7 +1423,7 @@ With the above definition of $\bI$, we are now ready to introduce the notion of
 heterogeneous equality. Such an equality type allows us to identify two terms
 that are not necessarily of the same type. The heterogeneous equality type has
 the following type signature\footnote{Although not mentioned explicitly,
-functions involving the identity type are universe polymorphic in their
+functions involving the equality type are universe polymorphic in their
 arguments and return type.} and is implemented axiomatically. Usually, when we
 define an axiom in type theory, we simply claim that it is an inhabitant of some
 type without saying anything about its behaviour. However, in our case, we also
@@ -1594,9 +1601,19 @@ Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := 
 
 \subsection*{Functional extensionality}\label{subsec:funext}
 The notion of functional extensionality implies that pointwise-equal functions
-are indeed equal. By postulating the existence of the $\type{Interval}$ type
-along with an equality type that's based on it, functional extensionality can be
-derived trivially as is illustrated by the below proof.
+are indeed equal.
+
+This often makes an appearance in mathematical proofs, it will especially be
+required to prove the effectiveness of quotients in
+\autoref{ch:quotient-effectiveness}. However, as we shall see in
+\autoref{sec:quot-implies-funext}, the existence of quotient types itself is
+sufficient to derive functional extensionality. Although functional
+extensionality is a property that is respected by all functions, in most proof
+assistants, it is not provided nor is it derivable. If one requires it, it would
+then have to be postulated as an axiom, therefore adversely affecting
+computation as we would describe below. By postulating the existence of the
+$\type{Interval}$ type along with an equality type that's based on it,
+functional extensionality can be derived as a theorem as we illustrate below.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Eq_funExt : (f : (? |$\rightarrow$| ?)) |$\Rightarrow$| (g : (? |$\rightarrow$| ?))
@@ -1606,55 +1623,52 @@ Eq_funExt p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| |$\lambda$| x |$\righta
 \end{minted}
 
 We note that the above proof makes use of the $\eta$-equivalence of functions,
-i.e. $\lambda \id{x} \rightarrow \Funapp{\id{f}}{\id{x}} \equiv \id{f}$. Another
-%% SM: Funny, I tend to think of it the other way around, i.e. that
-%% Eq_uneq lets us treat the equality type as a function from I.
-thing that is worth noting is that we interpret erasable functions out of $\bI$
-themselves as an equality type, i.e.\ if we do without the $\id{Eq\_eq}$
-constructor, and if we think of $\id{Eq\_uneq}$ as the direct application of an
-expression of type $\bI$ to such a function, we obtain the following
-interpretation of $\id{Eq\_funExt}$ as is the case in Cubical Agda.
+i.e. $\lambda \id{x} \rightarrow \Funapp{\id{f}}{\id{x}} \equiv \id{f}$.
 
-%% SM: You can't presume the readers are familiar with Cubical Agda and
-%% its syntax.  So you need to hand-hold them through the code.
-%% Maybe you can avoid some of it by showing it using a Typer-style syntax
-%% and explaining the changes that would need to be taken from Cubical Agda
-%% to make it work.
-%% SM: IOW always keep in mind that the PL world loves to introduce
-%% new notations but that makes our work impenetrable to outsiders.
-%% So try and use as few different notations as possible.
-\begin{minted}[escapeinside=||,mathescape=true]{agda}
-funExt : |$\forall$| {A B : Type |$\ell$|} {f g: A |$\rightarrow$| B}
-         |$\rightarrow$| (p : (x : A) |$\rightarrow$| f x |$\equiv$| g x)
-         |$\rightarrow$| f |$\equiv$| g
-funExt p i x = p x i
-\end{minted}
+%% NOTE: Skipping this because I would already have mentioned it while
+%% introducing Cubical Agda in an earlier chapter
 
-The proof $\id{p}$ that the functions are extensionally equal may be seen to
-have the type $\id{A} \rightarrow \bI \rightarrow B$, on other hand, a proof
-that the functions are equal would have the type $\bI \rightarrow (A \rightarrow
-B)$. In this case, it becomes clear that a proof of functional extensionality
-merely needs to swap the order of its two arguments. This is observed in several
-recent proof assistants that implement cubical type theory, such as Cubical Agda
-as mentioned before, as well as coolTT and redTT.\@
+%% Another
+%% %% SM: Funny, I tend to think of it the other way around, i.e. that
+%% %% Eq_uneq lets us treat the equality type as a function from I.
+%% thing that is worth noting is that we interpret erasable functions out of $\bI$
+%% themselves as an equality type, i.e.\ if we do without the $\id{Eq\_eq}$
+%% constructor, and if we think of $\id{Eq\_uneq}$ as the direct application of an
+%% argument of type $\bI$ to such a function, we obtain the following
+%% interpretation of $\id{Eq\_funExt}$ as is the case in Cubical Agda.
 
-%% SM: Maybe this should be moved to the beginning of this
-%% subsection, and more generally it is worth pointing out that
-%% in most proof assistants, functional extensionality is not provided
-%% directly but requires the use of an axiom and that this tends to
-%% introduce problems.
-Functional extensionality is a property that often makes an appearance in
-mathematical proofs, it will especially be required to prove the effectiveness
-of quotients in \autoref{ch:quotient-effectiveness}. However, as we shall see in
-\autoref{sec:quot-implies-funext}, the existence of quotient types itself is
-sufficient to derive functional extensionality.
+%% %% SM: You can't presume the readers are familiar with Cubical Agda and
+%% %% its syntax.  So you need to hand-hold them through the code.
+%% %% Maybe you can avoid some of it by showing it using a Typer-style syntax
+%% %% and explaining the changes that would need to be taken from Cubical Agda
+%% %% to make it work.
+%% %% SM: IOW always keep in mind that the PL world loves to introduce
+%% %% new notations but that makes our work impenetrable to outsiders.
+%% %% So try and use as few different notations as possible.
+%% \begin{minted}[escapeinside=||,mathescape=true]{agda}
+%% funExt : |$\forall$| {A B : Type |$\ell$|} {f g: A |$\rightarrow$| B}
+%%          |$\rightarrow$| (p : (x : A) |$\rightarrow$| f x |$\equiv$| g x)
+%%          |$\rightarrow$| f |$\equiv$| g
+%% funExt p i x = p x i
+%% \end{minted}
+
+%% The proof $\id{p}$ that the functions are extensionally equal may be seen to
+%% have the type $\id{A} \rightarrow \bI \rightarrow B$, on other hand, a proof
+%% that the functions are equal would have the type $\bI \rightarrow (A \rightarrow
+%% B)$. In this case, it becomes clear that a proof of functional extensionality
+%% merely needs to swap the order of its two arguments. This is observed in several
+%% recent proof assistants that implement cubical type theory, such as Cubical Agda
+%% as mentioned before, as well as coolTT and redTT.\@
+
 
 It is also worth mentioning that unlike the traditional approach of adding
-functional extensionality to an ITT as an axiom, canonicity is not broken by our
-approach since the property is derived as a theorem. For instance, the example
-given in\cite{altenkirch2007observational} is not a problem in our system as
-performing a cast on an equality proof constructed by functionality
-extensionality does not lead to a stuck term as shown in the following code snippet:
+functional extensionality to an ITT as an axiom, canonicity\footnote{This
+property states that in a closed context, all terms reduce to a canonical form
+of its type.} is not broken by our approach since the property is derived as a
+theorem. For instance, the example given in\cite{altenkirch2007observational} is
+not a problem in our system as performing a cast on an equality proof
+constructed by functionality extensionality does not lead to a stuck term as
+shown in the following code snippet:
 
 %% SM: You need to explain what this code snippet does, step by step.
 %% SM: It might be worth showing in a bit more detail where the reduction
@@ -1672,6 +1686,18 @@ canon0 : Eq_cast (p := eqf) (f := lambda _ -> Nat) zero @$\equiv$@ zero
 canon0 = Eq_refl
 \end{minted}
 
+\id{plus0} is a proof that both ways of adding \id{zero} to an integer \id{x}
+are equal since the addition of natural numbers is commutative. This is a
+witness that the two functions that are passed to \id{Eq\_funext} are
+extensionally equal, allowing to use functional extensionality to construct an
+equality proof between them. The implementation of cast in proof assistants that
+implement ITT typically only reduces on reflexive proofs of equality. This
+implies that a term such as \fn{Eq\_cast (p := eqf) (f := $\lambda$ \_
+  $\rightarrow$ Nat) zero} would not reduce to \id{zero} despite the fact that
+this cast does not even utilise the proof constructed by \id{Eq\_funext}. Our
+implementation of cast however recognises the fact that we are performing a cast
+between two definitionally equal types and thus successfully reduces.
+
 \subsection*{Congruence of equality}\label{subsec:congruence-eq}
 This is another typical property of equality whose proof is significantly
 simplified in a system with a cubical equality.
@@ -1682,32 +1708,49 @@ simplified in a system with a cubical equality.
 %% Eq_cong = lambda f -> lambda p ->
 %%             Eq_eq (f := lambda i ≡> f (Eq_uneq (p := p) (i := i)))
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_cong : (x y : ?A) |$\Rightarrow$| (f : (?A |$\rightarrow$| ?)) |$\rightarrow$| (p : Eq x y)
+Eq_cong : (x y : ?A) |$\Rightarrow$| (g : (?A |$\rightarrow$| ?)) |$\rightarrow$| (p : Eq x y)
           |$\rightarrow$| Eq (f x) (f y)
-Eq_cong f p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| f (Eq_uneq (p := p) (i := i)))
-\end{minted}
-%% SM: Read it aloud for your readers.
-
-Like before, we examine the definition of the theorem in Cubical Agda for a
-change of perspective. We observe that the congruence of equality merely
-involves applying the function $\id{f}$ to the terms at both endpoints of the
-equality.
-
-\begin{minted}[escapeinside=||,mathescape=true]{agda}
-congS : |$\forall$| {A B : Type |$\ell$|} |$\rightarrow$| (f : A |$\rightarrow$| B) (p : x |$\equiv$| y) |$\rightarrow$| f x |$\equiv$| f y
-congS f p i = f (p i)
+Eq_cong g p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| g (Eq_uneq (p := p) (i := i)))
 \end{minted}
 
-%% SM: "By appealing" make it sound like we have to request it explicitly,
-%% and could be misunderstood that you need to add some annotation somewhere.
-By appealing to the $\eta$-equivalence of the equality type described in
-\autoref{sec:identity}, we also have that $\fn{Eq\_cong id p $\equiv$ p}$ holds
-definitionally.
+To construct a proof of \fn{Eq (f x) (f y)}, we apply the \id{Eq\_eq}
+constructor to a function that returns \fn{f x} when called with $\ileft$ and
+\fn{f y} when called with $\iright$. We construct this function by
+deconstructing the proof \id{p} using \id{Eq\_uneq} followed by applying it to
+the function \id{g}. Conceptually speaking we are simply placing a call to
+\id{g} `inside' the equality proof \id{p}. By the $\eta$-equivalence of the
+equality type described in \autoref{sec:identity}, we also have that
+$\fn{Eq\_cong id p = p}$ holds definitionally\footnote{\id{id} is the
+polymorphic identity function}.
+
+%% TODO: Let's skip this too since I skipped a similar thing in the prev section
+
+%% Like before, we examine the definition of the theorem in Cubical Agda for a
+%% change of perspective. We observe that the congruence of equality merely
+%% involves applying the function $\id{f}$ to the terms at both endpoints of the
+%% equality.
+
+%% \begin{minted}[escapeinside=||,mathescape=true]{agda}
+%% congS : |$\forall$| {A B : Type |$\ell$|} |$\rightarrow$| (f : A |$\rightarrow$|
+%% B) (p : x |$\equiv$| y) |$\rightarrow$| f x |$\equiv$| f y congS f p i = f (p i)
+%% \end{minted}
 
 \subsection*{Transport}
-The transport operation (also known as {\id{cast}}) allows us to transport
-properties that are true for some type $\id{A}$ to another type $\id{B}$ if we
-have a proof that $\eqtype{\id{A}}{\id{B}}$.
+As mentioned in the introduction, two equal things may be substituted for one
+another according to the principle of the indiscernibility of identicals, also
+known as Leibniz's law. This essentially means that a property that is true of
+one type would necessarily also be true of another type that is equal to it. If
+we are working in the realm of natural numbers, we could construct predicates
+such as ``x is an even number'', ``x is greater than zero'' etc. In the spirit
+of the Curry-Howard correspondence, such predicates would be represented by type
+families. For instance, we could define the type family \id{Even} such that for
+any natural number \id{m}, a term of type \fn{Even m} is a proof that \id{m} is
+even. Naturally, if we know that \id{m} and \id{n} are equal and that \id{m} is
+even, we should also be able to derive the fact that \id{n} is also even. The
+transport operation (also known as {\id{cast}}) allows us precisely to do the
+above. We define the function \id{Eq\_cast} such that it takes a proof that
+\id{x} and \id{y} of type \id{A} are equal, a type family \fn{f:A $\rightarrow$
+  Type} and gives us a function that maps \fn{f x} to \fn{f y}.
 
 %% Eq_cast : (x : ?) ≡> (y : ?) ≡> (p : Eq x y) ≡> (f : ? -> ?)
 %%             ≡> f x -> f y
@@ -1722,17 +1765,11 @@ have a proof that $\eqtype{\id{A}}{\id{B}}$.
 %%                          (r := i0) fx
 %%
 
-%% SM: The three lines above don't explain enough to understand the 4 lines
-%% below.  Worse, it does not describe the same operation and uses
-%% different names (A and B i.s.o `f x` and `f y`).
-%% SM: You might want to explain it in terms of something like Leibniz equality.
-%% SM: 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_cast : (x y : ?A) |$\Rrightarrow$| (p : Eq x y) |$\Rrightarrow$| (f : (? |$\rightarrow$| ?)) |$\Rrightarrow$| f x
-          |$\rightarrow$| f y
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
+Eq_cast : (x y : ?A) |$\Rrightarrow$| (p : Eq x y) |$\Rrightarrow$| (f : ?A |$\rightarrow$| Type) |$\Rrightarrow$| f x |$\rightarrow$| f y
 Eq_cast A x y p f fx =
   I_transp (A := |$\lambda$| t |$\Rrightarrow$| f (Eq_uneq (t := t) (p := p) (i := i)))
-           (r := |$\ileft$|) fx
+           fx (r := |$\ileft$|)
 \end{minted}
 
 Here, we make use of the built-in function $\id{I\_transp}$ by passing it the
@@ -2029,7 +2066,7 @@ or no, if they are indeed equal, we can interest ourselves in what ways exactly
 are they equal. This is in contrast to other systems where the Uniqueness of
 Identity Proofs principle (UIP) applies to all types. Notably, this is true of
 systems that admit axiom K\cite{streicher1993investigations} that states all
-identity proofs are equal to the reflexivity proof, and by extension all proofs
+equality proofs are equal to the reflexivity proof, and by extension all proofs
 of the same equality are equal. In the remainder of this section, we show that
 UIP is a property that is true for a certain class of types in Typer.
 
@@ -2054,15 +2091,15 @@ type Dec (A : Type)
 A type is said to be \textbf{collapsed} if any two inhabitants of the type may
 be proved to be equal, this corresponds directly to the notion of a mere
 proposition. The two definitions that we just stated may also be used in the
-context of identity types. If we say that a type has decidable equality,
+context of equality types. If we say that a type has decidable equality,
 this implies that for any two terms of this type, we can decide whether or not
-they are equal. On top of that, if the type has collapsed identity types, then
+they are equal. On top of that, if the type has collapsed equality types, then
 for any pair of terms of this type, any two proofs that they are equal are also
-equal. The notion of collapsible identity types corresponds to the notion of a
+equal. The notion of collapsible equality types corresponds to the notion of a
 $\kw{Set}$ or h-set in HoTT.
 
 \begin{theo}[Hedberg's theorem\cite{hedberg1998coherence}]
-If a type \fn{A} has decidable equality, then \fn{A} has collapsed identity
+If a type \fn{A} has decidable equality, then \fn{A} has collapsed equality
 types.
 \end{theo}
 
@@ -2097,7 +2134,7 @@ We present the $\id{Quotient}$ primitives along with their typing rules.
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{A}}{\kw{Type}}}
    \hypo{\oftype{\ctx}{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}}}
-   \infer2[\kw{QUOT-FORMATION}]{\oftype{\ctx}{\Funapp{\kw{Quotient}}{\id{A}}{\id{R}}}
+   \infer2[\textsc{Quot-Formation}]{\oftype{\ctx}{\Funapp{\kw{Quotient}}{\id{A}}{\id{R}}}
                                              {\kw{Type}}}
 \end{prooftree*}
 
@@ -2114,7 +2151,7 @@ this is required for the quotient to be effective.
    \hypo{\oftype{\ctx}{\id{a}}{\id{A}}}
    \hypo{\oftype{\ctx}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}
                       {\kw{Type}}}
-   \infer2[\kw{QUOT-INTRO-IN}]{\oftype{\ctx}{\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}}}
+   \infer2[\textsc{Quot-Intro-In}]{\oftype{\ctx}{\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}}}
                                          {\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}}
 \end{prooftree*}
 
@@ -2125,7 +2162,7 @@ surjection of a term of type $\id{A}$ into a quotient under some relation.
    \hypo{\oftype{\ctx}{\id{a}_1}{\id{A}}}
    \hypo{\oftype{\ctx}{\id{a}_2}{\id{A}}}
    \hypo{\oftype{\ctx}{\id{r}}{\Funapp{\id{R}}{\id{a}_1}}{\id{a}_2}}
-   \infer3[\kw{QUOT-INTRO-EQ}]{
+   \infer3[\textsc{Quot-Intro-Eq}]{
 \oftype{\ctx}{\Funapp{\id{Quotient\_eq}}{\id{A}}{\id{R}}
                                         {\id{a}_1}{\id{a}_2}{\id{r}}}
              {\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}_1} \equiv \Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}_2}}}
@@ -2146,7 +2183,7 @@ is a witness of the above property.
                                           \rightarrow \Funapp{\id{R}}{\id{a}_1}{\id{a}_2}}
                                           \rightarrow \Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}_1})}
                                                                        {(\Funapp{\id{f}}{\id{a}_2})}}
-   \infer1[\kw{QUOT-ELIM}]{\oftype{\ctx}{\Funapp{\id{Quotient\_elim}}{\id{A}}{\id{R}}{\id{f}}{\id{h}}{\id{q}}}
+   \infer1[\textsc{Quot-Elim}]{\oftype{\ctx}{\Funapp{\id{Quotient\_elim}}{\id{A}}{\id{R}}{\id{f}}{\id{h}}{\id{q}}}
                                         {\Funapp{\id{P}}{\id{q}}}}
 \end{prooftree*}
 
@@ -2407,7 +2444,7 @@ implemented as an axiom with the following type signature:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 propExt : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (Erased A @$\rightarrow$@ Erased B)
-           @$\rightarrow$@ (Erased B @$\rightarrow$@ Erased A) @$\rightarrow$@ Erased A \equiv Erased B
+           @$\rightarrow$@ (Erased B @$\rightarrow$@ Erased A) @$\rightarrow$@ Erased A @$\equiv$@ Erased B
 \end{minted}
 
 The above is a weaker notion of propositional extensionality compared to what is
