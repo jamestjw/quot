@@ -1794,12 +1794,15 @@ Eq_cast_refl A x = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$|
 \end{minted}
 
 
+%% NOTE: This is just an extra piece of information that may or may not interest
+%% readers, i.e. the kind of thing that I could potentially remove
+
 In Typer and in intensional type theory in general, we need to explicitly invoke
 a cast function of some sort, this is in contrast with extensional type theory
 (ETT)\cite{martin1982constructive} where equality proofs in the context are
-automatically used by the type-checker to carry out casts whenever necessary.
-This is shown by the following judgement in ETT that states that equality proofs
-can be converted to judgemental equalities.
+automatically used by the type-checker to perform casts whenever necessary. This
+is shown by the following judgment in ETT that states that equality proofs can
+be converted to judgemental equalities.
 
 \begin{prooftree*}
   \hypo{\oftype{\ctx}{t}{\Funapp{\kw{Eq}}{a}{b}}}
@@ -1811,20 +1814,20 @@ necessity to invoke the above rule is not syntax-directed.
 
 
 \subsection*{J-rule}\label{subsec:j-rule}
-The sole term former of the $\kw{Eq}$ only allows the construction of reflexive
+The sole term former of the \id{Eq} only allows the construction of reflexive
 equalities, at first sight, this leads us to believe that not much can actually
-be done with the $\kw{Eq}$ type. After all, if all we had were proofs of the
-form $x = x$, it would be difficult to imagine achieving anything with them. The
-true magic of the equality type lies in its elimination principle.
+be done with the \id{Eq} type. After all, if all we had were proofs of the form
+\fn{x $\equiv$ x}, it would be difficult to imagine achieving anything with
+them. The true magic of the equality type lies in its elimination principle.
 Traditionally, the equality type comes with an elimination principle known as
 the J-rule. This was first introduced by Per Martin-Löf
-in\cite{martin1975intuitionistic}. Suppose that we have a type family $C$ that
-is parametrised by two terms $x$ and $y$ of some type $A$ as well as a proof
-that $x$ and $y$ are equal, i.e.\ of type $\Funapp{\kw{Eq}}{x}{y}$. If we have
-a proof term $p$ that witnesses the equality of two arbitrary terms $a$ and
-$b$ of type $A$, and we wish to produce a term of type $\Funapp{C}{a}{b}{p}$,
-then the J-rule says that it suffices for us to provide a means of producing for
-all $\oftype{x}{A}$ a term of type $\Funapp{C}{x}{x}{(\Funapp{\kw{refl}}{x})}$.
+in\cite{martin1975intuitionistic}. Suppose that we have a type family \id{C}
+that is parametrised by two terms \id{x} and \id{y} of some type \id{A} as well
+as a proof that \id{x} and \id{y} are equal, i.e.\ of type \fn{Eq x y}. If we
+have a proof term \id{p} that witnesses the equality of two arbitrary terms
+\id{a} and \id{b} of type \id{A}, and we wish to produce a term of type \fn{C a
+  b p}, then the J-rule says that it suffices for us to provide a means of
+producing for all $\oftype{\id{x}}{\id{A}}$ a term of type \fn{C x x (refl x)}.
 We now state the type of the J-rule:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
@@ -1834,12 +1837,12 @@ J : (A : Type) @$\Rrightarrow$@ (C : (x : A) @$\rightarrow$@ (y : A) @$\rightarr
     @$\rightarrow$@ C x y p;
 \end{minted}
 
-This rule is essentially saying that to know what to do with an
-equality between an arbitrary $x$ and $y$, we merely need to know how to handle
-the case where we are dealing with a reflexivity proof. Now, given the fact that the
-reflexivity constructor is the only constructor of the $\kw{Eq}$ type, one might
-think that the above elimination principle is well justified. Recall that
-the elimination principle of strictly positive types\cite{abbott2005containers} can
+This rule is essentially saying that to know what to do with an equality between
+an arbitrary \id{x} and \id{y}, we merely need to know how to handle the case
+where we are dealing with a reflexivity proof. Now, given the fact that the
+reflexivity constructor is the only constructor of the \id{Eq} type, one might
+think that the above elimination principle is well justified. Recall that the
+elimination principle of strictly positive types\cite{abbott2005containers} can
 usually be derived based on the constructors of the datatype itself. For
 instance, consider the below inductive definition of the Peano natural numbers.
 
@@ -1852,50 +1855,43 @@ type Nat
 The corresponding elimination principle then takes on the following logical form:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Nat_elim : (P : Nat @$\rightarrow$@ Type)
-           @$\Rrightarrow$@ P zero @$\rightarrow$@ ((n : Nat) @$\rightarrow$@ P n @$\rightarrow$@ P (succ n))
+Nat_elim : (P : Nat @$\rightarrow$@ Type) @$\Rrightarrow$@ P zero @$\rightarrow$@ ((n : Nat) @$\rightarrow$@ P n @$\rightarrow$@ P (succ n))
            @$\rightarrow$@ (n : Nat) @$\rightarrow$@ P n;
 \end{minted}
 
 First, we need to define what needs to be done if the natural number we are
-trying to eliminate is $\id{zero}$. Next, if the natural number we want to
-eliminate is something of the form $\Funapp{succ}{n}$, then we can imagine
-making a recursive call to the eliminator to produce a result for
-$\Funapp{succ}{n}$ for $n$, and now we need a means of transforming a proof of
-$\Funapp{P}{n}$ to one of $\Funapp{P}{(\Funapp{succ}{n})}$. Indeed, the
-elimination principle of natural numbers is just mathematical induction. Hence,
-it is reasonable to say that in order to eliminate an equality proof, it
-suffices for us define what needs to be done for reflexivity proofs.
+trying to eliminate is \id{zero}. Next, if the natural number we want to
+eliminate is something of the form \fn{succ n}, then we can imagine making a
+recursive call to the eliminator to produce a result for \fn{succ n} for \id{n},
+and now we need a means of transforming a proof of \fn{P n} to one of \fn{P
+  (succ n)}. Indeed, the elimination principle of natural numbers is just
+mathematical induction. Hence, it is reasonable to say that to eliminate an
+equality proof, it suffices for us to define what needs to be done for
+reflexivity proofs.
 
-In Typer, the elimination rule for the $\kw{Eq}$ type was not provided in the
-form of the J-rule prior to this work, instead a cast function was provided as
-mentioned in a previous section. It is possible to derive $\kw{Eq\_cast}$ from
+In Typer, the elimination rule for the $\id{Eq}$ type was not provided in the
+form of the J-rule before this work, instead a cast function was provided as
+mentioned in a previous section. It is possible to derive $\id{Eq\_cast}$ from
 the J-rule. The natural question that we should now ask ourselves is whether the
-J-rule can be derived from $\kw{Eq\_cast}$, in other words we would like to know
+J-rule can be derived from $\id{Eq\_cast}$, in other words we would like to know
 if the two elimination principles are equivalent. It turns out that one way of
-doing it hinges upon whether we are able to inhabit the following type:
+doing it hinges upon whether we can inhabit the following type:
 
-%% SM: Weird alignment.
-%% SM: You have not yet defined `Sigma` and `sigma`.
-%% Maybe use the Σ/<a,b> notation you used earlier?
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 eqUnique : (A : Type) @$\Rrightarrow$@ (a b : A) (p : Eq a b)
-           @$\rightarrow$@ Eq (t := Sigma A (lambda a' -> Eq a a'))
-                               (sigma a Eq_refl) (sigma b p);
+           @$\rightarrow$@ Eq (t := @$\Sigma_{a':A}. a \equiv a'$@) <a, Eq_refl>  <b, p>
 \end{minted}
 
 This can be seen as a justification of the J-rule, by fixing one endpoint of an
 equality proof to be $\fn{a}$, it is provable that any equality proof between
 $\fn{a}$ and some other arbitrary $\fn{b}$ may be proved to be equal to the
-reflexivity proof at $\fn{a}$. More details are given in
-%% SM: This ends up referring to the section in which we already are!
-\autoref{subsec:interval-connections} on how to construct the above. Once we have that,
-we may easily define the J-rule.
+reflexivity proof at $\fn{a}$. The exact details of the construction of the
+above are given in \autoref{sec:interval-connections}. Once we have that, we
+may easily define the J-rule by performing a cast from \fn{P a Eq\_refl} to
+\fn{P b p}:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-J h x y p =
-    Eq_cast (p := eqUnique p)
-            (f := lambda e @$\rightarrow$@ C x e.fst e.snd) (h x);
+J h x y p = Eq_cast (p := eqUnique p) (f := @$\lambda$@ e @$\rightarrow$@ C x e.fst e.snd) (h x)
 \end{minted}
 
 \subsection*{Transitivity}\label{subsection:eqtransitivity}
@@ -1943,119 +1939,6 @@ Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
 \caption{The concatenation of a path between x and y and a path between y and z to produce a new path between x and z.}
 \end{figure}
 
-\subsection*{Connections}\label{subsec:interval-connections}
-
-%% SM: AFAICT this is needed to prove J, but it is not needed for the reader
-%% to understand the rest of your work, so maybe it's best to move it to
-%% the appendix.
-
-The operations that we defined on the Interval correspond to
-connections\cite{cohen2016cubical} that are typically drawn as squares. Such
-connections allow us to construct squares from paths by adding degeneracies.
-
-\subsubsection*{Meet}
-
-Suppose that we have some proof $\fn{p}$ between terms $\fn{a}$ and $\fn{b}$,
-the interval meet operation allows us to construct a square that corresponds to
-the following expression:
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-sq = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i j)))
-\end{minted}
-
-In this square, the $\fn{i}$ direction goes from left to right and the
-$\fn{j}$ direction goes from bottom to up. Each side of the square corresponds
-to some equality proof. The top and right sides of the square are simply the
-original proof $\fn{p}$. The left and bottom sides of the square are fixed to be
-constant paths to and from the left endpoint of the proof $\fn{p}$. In other
-words, they can be seen to be reflexivity proofs of $\fn{a}$. This is precisely
-what we meant earlier by degeneracies as such paths are trivial.
-
-%% FIXME: Bad alignment
-\begin{center}
-\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
-%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
-
-%Straight Lines [id:da5901241884786586]
-\draw    (280.24,210.16) -- (280.24,82.66) ;
-\draw [shift={(280.24,80.66)}, rotate = 90] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
-%Straight Lines [id:da7023100749425399]
-\draw    (430.35,210.41) -- (430.35,82.74) ;
-\draw [shift={(430.35,80.74)}, rotate = 90] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
-%Straight Lines [id:da5268427848389134]
-\draw    (290.56,70.17) -- (418.62,70.17) ;
-\draw [shift={(420.62,70.17)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
-%Straight Lines [id:da001913191488255972]
-\draw    (290.56,220.6) -- (417.94,220.6) ;
-\draw [shift={(419.94,220.6)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
-
-% Text Node
-\draw (275.39,61.32) node [anchor=north west][inner sep=0.75pt]   [align=left] {a};
-% Text Node
-\draw (274.93,211.14) node [anchor=north west][inner sep=0.75pt]   [align=left] {a};
-% Text Node
-\draw (425.64,62.29) node [anchor=north west][inner sep=0.75pt]   [align=left] {b};
-% Text Node
-\draw (425.64,210.47) node [anchor=north west][inner sep=0.75pt]   [align=left] {a};
-% Text Node
-\draw (175.25,141.25) node [anchor=north west][inner sep=0.75pt]  [font=\scriptsize] [align=left] {eq ($\displaystyle \lambda $ j $\displaystyle \Rrightarrow $uneq p $\displaystyle i_{0}$)};
-% Text Node
-\draw (347.5,57) node [anchor=north west][inner sep=0.75pt]  [font=\scriptsize] [align=left] {p};
-% Text Node
-\draw (436.75,134.75) node [anchor=north west][inner sep=0.75pt]  [font=\scriptsize] [align=left] {p};
-% Text Node
-\draw (308.25,133) node [anchor=north west][inner sep=0.75pt]  [font=\tiny] [align=left] {eq ($\displaystyle \lambda $ i $\displaystyle \Rrightarrow $eq \ ($\displaystyle \ \lambda $ j $\displaystyle \Rrightarrow $\\	uneq p ($\displaystyle i\ \land \ j$) )\\\\};
-% Text Node
-\draw (306.75,226.75) node [anchor=north west][inner sep=0.75pt]  [font=\scriptsize] [align=left] {eq ($\displaystyle \lambda $ i $\displaystyle \Rrightarrow $uneq p $\displaystyle i_{0}$)};
-
-\end{tikzpicture}
-
-\end{center}
-
-To illustrate why the given square corresponds to the expression given above, we
-shall examine each side of the square. Recalling the dimensions of the squares,
-on the left side of the square, the dimension $\fn{i}$ is $i_0$. So we if we fix
-$\fn{i}$ to be $i_0$ in $\fn{sq}$, the resulting expression is the following,
-which we can reduce to the constant path on $\fn{a}$ by using the reduction
-rules of $\fn{I\_meet}$ defined in \autoref{subsubsec:interval-meet}:
-
-%% SM: You need to show more details to explain why these correspond
-%% to the sides of your square.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet @$i_0$@ j))
-\end{minted}
-
-For the bottom side, we fix $\fn{j}$ to be $i_0$ to obtain the below expression,
-which is once again a constant path on $\fn{a}$.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i @$i_0$@))
-\end{minted}
-
-The right side requires us to fix $\fn{i}$ to be $i_1$, giving us the below
-expression which simply reduces to $\fn{p}$.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet @$i_1$@ j))
-\end{minted}
-
-By fixing $\fn{j}$ to be $i_1$, we get the expression that corresponds to the top side, which also reduces to $\fn{p}$.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i @$i_1$@))
-\end{minted}
-
-The construction of such a square is precisely what is required to
-prove the $\fn{eqUnique}$ property mentioned in \autoref{subsec:j-rule}.
-
-\subsubsection*{Join}
-
-TODO:\ TBD if I want to do this. Joins could be used to build the same square
-that we saw above, the only difference is that the added degeneracy would be
-a refl path on $b$ instead of $a$. The thing is, I've never really needed
-this.
-
 \section{Equality as a mere proposition}
 Although we say that our equality type is a proposition, it is by no means a
 mere proposition (HoTT book\cite{HoTTbook} Chapter 3.3). This implies that it is
@@ -2075,6 +1958,8 @@ UIP is a property that is true for a certain class of types in Typer.
 %% FIXME: I think this should be moved to a later part of your thesis,
 %% because it delays discussion of quotient types.
 %% Maybe the same applies to some of the previous examples, actually.
+
+%% TODO: Do this soon
 
 To set the stage, we provide a few definitions. A type is said to be
 \textbf{decidable} if we can decide whether the type is inhabited or
@@ -2227,7 +2112,7 @@ making the proof an erasable argument of $\id{Quotient\_elim}$.
 It is also interesting to note that we are not able to derive a meaningful
 $\eta$-rule. If we wish to apply $\id{Quotient\_in}$ after applying
 $\id{Quotient\_elim}$ such that the composition amounts to the identity
-function, this would imply that $\id{Quotient\_elim}$ would need to called with
+function, this would imply that $\id{Quotient\_elim}$ would need to be called with
 a function $\id{f}$ such that \fn{$\forall$ a. R a (f a)} is valid.
 Unfortunately, in the general case, this would not respect the underlying
 relation of the quotient.
@@ -2306,7 +2191,7 @@ say what we would like to map a quotient expression to. In the second branch, we
 prove that the above mapping respects the quotient by constructing a term
 \fn{e2: [x/a]e1 $\equiv$ [y/a]e2}.
 
-To illustrate how this works, we construct an simple example based on the
+To illustrate how this works, we construct a simple example based on the
 quotient of the \id{Unit} type along with a total relation \id{R} defined on
 \id{Unit}. We define a function of type \fn{Quotient Unit R $\rightarrow$ Unit}.
 
@@ -2358,13 +2243,13 @@ This only works for relations that are propositions and equivalence relations
 (i.e.\ reflexive, symmetric and transitive).
 
 \section{Propositional Extensionality}
-We provide a alternative version of propositional extensionality that is
+We provide an alternative version of propositional extensionality that is
 slightly weaker. Consequently, the version of quotient effectiveness that we
 prove is also weaker.
 
 \subsection*{Representation of propositions}\label{subsec:mere-propositions}
 
-Intuitively speaking, propositions are a type that contain no intrinsic data, it
+Intuitively speaking, propositions are a type that contains no intrinsic data, it
 is their mere existence that counts. This is precisely the notion of proof
 irrelevance. In Typer, this notion is represented via erasability. We introduce
 a built-in data type that captures this idea.
@@ -2388,7 +2273,7 @@ isProp : (T : Type) |$\rightarrow$| Type
 isProp T = (x y : T) |$\rightarrow$| Eq x y
 \end{minted}
 
-We now the present the proof in the form of Typer code.
+We now present the proof in the form of Typer code.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 erasedIsProp : (T : Type) @$\Rrightarrow$@ isProp (Erased T)
@@ -2412,7 +2297,7 @@ definitional equality between $\id{t1}$ and
 $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$. Instead, an equality proof between
 them is injected into the context, which can be accessed as the variable at
 deBruijn index 0. Now that we have the two equality proofs, in order to
-concatenate them\footnote{By considering equalities as path, the application of
+concatenate them\footnote{By considering equalities as paths, the application of
 the transitivity property of equality is conceptually similar to concatenating
 two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and
 $\Funapp{\id{erased}}{(\earg{\_}{\id{e2}})}$ to be equal. A priori, the two
@@ -2424,22 +2309,21 @@ succeed and thus concludes the proof.
 
 \subsection*{Implementation details}
 
-Propositional extensionality essentially means that if two propositions that are
-logically equivalent, i.e.\ each proposition implies the other, then we can say
-that they are equal. And precisely because we are postulating a new equality
+Propositional extensionality essentially means that if two logically equivalent
+propositions, i.e.\ each proposition implies the other, then we can say that
+they are equal. And precisely because we are postulating a new equality
 constructor, we have to be very careful that the resulting equality proof is
 indeed proof irrelevant. In other words, we need this equality proof to not have
 any runtime relevance. This is principally because we insist that the transport
-operation to be a no-op during runtime. This is the motivation behind our choice
-to use the $\id{Erased}$ type to represent propositions, as it is a guarantee
-that such a type carries no useful runtime information. This implies that a
-transport operation from one $\id{Erased}$ type to another is necessarily simply
-a no-op.
+operation be a no-op during runtime. This is the motivation behind our choice to
+use the $\id{Erased}$ type to represent propositions, as it is a guarantee that
+such a type carries no useful runtime information. This implies that a transport
+operation from one $\id{Erased}$ type to another is necessarily simply a no-op.
 
 In a setting with univalence, propositional extensionality is simply a theorem
 that may be proven, more specifically, it may be seen as a degenerate case of univalence\cite{sozeau2013univalence}. This is a result that is
 immediate as an equivalence between logically equivalent propositions is
-trivial. In the setting of Typer however, propositional extensionality is
+trivial. In the setting of Typer, however, propositional extensionality is
 implemented as an axiom with the following type signature:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
@@ -2492,7 +2376,7 @@ axiom propext {a b : Prop} : (a @$\leftrightarrow$@ b) @$\rightarrow$@ a = b
 \end{minted}
 
 This is similar to what we have in Typer, except that proof irrelevance is
-enforced in a different manner.
+enforced differently.
 
 \section{Equivalence relation}
 
@@ -2566,7 +2450,11 @@ effective = lambda A |$\Rrightarrow$| lambda R equiv a b eq |$\rightarrow$|
     Eq_cast (p := aa=ab) (f := id) (equiv.isRefl a)
 \end{minted}
 
-Compared to the more general version of the theorem we state before, here we insist that the quotient we consider be based on the erased version of some binary relation $\kw{R}$. And instead of proving that the base relation itself holds for some $\id{a}$ and $\id{b}$, we can only show that the erased version of this relation holds.
+Compared to the more general version of the theorem we stated before, here we
+insist that the quotient we consider be based on the erased version of some
+binary relation $\kw{R}$. And instead of proving that the base relation itself
+holds for some $\id{a}$ and $\id{b}$, we can only show that the erased version
+of this relation holds.
 
 In this proof, we can see that all aspects of the sufficient condition are at
 play. It is mainly used to prove that for arbitrary terms $\id{a}$, $\id{b}$ and
@@ -2633,7 +2521,7 @@ integers by their greatest common divisor (GCD). The calculation of their GCD
 could in itself be more costly than the actual operation itself. Thus, this
 unnecessary normalisation could potentially adversely affect the runtime
 efficiency of our operations on rational numbers. Hence, our definitions of
-operations on the rational numbers do not rely on normalisation. However, this
+operations on rational numbers do not rely on normalisation. However, this
 is not without its downsides as it entails heavier proof obligations, this is a
 topic that we shall discuss subsequently.
 
@@ -2649,7 +2537,7 @@ certain properties of the built-in $\kw{Integer}$ type, this will be crucial
 when we start reasoning about operations on rational numbers.
 
 \subsection*{Integer axioms}
-We start off by axiomatising the associativity and commutativity of the addition and multiplication operations.
+We start by axiomatising the associativity and commutativity of the addition and multiplication operations.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Integer_+-comm : (x : Integer) |$\rightarrow$| (y : Integer)
@@ -2793,7 +2681,7 @@ Not T = T @$\rightarrow$@ Void
 
 The underlying relation takes on the following form, this may be proven to be
 both an equivalence relation as well as a mere proposition. These properties are
-useful if we wish to prove that resulting quotient is effective and that
+useful if we wish to prove that the resulting quotient is effective and that
 \id{Rational} is discrete.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
@@ -2911,7 +2799,7 @@ it for `both sides'. In other words, we have to produce the below proofs.
 
 The proof of $\mathbb{Q}{+}\_\kw{feql}$ is long and uninteresting and thus will
 not described here\footnote{Interested readers may find the proof at TODO:\ link
-to online repository since the proof itself is not instructive enought to
+to online repository since the proof itself is not instructive enough to
 warrant being put here}. However, once this has been proved, its counterpart is
 a trivial corollary by virtue of the commutativity of $\zpairplus$.
 
@@ -2991,7 +2879,7 @@ Rational_+Rinv q = Eq_trans (Rational_+-Comm q (Rational_negate q))
 \end{minted}
 
 For brevity, we do not describe the proofs for multiplication as they can be
-carried out in a similar fashion as above. As a sanity check of the validity of
+carried out similarly as above. As a sanity check of the validity of
 our construction of the rational numbers, we provided proofs of other
 interesting properties of \id{Rational} in the actual file, proving that it does
 indeed satisfy the characteristics of a \emph{ring}.
@@ -3038,7 +2926,7 @@ transPerm : (l1 : List ?A) @$\rightarrow$@ (l2 : List ?A) @$\rightarrow$@ (l3 : 
             @$\rightarrow$@ (ListPerm ?A l1 l3)
 \end{minted}
 
-The manner in which the $\fn{ListPerm}$ relation has been presented so far suggests
+How the $\fn{ListPerm}$ relation has been presented so far suggests
 that it would most appropriately be defined as a GADT. Typer does not have built-in
 support for GADTs, however, we draw inspiration from\cite{sulzmann2007systemfeq} to
 encode such a GADT as an inductive type with explicit equality proofs.
@@ -4966,6 +4854,8 @@ Nat+_comm m n =
 The type of dependent pairs in Typer is represented by the \id{Sigma} inductive
 type.
 
+%% TODO: Use Σ syntax instead?
+
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
   | sigma (fst : A) (snd : B fst);
@@ -5154,6 +5044,143 @@ ee'=id = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ isSetB p @$\rightarrow$@
 \end{minted}
 
 This concludes the proof of the desired equivalence.
+
+\chapter{More operations on the equality type}\label{app:more-eq-ops}
+
+\section*{Interval Connections}\label{sec:interval-connections}
+
+The operations that we defined on the Interval correspond to
+connections\cite{cohen2016cubical} that are typically drawn as squares. Such
+connections allow us to construct higher-dimensional squares from paths by
+adding degeneracies, i.e.\ reflexive proofs. The \textbf{meet} operation is
+notably required to prove the J-rule.
+
+\subsection*{Meet}
+
+Suppose that we have some proof $\fn{p}$ between terms $\fn{a}$ and $\fn{b}$,
+the interval meet operation allows us to construct a square that corresponds to
+the following expression:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+sq = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i j)))
+\end{minted}
+
+Each dimension of an n-dimensional cube is represented by an interval variable.
+In this square, the $\id{i}$ dimension goes from left to right, and the $\id{j}$
+dimension goes from bottom to up. Each side of the square corresponds to some
+equality proof. The top and right sides of the square are simply the original
+proof $\id{p}$. The left and bottom sides of the square are fixed to be constant
+paths to and from the left endpoint of the proof $\id{p}$. In other words, they
+can be seen to be reflexivity proofs of $\id{a}$. This is precisely what we
+meant earlier by degeneracies as such paths are trivial.
+
+%% FIXME: Bad alignment
+\begin{center}
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da5901241884786586]
+\draw    (280.24,210.16) -- (280.24,82.66) ;
+\draw [shift={(280.24,80.66)}, rotate = 90] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da7023100749425399]
+\draw    (430.35,210.41) -- (430.35,82.74) ;
+\draw [shift={(430.35,80.74)}, rotate = 90] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da5268427848389134]
+\draw    (290.56,70.17) -- (418.62,70.17) ;
+\draw [shift={(420.62,70.17)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da001913191488255972]
+\draw    (290.56,220.6) -- (417.94,220.6) ;
+\draw [shift={(419.94,220.6)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (275.39,61.32) node [anchor=north west][inner sep=0.75pt]   [align=left] {a};
+% Text Node
+\draw (275.26,211.48) node [anchor=north west][inner sep=0.75pt]   [align=left] {a};
+% Text Node
+\draw (425.31,61.29) node [anchor=north west][inner sep=0.75pt]   [align=left] {b};
+% Text Node
+\draw (425.31,211.47) node [anchor=north west][inner sep=0.75pt]   [align=left] {a};
+% Text Node
+\draw (208.25,132.58) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {Eq\_refl x};
+% Text Node
+\draw (347.5,49.33) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {p};
+% Text Node
+\draw (441.75,132.42) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {p};
+% Text Node
+\draw (302.92,133) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {$\displaystyle \lambda $ i \ j $\displaystyle \Rrightarrow $ p ($\displaystyle i\ \land \ j$) \\\\};
+% Text Node
+\draw (325.25,228.92) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {Eq\_refl x};
+
+\end{tikzpicture}
+
+\end{center}
+
+To illustrate why the given square corresponds to the expression given above, we
+shall examine each side of the square. To simplify the presentation, we shall
+consider \id{sq} without the \id{Eq\_eq} constructor and the \id{Eq\_uneq}
+deconstructor by treating functions out of the interval themselves as equality
+proofs. This reduces \id{sq} to the following expression:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+sq = @$\lambda$@ i @$\Rrightarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p (I_meet i j)
+\end{minted}
+
+Recalling the dimensions of the squares, on the left side of the square, the
+dimension $\fn{i}$ is $i_0$. So we if we fix $\fn{i}$ to be $i_0$ in $\fn{sq}$,
+the resulting expression is the following, which we can reduce to the constant
+path on $\fn{a}$ by using the reduction rules of $\fn{I\_meet}$ defined in
+\autoref{subsubsec:interval-meet}:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+@$\lambda$@ j @$\Rrightarrow$@ p (I_meet @$i_0$@ j)
+@$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p @$i_0$@
+@$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ x
+@$\rightsquigarrow$@ Eq_refl (_ := x)
+\end{minted}
+
+For the bottom side, we fix $\fn{j}$ to be $i_0$ to obtain the below expression,
+which is once again a constant path on $\fn{a}$.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+@$\lambda$@ i @$\Rrightarrow$@ p (I_meet i @$i_0$@)
+@$\rightsquigarrow$@ @$\lambda$@ i @$\Rrightarrow$@ p @$i_0$@
+@$\rightsquigarrow$@ Eq_refl (_ := x)
+\end{minted}
+
+The right side requires us to fix $\fn{i}$ to be $i_1$, giving us the below
+expression which simply reduces to $\fn{p}$.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+@$\lambda$@ j @$\Rrightarrow$@ p (I_meet @$i_1$@ j)
+@$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p j
+@$\rightsquigarrow$@ p
+\end{minted}
+
+By fixing $\fn{j}$ to be $i_1$, we get the expression that corresponds to the top side, which also reduces to $\fn{p}$.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+@$\lambda$@ i @$\Rrightarrow$@ p (I_meet i @$i_1$@)
+@$\rightsquigarrow$@ @$\lambda$@ i @$\Rrightarrow$@ p i
+@$\rightsquigarrow$@ p
+\end{minted}
+
+With that, we may complete the definition of \id{eqUnique}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+eqUnique a b p = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@
+                          < Eq_uneq (p := p) (i := i),
+                            Heq_uneq (p := sq) (i := i) >)
+\end{minted}
+
+
+\subsection*{Join}
+
+TODO:\ TBD if I want to do this. Joins could be used to build the same square
+that we saw above, the only difference is that the added degeneracy would be
+a refl path on $b$ instead of $a$. The thing is, I've never really needed
+this.
+
 
 \chapter{Les différentes parties et leur ordre d'apparition}
 
