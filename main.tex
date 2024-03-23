@@ -1073,7 +1073,6 @@ It has the below computation rules:
   & \kw{cong}_{elim_{\bI}^{\_.A}(M, N, P)}(\id{seg}) \rightsquigarrow{} P
 \end{align*}
 
-%% SM: State what is "the congruence property of equality".
 \kw{cong} refers to the congruence property of equality, if we have a proof
 \id{p} of \fn{x $\equiv$ y} and some function \id{f}, then $\kw{cong}_f(p)$
 constructs a proof of \fn{f x $\equiv$ f y}. We can expect the first two rules
@@ -1082,31 +1081,24 @@ expanding out definitions. So when we say that $elim_{\bI}^{_.A}(M, N , P,
 \ileft)$ is definitionally equal to \id{M}, we are saying that the former
 reduces to the latter when we check for equality. If we imagine that the first
 two computation rules were defined via pattern-matching, it would make sense for
-these equations to
-%% SM: Since you haven't actually explained what each part of
-%% \kw{cong}_{rec_{\bI}(\_ . \bI, P)}(\id{seg}) stands for (or even "is"),
-%% your readers have probably no idea whether it's curious or not.
-%% This said, at least that reduction does include the resulting "P"
-%% somewhere on the left hand side, so it does look "computational".
-hold definitionally. The third rule is a more curious case, by the congruence of
-equality, the application of the $\kw{Interval}$ eliminator with the equality
-proof $\id{P}$ to $\id{seg}$ should yield an equality proof between $\id{M}$ and
-$\id{N}$. The rule suggests that this should compute to $\id{P}$ itself. From a
-computational point of view, equalities between equality proofs are only an
-important consideration in a proof-relevant setting, e.g.\ in the context of
-HoTT. In the world of Typer where we demand that equality proofs be erasable and
-play no role during computation, such equalities are less meaningful. However,
-they are not completely irrelevant as we occasionally need to construct such
-proofs for coherence purposes. In most cases, the third equation does not hold
-definitionally as the \kw{cong} construct is defined independently and it would
-be highly unusual to separately define how it should compute on new constructs
-such as the interval type. In cases where we are unable to make the third rule hold
-definitionally, we should then postulate a propositional equality between
-$\kw{cong}_{elim_{\bI}^{\_.A}(M, N, P)}(\id{seg})$ and P.
+these equations to hold definitionally. The third rule is a more curious case,
+by the congruence of equality, the application of the $\kw{Interval}$ eliminator
+with the equality proof $\id{P}$ to $\id{seg}$ should yield an equality proof
+between $\id{M}$ and $\id{N}$. The rule suggests that this should compute to
+$\id{P}$ itself. From a computational point of view, equalities between equality
+proofs are only an important consideration in a proof-relevant setting, e.g.\ in
+the context of HoTT. In the world of Typer where we demand that equality proofs
+be erasable and play no role during computation, such equalities are less
+meaningful. However, they are not completely irrelevant as we occasionally need
+to construct such proofs for coherence purposes. In most cases, the third
+equation does not hold definitionally as the \kw{cong} construct is defined
+independently and it would be highly unusual to separately define how it should
+compute on new constructs such as the interval type. In cases where we are
+unable to make the third rule hold definitionally, we should then postulate a
+propositional equality between $\kw{cong}_{elim_{\bI}^{\_.A}(M, N,
+  P)}(\id{seg})$ and P.
 
 \section{Motivation}
-%% SM: Maybe give an intuition why this is true, maybe comparing `I` to
-%% a boolean type where you are not able to distinguish true from false?
 We show that a function with an interval argument returning some type \id{A},
 i.e.\ a function with type \fn{$\bI \rightarrow A$} is equivalent to an equality
 proof between two terms of type \id{A}. To build an intuition as to why this
@@ -1119,58 +1111,20 @@ necessarily constant on its argument. Suppose that we have such a function named
 In order to state the aforementioned theorem, we first introduce dependent
 pairs. We use the usual syntax to denote the type of dependent pairs,
 i.e.\ $\Sigma_{\oftype{x}{A}}. B$. Here, the first projection of type \id{A} and
-is named \id{x}; the type of the second projection,\id{B} may depend on the term
-\id{x}. Terms of dependent pairs have the following form $\braket{a, b}$. Now,
-we formally state the theorem that we are interested in
+is named \id{x}; the type of the second projection, \id{B} may depend on the
+term \id{x}. Terms of dependent pairs have the following form $\braket{a, b}$.
+Now, we formally state the theorem that we are interested in.
 
-\begin{theo}
+\begin{theo}\label{theo:i->a-equiv}
 The following type is inhabited:
 
-%% SM: There's too much space around this math element.
 \begin{align}
   & \bI \rightarrow A \ \simeq \ \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}\nonumber
 \end{align}
 
 \end{theo}
 
-\begin{proof}
-We define functions \id{f} and \id{g} as inhabitants of the forward and backward
-directions of the equivalence respectively. We prove this equivalence by proving
-that \fn{g} is a quasi-inverse of \fn{f} as described in \cite[Chap.
-  2]{HoTTbook}. To this end, we define \id{f} and \id{g} as such:
-
-%% TODO: I glossed over this detail, but the $elim_{\bI}$ actually carries out a
-%% depelim which I haven't introduced yet.
-
-%% SM: I think a "paper proof" would be a better choice than a formal proof
-%% because you use here many constructs that you haven't presented.
-%% IOW, start with g(f(h)), then show how it reduces to (something equivalent
-%% to) h, then same thing for f(g(e)).
-\begin{align*}
-  & f : (\bI \rightarrow A) \rightarrow \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y} \\
-  & f(h) := \braket{\id{h}(\ileft), \braket{\id{h}(\iright), \kw{cong}_{\id{h}}(\id{seg})}} \\ \\
-  & g : \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . (\eqtype{x}{y}) \rightarrow  (\bI \rightarrow A) \\
-  & g \braket{x, \braket{y, p}} := \lambda \id{i} . \ elim_{\bI}^{\_.A}(\id{x}, \id{y}, \id{p}, \id{i})
-\end{align*}
-%% SM: You need to "read aloud" to explain what this does.
-%% Alternatively, you may relegate this proof to a later chapter.
-%% TODO: Figure this out
-
-Now, we need to prove that \id{g} is both the left and right inverse of \id{f}.
-
-\begin{align*}
-  & \id{$\alpha$-helper} : (\oftype{h}{\bI \rightarrow A}) \rightarrow (\oftype{i}{\bI}) \rightarrow \eqtype{(g (f \ h)) \ i}{h \ i} \\
-  & \id{$\alpha$-helper} (h , i) = elim_{\bI}(i . \ \eqtype{(g (f \ h)) \ i}{h \ i}, \ \kw{cong}_{\lambda i . \refl{h(i)}}(\id{seg}), \ i) \\
-  & \alpha : (\oftype{h}{\bI \rightarrow A}) \rightarrow \eqtype{g(f(h))}{h} \\
-  & \alpha(h) =  \kw{funExt} (\id{$\alpha$-helper} (h)) \\ \\
-  & \beta :  (\oftype{e}{\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}}) \rightarrow f(g(e)) = e \\
-  & \beta(e) =  \refl{\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}}{e}
-\end{align*}
-
-%% The proof of beta is done via refl by leveraging the eta-equivalence of the
-%% sigma type
-For the sake of simplifying the proof of $\beta$, we assume the $\eta$-rule for
-dependent pairs. And with that, the proof is complete.\end{proof}
+We provide a proof of the above in Appendix~\ref{app:proof-i->a-equiv}.
 
 \section{Justification}\label{sec:eq-justification}
 We have established in the previous section that equality between two terms is
@@ -1959,7 +1913,10 @@ UIP is a property that is true for a certain class of types in Typer.
 %% because it delays discussion of quotient types.
 %% Maybe the same applies to some of the previous examples, actually.
 
-%% TODO: Do this soon
+%% TODO: Do this soon, I want to create a chapter with more complicated
+%% examples, and leave the easy examples such as cong and funext with the eq
+%% type presentation. This way, I can present rules of the eq type and quotient
+%% types together in the same chapter
 
 To set the stage, we provide a few definitions. A type is said to be
 \textbf{decidable} if we can decide whether the type is inhabited or
@@ -4807,6 +4764,86 @@ Integer_*DistR+ x y z =
 
 \chapter{Other proofs}\label{app:other-proofs}
 
+\section{Relationship between functions out of $\bI$ and equality}\label{app:proof-i->a-equiv}
+
+We provide a proof of Theorem~\ref{theo:i->a-equiv}.
+
+\begin{proof}
+We define functions \id{f} and \id{g} as inhabitants of the forward and backward
+directions of the equivalence respectively. We prove this equivalence by proving
+that \fn{g} is a quasi-inverse of \fn{f} as defined in~\cite[Chap.
+  2]{HoTTbook}. To this end, we define \id{f} and \id{g} as such:
+
+%% SM: I think a "paper proof" would be a better choice than a formal proof
+%% because you use here many constructs that you haven't presented.
+%% IOW, start with g(f(h)), then show how it reduces to (something equivalent
+%% to) h, then same thing for f(g(e)).
+
+%% TODO: Supplement this with more explanations to make it more easily
+%% digestable.
+
+\begin{align*}
+  & f : (\bI \rightarrow A) \rightarrow \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y} \\
+  & f(h) := \braket{h(\ileft), \braket{h(\iright), \kw{cong}_{h}(seg)}} \\ \\
+  & g : \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . (\eqtype{x}{y}) \rightarrow  (\bI \rightarrow A) \\
+  & g \braket{x, \braket{y, p}} := \lambda i . \ elim_{\bI}^{\_.A}(x, y, p, i)
+\end{align*}
+
+In order to construct $f$, we need to construct a term of type
+$\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}$ by providing
+two terms of type $A$ along with a proof that they are equal. We do so by
+calling $h$ with both endpoints of $\bI$ and the congruence of equality is proof
+that the two terms are equal. To construct $g$, we do the opposite by
+deconstructing the term of $\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} .
+\eqtype{x}{y}$ to construct a new function out of $\bI$. This function simply
+consists of using the elimination principle of $\bI$ on the argument $i$ such
+that the left endpoint maps to $x$ and the right endpoint maps to $y$; the proof
+that $x \equiv y$ is precisely what we need to prove the coherence of the
+elimination. Now, we need to prove that \id{g} is both the left and right
+inverse of \id{f}.
+
+\begin{align*}
+  & \id{$\alpha$-helper} : (\oftype{h}{\bI \rightarrow A}) \rightarrow (\oftype{i}{\bI}) \rightarrow \eqtype{(g \ (f \ h)) \ i}{h \ i} \\
+  & \id{$\alpha$-helper} \ (h , i) = elim_{\bI}^{i.\eqtype{(g (f \ h)) \ i}{h \ i}}(\kw{refl}_{h (\ileft)}, \ \kw{refl}_{h (\iright)}, \ \kw{cong}_{\lambda i . \kw{refl}_{h(i)}}(seg), \ i) \\
+  & \alpha : (\oftype{h}{\bI \rightarrow A}) \rightarrow \eqtype{g \ (f \ h)}{h} \\
+  & \alpha(h) =  \kw{funExt} (\id{$\alpha$-helper} (h)) \\ \\
+  & \beta :  (\oftype{e}{\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}}) \rightarrow f \ (g \ (e)) \equiv e \\
+  & \beta(e) =  \refl{\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}}{e}
+\end{align*}
+
+%% TODO: Okay fine I will introduce the typing rules for the depelim of I
+%% in another section
+We define \id{$\alpha$-helper} as a lemma to help prove that $g$ is a left
+inverse of $f$. To construct a proof of $\eqtype{(g (f \ h)) \ i}{h \ i}$, we
+unsurprisingly use the (dependent) elimination principle of $\bI$ on the
+argument $i$. When $i = \ileft$, we would need to prove that $\eqtype{(g \ (f
+  \ h)) \ \ileft}{h \ \ileft}$, however if we try to evaluate $(g \ (f \ h))
+\ \ileft$, we realise that this actually evaluates to $h \ \ileft$. This implies
+that the required proof is trivially satisfied by reflexivity; the same thing
+can be done for $\iright$. As before, we prove that $\kw{refl}_{h (\ileft)}$ and
+$\kw{refl}_{h (\iright)}$ are equal using the congruence of equality. The
+partial application of \id{$\alpha$-helper} with $h$ gives us a proof that $g(f
+\ h)$ and $h$ are pointwise equal, thus allowing us to invoke \kw{funExt} to get
+the desired result.
+
+To prove $\beta$, we first deconstruct $e$ to $\braket{x, \braket{y, p}}$. We
+now show how the expression $f \ (g \ (e))$ gets reduced.
+
+\begin{align*}
+  & f \ (g \ \braket{x, \braket{y, p}})  \\
+  & \rightsquigarrow f \ (\lambda i . \ elim_{\bI}^{\_.A}(x, y, p, i)) \\
+  & \rightsquigarrow \braket{x, \braket{y, \kw{cong}_{\lambda i . \ elim_{\bI}^{\_.A}(x, y, p, i)}(seg)}} \\
+  & \rightsquigarrow \braket{x, \braket{y, \kw{cong}_{elim_{\bI}^{\_.A}(x, y, p)}(seg)}} \\
+  & \rightsquigarrow \braket{x, \braket{y, p}} \\
+\end{align*}
+
+The third reduction uses the $\eta$-equivalence of functions. As for the final
+reduction, we assume that the functorial action of $elim_{\bI}^{\_.A}(x, y, p)$
+on $seg$ computes to $p$ to simplify the proof. Given that we may reduce $f \ (g
+\ \braket{x, \braket{y, p}})$ to $\braket{x, \braket{y, p}}$, they are thus
+definitionally equal, allowing us to proof $\beta$ by reflexivity.\end{proof}
+
+
 \section{Commutativity of addition of natural numbers}
 
 We first define the type of natural numbers along with the addition operation
@@ -5074,7 +5111,6 @@ paths to and from the left endpoint of the proof $\id{p}$. In other words, they
 can be seen to be reflexivity proofs of $\id{a}$. This is precisely what we
 meant earlier by degeneracies as such paths are trivial.
 
-%% FIXME: Bad alignment
 \begin{center}
 
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
