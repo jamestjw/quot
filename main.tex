@@ -1148,7 +1148,7 @@ type I
   | @$i_1$@
 \end{minted}
 
-And then define a function with the following type:
+More concretely, we define a function with the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 h : I @$\Rrightarrow$@ A
@@ -1157,7 +1157,8 @@ h : I @$\Rrightarrow$@ A
 In Typer, we use $\Rrightarrow$ to denote erasable arguments in function types.
 It is vacuously true that $\eqtype{h(i_0)}{h(i_1)}$ since what is returned by
 the function could not have been influenced by the argument that was passed to
-it because the argument is erasable. With that, we can postulate that
+it because the argument is erasable. With that, we can postulate the following
+equivalence.
 
 \begin{align*}
   & \bI \Rrightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} .
@@ -1368,50 +1369,33 @@ untouched when \id{r} is a canonical value of \id{Interval}.
 
 \section{Equality type}\label{sec:identity}
 
-%% SM: You need some text here.
-%% SM: Try and stick to one terminology rather than sometimes using
-%% "identity" and other times "equality".
+After having described the relationship between functions of the type \fn{I
+  $\rightarrow$ A} and equality, we make use of it to define a cubical equality
+type. First, we introduce heterogeneous equality, then we define regular
+(homogeneous) equality as a special case of heterogeneous equality.
 
 \subsection{Heterogeneous equality}
 With the above definition of $\bI$, we are now ready to introduce the notion of
 heterogeneous equality. Such an equality type allows us to identify two terms
-that are not necessarily of the same type. The heterogeneous equality type has
-the following type signature\footnote{Although not mentioned explicitly,
-functions involving the equality type are universe polymorphic in their
-arguments and return type.} and is implemented axiomatically. Usually, when we
-define an axiom in type theory, we simply claim that it is an inhabitant of some
-type without saying anything about its behaviour. However, in our case, we also
-%% SM: Then it's not an "axiom".  Don't confused our Builtin data constructor
-%% with an axiom (I know I also sometimes call those things axioms, but it's
-%% not right).
-supplement it with the appropriate reduction rules so it has the right
-computational behaviour. In the absence of this, i.e.\ if we were to define the
-computation rules for axioms in the form of propositional equalities, then the
-usage of these axioms suffers greatly as programs and proofs tend to be clumsy
-and inelegant.
+that are not necessarily definitionally equal. The heterogeneous equality type
+has the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Heq : (t : I @$\Rrightarrow$@ Type)
-      @$\Rrightarrow$@ t (_ := i0) @$\rightarrow$@ t (_ := i1) @$\rightarrow$@ Type
+Heq : (t : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ t (_ := i0) @$\rightarrow$@ t (_ := i1) @$\rightarrow$@ Type
 \end{minted}
 
 As we have previously proven, \fn{I $\Rrightarrow$ Type} is equivalent to an
-equality between two types. Although we say that \fn{Heq} allows us to equate
-two terms of different types, in reality, the two types have to be provably
-equal. \id{Heq\_eq}, the constructor of \id{Heq} also leverages the property of
-erasable functions out of the interval to accept an argument of that form as a
-witness of the equality being constructed.
-
-%% SM: You might want to say more explicitly that Heq_eq and Heq_uneq
-%% correspond to your f&g functions in your earlier proof.
+equality between two terms. Although we say that \fn{Heq} allows us to equate
+two terms of different types, in reality, the two types \fn{t (\_ := i0)} and
+\fn{t (\_ := i1)} have to be provably equal. \id{Heq\_eq}, the constructor of
+\id{Heq} also leverages the property of erasable functions out of $\bI$ to
+accept an argument of that form as a witness of the equality being constructed.
 
 %% Heq_eq : (l : TypeLevel) ≡> (t : I ≡> Type_ l) ≡> (f : (i : I) ≡> t (_ := i))
 %%           ≡> Heq (f (_ := i0)) (f (_ := i1))
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Heq_eq : (t : I @$\Rrightarrow$@ Type)
-         @$\Rrightarrow$@ (f : (i : I) @$\Rrightarrow$@ t (_ := i))
-         @$\Rrightarrow$@ Heq (f (_ := i0)) (f (_ := i1))
+Heq_eq : (t : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (f : (i : I) @$\Rrightarrow$@ t (_ := i)) @$\Rrightarrow$@ Heq (f (_ := i0)) (f (_ := i1))
 \end{minted}
 
 The elimination of equality types merely does the opposite of the introduction
@@ -1427,9 +1411,11 @@ Heq_uneq : (t : I @$\Rrightarrow$@ Type)
            @$\Rightarrow$@ (p : Heq x y) @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t (_ := i)
 \end{minted}
 
-The composition of $\id{Heq\_uneq}$ and $\id{Heq\_eq}$ (modulo the implicit
-arguments) is equal to the identity function, which gives us the
-$\eta$-equivalence for some $\fn{p:Heq ?x ?y}$:
+Indeed, \id{Heq\_eq} and \id{Heq\_uneq} correspond to the forward and backward
+functions of the equivalence presented in Theorem~\ref{theo:i->a-equiv}. Thus,
+it comes as no surprise that the composition of $\id{Heq\_uneq}$ and
+$\id{Heq\_eq}$ (modulo the implicit arguments) is equal to the identity
+function, which gives us the $\eta$-equivalence for some $\fn{p:Heq x y}$.
 
 \begin{align*}
   & \Funapp{\id{Heq\_eq}}{(\earg{f}{\lambda i \Rrightarrow
@@ -1439,12 +1425,12 @@ $\eta$-equivalence for some $\fn{p:Heq ?x ?y}$:
 \subsubsection*{Reduction rules}
 
 \begin{prooftree*}
-   \infer0[UNEQ-LEFT]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\ileft}
+   \infer0[\textsc{Uneq-Left}]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\ileft}
                      \rightsquigarrow \id{x}}
 \end{prooftree*}
 
 \begin{prooftree*}
-   \infer0[UNEQ-RIGHT]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\iright}
+   \infer0[\textsc{Uneq-Right}]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\iright}
                        \rightsquigarrow \id{y}}
 \end{prooftree*}
 
@@ -1455,9 +1441,8 @@ that allows derive theorems such as functional extensionality in
 
 \subsection{Homogeneous equality}
 Homogeneous equality is by far the more typical notion of equality. We are able
-%% SM: special special
-to define it as a special case of heterogeneous equality as a special case of of
-$\fn{Heq x y}$ where $\fn{x}$ and $\fn{y}$ are of the same type.
+to define it as a special case of heterogeneous equality where $\fn{x}$ and
+$\fn{y}$ are of the same type.
 
 %% Eq_uneq : (l : TypeLevel) ≡> (t : Type_ l)
 %%           ≡> (x : t) => (y : t)
@@ -1469,14 +1454,12 @@ $\fn{Heq x y}$ where $\fn{x}$ and $\fn{y}$ are of the same type.
 %% SM: Here you use `lambda` once and `λ` other times.  Stick to one.
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Eq : (t : Type) @$\Rrightarrow$@ t @$\rightarrow$@ t @$\rightarrow$@ Type
-Eq x y = Heq (t := lambda _ @$\Rrightarrow$@ t) x y
+Eq x y = Heq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) x y
 
-Eq_eq : (t : Type) @$\Rrightarrow$@ (f : I @$\Rrightarrow$@ t)
-        @$\Rrightarrow$@ Eq (t := t) (f (_ := @$\ileft$@)) (f (_ := @$\iright$@))
+Eq_eq : (t : Type) @$\Rrightarrow$@ (f : I @$\Rrightarrow$@ t) @$\Rrightarrow$@ Eq (t := t) (f (_ := @$\ileft$@)) (f (_ := @$\iright$@))
 Eq_eq t f = Heq_eq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (f := f)
 
-Eq_uneq : (t : Type) @$\Rrightarrow$@ (x : t) @$\Rightarrow$@ (y : t) @$\Rightarrow$@ (p : Eq x y)
-          @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t
+Eq_uneq : (t : Type) @$\Rrightarrow$@ (x : t) @$\Rightarrow$@ (y : t) @$\Rightarrow$@ (p : Eq x y) @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t
 Eq_uneq p i = Heq_uneq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (p := p) (i := i)
 \end{minted}
 
@@ -1497,7 +1480,7 @@ $\bI$ given that such a function is necessarily a constant function.
 %% Eq_refl = lambda _ ≡> lambda _ ≡> lambda x ≡>
 %%             Eq_eq (f := lambda _ ≡> x)
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_refl : (x : ?t) |$\Rrightarrow$| Eq x x
+Eq_refl : (x : ?t) |$\Rrightarrow$| x @$\equiv$@ x
 Eq_refl x = Eq_eq (f := |$\lambda$| _ |$\Rrightarrow$| x)
 \end{minted}
 
@@ -1515,10 +1498,9 @@ invert the path. This is the intuition behind the following proof.
 %% Eq_comm : (x : ?t) ≡> (y : ?t) ≡> Eq x y -> Eq y x
 %% Eq_comm p = Eq_eq (f := lambda i ≡> Eq_uneq (p := p) (i := I_not i))
 %% SM: You might want to compare it to the old `Eq_comm` proof.
-%% SM: Here you use `!` for the negation instead of `I_not`.
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_comm : (x y : ?t) |$\Rrightarrow$| Eq x y |$\rightarrow$| Eq y x
-Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := !i))
+Eq_comm : (x y : ?t) |$\Rrightarrow$| x @$\equiv$@ y |$\rightarrow$| y @$\equiv$@ x
+Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := I_not i))
 \end{minted}
 
 \begin{figure}[H]
@@ -1571,9 +1553,8 @@ functional extensionality can be derived as a theorem as we illustrate below.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Eq_funExt : (f : (? |$\rightarrow$| ?)) |$\Rightarrow$| (g : (? |$\rightarrow$| ?))
-            |$\Rightarrow$| (p : (x : ?) |$\rightarrow$| Eq (f x) (g x)) |$\rightarrow$| Eq f g
-Eq_funExt p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| |$\lambda$| x |$\rightarrow$|
-                                   Eq_uneq (p := p x) (i := i))
+            |$\Rightarrow$| (p : (x : ?) |$\rightarrow$| f x @$\equiv$@ g x) |$\rightarrow$| f @$\equiv$@ g
+Eq_funExt p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| |$\lambda$| x |$\rightarrow$| Eq_uneq (p := p x) (i := i))
 \end{minted}
 
 We note that the above proof makes use of the $\eta$-equivalence of functions,
@@ -1632,11 +1613,9 @@ shown in the following code snippet:
 plus0 : (x : Nat) -> zero + x @$\equiv$@ x + zero
 plus0 x = Nat+_comm zero x
 
-eqf = Eq_funext (f := lambda x -> zero + x)
-                (g := lambda x -> x + zero)
-                plus0
+eqf = Eq_funext (f := @$\lambda$@ x -> zero + x) (g := @$\lambda$@ x -> x + zero) plus0
 
-canon0 : Eq_cast (p := eqf) (f := lambda _ -> Nat) zero @$\equiv$@ zero
+canon0 : Eq_cast (p := eqf) (f := @$\lambda$@ _ -> Nat) zero @$\equiv$@ zero
 canon0 = Eq_refl
 \end{minted}
 
@@ -1662,8 +1641,7 @@ simplified in a system with a cubical equality.
 %% Eq_cong = lambda f -> lambda p ->
 %%             Eq_eq (f := lambda i ≡> f (Eq_uneq (p := p) (i := i)))
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_cong : (x y : ?A) |$\Rightarrow$| (g : (?A |$\rightarrow$| ?)) |$\rightarrow$| (p : Eq x y)
-          |$\rightarrow$| Eq (f x) (f y)
+Eq_cong : (x y : ?A) |$\Rightarrow$| (g : (?A |$\rightarrow$| ?)) |$\rightarrow$| (p : Eq x y) |$\rightarrow$| Eq (f x) (f y)
 Eq_cong g p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| g (Eq_uneq (p := p) (i := i)))
 \end{minted}
 
@@ -1740,11 +1718,8 @@ following proof.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Eq_cast_refl : (A : Type) |$\Rrightarrow$| (x : A)
-               |$\rightarrow$| Eq (Eq_cast (p := Eq_refl (x := x))
-                              (f := |$\lambda$| _ |$\rightarrow$| A) x)
-                     x
-Eq_cast_refl A x = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$|
-                            I_transp (A := |$\lambda$| _ |$\Rrightarrow$| A) (r := i) x)
+               |$\rightarrow$| Eq (Eq_cast (p := Eq_refl (x := x)) (f := |$\lambda$| _ |$\rightarrow$| A) x) x
+Eq_cast_refl A x = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| I_transp (A := |$\lambda$| _ |$\Rrightarrow$| A) (r := i) x)
 \end{minted}
 
 
@@ -1840,8 +1815,8 @@ This can be seen as a justification of the J-rule, by fixing one endpoint of an
 equality proof to be $\fn{a}$, it is provable that any equality proof between
 $\fn{a}$ and some other arbitrary $\fn{b}$ may be proved to be equal to the
 reflexivity proof at $\fn{a}$. The exact details of the construction of the
-above are given in \autoref{sec:interval-connections}. Once we have that, we
-may easily define the J-rule by performing a cast from \fn{P a Eq\_refl} to
+above are given in Appendix~\ref{sec:interval-connections}. Once we have that,
+we may easily define the J-rule by performing a cast from \fn{P a Eq\_refl} to
 \fn{P b p}:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
@@ -5099,7 +5074,9 @@ the interval meet operation allows us to construct a square that corresponds to
 the following expression:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-sq = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i j)))
+sq : Heq (t := @$\lambda$@ i @$\Rrightarrow$@ x @$\equiv$@ Eq_uneq (p := p) (i := i))
+         (Eq_refl (_ := x)) p
+sq = Heq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i j)))
 \end{minted}
 
 Each dimension of an n-dimensional cube is represented by an interval variable.
@@ -5152,11 +5129,12 @@ meant earlier by degeneracies as such paths are trivial.
 
 \end{center}
 
-To illustrate why the given square corresponds to the expression given above, we
-shall examine each side of the square. To simplify the presentation, we shall
-consider \id{sq} without the \id{Eq\_eq} constructor and the \id{Eq\_uneq}
-deconstructor by treating functions out of the interval themselves as equality
-proofs. This reduces \id{sq} to the following expression:
+To illustrate why the given square corresponds to the expression given above,
+i.e.\ a proof that \fn{Eq\_refl (\_ := x)} is equal to \id{p}, we shall examine
+each side of the square. To simplify the presentation, we shall consider \id{sq}
+without the \id{Eq\_eq} constructor and the \id{Eq\_uneq} deconstructor by
+treating functions out of the interval themselves as equality proofs. This
+reduces \id{sq} to the following expression:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 sq = @$\lambda$@ i @$\Rrightarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p (I_meet i j)
