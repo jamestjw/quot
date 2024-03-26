@@ -289,6 +289,14 @@
 \def\Agda{\textsc{Agda}\xspace}
 \def\Lean{\textsc{Lean}\xspace}
 
+%% Use paragraph as subheader
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+            {-2.5ex\@plus -1ex \@minus -.25ex}%
+            {1.25ex \@plus .25ex}%
+            {\normalfont\normalsize\bfseries}}
+\makeatother
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%                                     %%%%%%%%%%%%%
@@ -910,6 +918,8 @@ providing examples in the form of code along with commentary.
 
 We make several contributions:
 
+%% TODO: Might have to modify chapter references after I merge eq+quot
+%% and restructure stuff
 \begin{itemize}
   \item{First, we introduce a notion of heterogeneous equality based on the
     Interval type by drawing inspiration from cubical type theory
@@ -918,9 +928,9 @@ We make several contributions:
     types\footnote{To identify A and B is to claim that they are equal.}. }
 
   \item{Next, we defined normal homogeneous equality as a special case of
-    heterogeneous equality. We then showed that by an interval-based equality
-    type lends itself better to proof of equality related properties
-    (\hyperref[sec:eq-examples]{Section~\ref*{sec:eq-examples}}).}
+    heterogeneous equality. We then showed that an interval-based equality
+    type lends itself better to proof of equality-related properties
+    (\hyperref[subsec:eq-examples]{Section~\ref*{subsec:eq-examples}}).}
 
   \item{We then introduced quotient types along with their typing and reduction
     rules (\autoref{ch:quot}). Its elimination principle takes advantage of
@@ -934,7 +944,7 @@ We make several contributions:
     convenience functions, macros, and also theorems regarding quotient types
     (\autoref{ch:quot-examples}). This work explores the usability and
     user-friendliness of quotient types in programming tasks through the
-    constructions of examples of possible use cases of quotients. We also
+    construction of examples of possible use cases of quotients. We also
     investigate the runtime overhead of the utilisation of quotient types
     (\autoref{sec:quot-benchmark}).}
 
@@ -986,10 +996,12 @@ without the truncation).
 %% You could also use this chapter to give a quick intro to the relevant
 %% part of Typer.
 
-\chapter{Cubical Equality}\label{ch:cubical-equality}
+\chapter{Cubical Equality and Quotient Types}\label{ch:cubical-equality}
 %% SM: It's probably a good place to talk about (as a kind of self-reflection)
 %% the fact that your thesis on "quotient types in Typer" talks almost
 %% more about equalities than about quotients.
+
+\section{Cubical Equality}
 
 We first present the typical definition of the \emph{interval type} defined as a
 higher inductive type as can be found in various sources such as the HoTT
@@ -998,7 +1010,7 @@ formulation of the interval type and show that it is equivalent to the
 traditional definition. Finally, we define \emph{cubical} equality, a different
 take on the equality type, based on the aforementioned interval type.
 
-\section{Interval type}
+\subsection{Interval type}
 
 In this section, we base our definitions on the assumption that we have an
 existing equality type as was described in \autoref{sec:intro-eq}, i.e.\ that we
@@ -1093,7 +1105,7 @@ unable to make the third rule hold definitionally, we should then postulate a
 propositional equality between $\kw{cong}_{elim_{\bI}^{\_.A}(M, N,
   P)}(\id{seg})$ and P.
 
-\section{Motivation}
+\subsection{Motivation}
 We show that a function with an interval argument returning some type \id{A},
 i.e.\ a function with type \fn{$\bI \rightarrow A$} is equivalent to an equality
 proof between two terms of type \id{A}. To build an intuition as to why this
@@ -1121,7 +1133,7 @@ The following type is inhabited:
 
 We provide a proof of the above in Appendix~\ref{app:proof-i->a-equiv}.
 
-\section{Justification}\label{sec:eq-justification}
+\subsection{Justification}\label{sec:eq-justification}
 We have established in the previous section that equality between two terms is
 equivalent to a function out of the interval. We have also illustrated that the
 output of such a function has to agree at both endpoints of the interval. This
@@ -1162,13 +1174,13 @@ equivalence.
 
 The above shall be the basis of our new definition of equality types.
 
-\section{Manipulation of the Interval type}
+\subsection{Manipulation of the Interval type}
 
 We introduce a few operations on the interval type whose usefulness will become
 clear after we introduce our version of the equality type that is based on the
 interval type.
 
-\subsection*{Negation}
+\subsubsection*{Negation}
 
 The negation operator does what its name suggests, i.e.\ it simply negates
 endpoints of the Interval type. Unsurprisingly, it has the following type:
@@ -1265,7 +1277,7 @@ $\Funapp{\fn{I\_meet}}{i}{(\Funapp{\fn{I\_not}}{i})} \rightsquigarrow{} i_0$
 holds definitionally, however, the two terms may be proven to be propositionally
 equal.
 
-\subsection*{Join}
+\subsubsection*{Join}
 %% SM: AFAIK, with De Morgan (and not&meet) you can define any function
 %% on intervals.  The only question is which equivalences hold definitionally.
 TODO:\ So far I haven't found a need for this operator. Do some investigation to
@@ -1274,7 +1286,7 @@ see if this is a worthy addition
 
 TODO:\ I'm leaning towards adding it anyway for completeness' sake
 
-\section{Elimination of the Interval type}
+\subsection{Elimination of the Interval type}
 
 %% SM: I think this needs some discussion about what kind of behavior
 %% we want from an elimination rule.  As it currently stands, this
@@ -1362,14 +1374,14 @@ I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ A (_ := i0) @$\rightar
 Its implementation is simple in that it simply returns the argument $\id{a}$
 untouched when \id{r} is a canonical value of \id{Interval}.
 
-\section{Equality type}\label{sec:identity}
+\subsection{Equality type}\label{sec:identity}
 
 After having described the relationship between functions of the type \fn{I
   $\rightarrow$ A} and equality, we make use of it to define a cubical equality
 type. First, we introduce heterogeneous equality, then we define regular
 (homogeneous) equality as a special case of heterogeneous equality.
 
-\subsection{Heterogeneous equality}
+\subsubsection{Heterogeneous equality}
 With the above definition of $\bI$, we are now ready to introduce the notion of
 heterogeneous equality. Such an equality type allows us to identify two terms
 that are not necessarily definitionally equal. The heterogeneous equality type
@@ -1417,7 +1429,7 @@ function, which gives us the $\eta$-equivalence for some $\fn{p:Heq x y}$.
       \Funapp{\id{Heq\_uneq}}{(\earg{p}{p})}{(\earg{i}{i})}})} = p
 \end{align*}
 
-\subsubsection*{Reduction rules}
+\paragraph{Reduction rules}
 
 \begin{prooftree*}
    \infer0[\textsc{Uneq-Left}]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\ileft}
@@ -1434,7 +1446,7 @@ the corresponding endpoint of the equality proof. This is a crucial property
 that allows derive theorems such as functional extensionality in
 \autoref{subsec:funext}.
 
-\subsection{Homogeneous equality}
+\subsubsection{Homogeneous equality}
 Homogeneous equality is by far the more typical notion of equality. We are able
 to define it as a special case of heterogeneous equality where $\fn{x}$ and
 $\fn{y}$ are of the same type.
@@ -1458,14 +1470,14 @@ Eq_uneq : (t : Type) @$\Rrightarrow$@ (x : t) @$\Rightarrow$@ (y : t) @$\Rightar
 Eq_uneq p i = Heq_uneq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) (p := p) (i := i)
 \end{minted}
 
-\section{Examples}\label{sec:eq-examples}
+\subsection{Examples}\label{subsec:eq-examples}
 %% SM: You can't presume the reader knows what is the "normal" equality
 %% type.  I suggest you present Typer's old `Eq` type at some earlier time
 %% (maybe in the new chapter between Intro and this one), so you can
 %% refer to it here.
 Common properties of the equality type remain true, some of them are easier to prove than with a traditional equality type.
 
-\subsection*{Reflexivity}
+\subsubsection*{Reflexivity}
 A reflexive equality is the most trivial equality that we can construct, and
 indeed, it is the one that we can construct with an erasable function out of
 $\bI$ given that such a function is necessarily a constant function.
@@ -1474,15 +1486,15 @@ $\bI$ given that such a function is necessarily a constant function.
 %%            ≡> (x : t) ≡> Eq x x
 %% Eq_refl = lambda _ ≡> lambda _ ≡> lambda x ≡>
 %%             Eq_eq (f := lambda _ ≡> x)
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_refl : (x : ?t) |$\Rrightarrow$| x @$\equiv$@ x
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
+Eq_refl : (x : ?t) |$\Rrightarrow$| x |$\equiv$| x
 Eq_refl x = Eq_eq (f := |$\lambda$| _ |$\Rrightarrow$| x)
 \end{minted}
 
-\subsection*{Commutativity}
+\subsubsection*{Commutativity}
 This is the first of many properties that can be proved elegantly by defining
-the equality type based on functions out of the interval. This property has many
-names, such as the commutativity of equality, the symmetry of equality, or the
+the equality type based on functions out of the interval. It has many names,
+such as the commutativity of equality, the symmetry of equality, or the
 inversion of a path. Consider an equality between $\id{x}$ and $\id{y}$, we can
 think of the two terms as points, the equality itself can then be thought of as
 a continuous path between the two points. We think of the path as a directed
@@ -1493,8 +1505,8 @@ invert the path. This is the intuition behind the following proof.
 %% Eq_comm : (x : ?t) ≡> (y : ?t) ≡> Eq x y -> Eq y x
 %% Eq_comm p = Eq_eq (f := lambda i ≡> Eq_uneq (p := p) (i := I_not i))
 %% SM: You might want to compare it to the old `Eq_comm` proof.
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_comm : (x y : ?t) |$\Rrightarrow$| x @$\equiv$@ y |$\rightarrow$| y @$\equiv$@ x
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
+Eq_comm : (x y : ?t) |$\Rrightarrow$| x |$\equiv$| y |$\rightarrow$| y |$\equiv$| x
 Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := I_not i))
 \end{minted}
 
@@ -1530,25 +1542,26 @@ Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := 
 \caption{A path from x to y along with its inversion}
 \end{figure}
 
-\subsection*{Functional extensionality}\label{subsec:funext}
+\subsubsection*{Functional extensionality}\label{subsec:funext}
 The notion of functional extensionality implies that pointwise-equal functions
-are indeed equal.
-
-This often makes an appearance in mathematical proofs, it will especially be
-required to prove the effectiveness of quotients in
+are indeed equal. This often makes an appearance in mathematical proofs, it will
+especially be required to prove the effectiveness of quotients in
 \autoref{ch:quotient-effectiveness}. However, as we shall see in
 \autoref{sec:quot-implies-funext}, the existence of quotient types itself is
 sufficient to derive functional extensionality. Although functional
 extensionality is a property that is respected by all functions, in most proof
 assistants, it is not provided nor is it derivable. If one requires it, it would
-then have to be postulated as an axiom, therefore adversely affecting
-computation as we would describe below. By postulating the existence of the
-$\type{Interval}$ type along with an equality type that's based on it,
-functional extensionality can be derived as a theorem as we illustrate below.
+then have to be postulated as an axiom, therefore adversely affecting the
+computational behaviour of a system as we would describe below. By postulating
+%% Note: IIRC it suffices to define the interval type as a HIT for funext to be
+%% derivable, is this worth mentioning? Maybe... maybe not...
+the existence of the interval type along with an equality type that's
+based on it, functional extensionality can be derived as a theorem as we
+illustrate below.
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Eq_funExt : (f : (? |$\rightarrow$| ?)) |$\Rightarrow$| (g : (? |$\rightarrow$| ?))
-            |$\Rightarrow$| (p : (x : ?) |$\rightarrow$| f x @$\equiv$@ g x) |$\rightarrow$| f @$\equiv$@ g
+            |$\Rightarrow$| (p : (x : ?) |$\rightarrow$| f x |$\equiv$| g x) |$\rightarrow$| f |$\equiv$| g
 Eq_funExt p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| |$\lambda$| x |$\rightarrow$| Eq_uneq (p := p x) (i := i))
 \end{minted}
 
@@ -1600,10 +1613,6 @@ not a problem in our system as performing a cast on an equality proof
 constructed by functionality extensionality does not lead to a stuck term as
 shown in the following code snippet:
 
-%% SM: You need to explain what this code snippet does, step by step.
-%% SM: It might be worth showing in a bit more detail where the reduction
-%% gets stuck with funext as an axiom, since the readers may be
-%% unfamiliar with the problem.
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 plus0 : (x : Nat) -> zero + x @$\equiv$@ x + zero
 plus0 x = Nat+_comm zero x
@@ -1626,7 +1635,7 @@ this cast does not even utilise the proof constructed by \id{Eq\_funext}. Our
 implementation of cast however recognises the fact that we are performing a cast
 between two definitionally equal types and thus successfully reduces.
 
-\subsection*{Congruence of equality}\label{subsec:congruence-eq}
+\subsubsection*{Congruence of equality}\label{subsec:congruence-eq}
 This is another typical property of equality whose proof is significantly
 simplified in a system with a cubical equality.
 
@@ -1636,7 +1645,7 @@ simplified in a system with a cubical equality.
 %% Eq_cong = lambda f -> lambda p ->
 %%             Eq_eq (f := lambda i ≡> f (Eq_uneq (p := p) (i := i)))
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_cong : (x y : ?A) |$\Rightarrow$| (g : (?A |$\rightarrow$| ?)) |$\rightarrow$| (p : Eq x y) |$\rightarrow$| Eq (f x) (f y)
+Eq_cong : (x y : ?A) |$\Rightarrow$| (g : (?A |$\rightarrow$| ?)) |$\rightarrow$| (p : x |$\equiv$| y) |$\rightarrow$| f x |$\equiv$| f y
 Eq_cong g p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| g (Eq_uneq (p := p) (i := i)))
 \end{minted}
 
@@ -1662,7 +1671,7 @@ polymorphic identity function}.
 %% B) (p : x |$\equiv$| y) |$\rightarrow$| f x |$\equiv$| f y congS f p i = f (p i)
 %% \end{minted}
 
-\subsection*{Transport}
+\subsubsection*{Transport}
 As mentioned in the introduction, two equal things may be substituted for one
 another according to the principle of the indiscernibility of identicals, also
 known as Leibniz's law. This essentially means that a property that is true of
@@ -1693,7 +1702,7 @@ above. We define the function \id{Eq\_cast} such that it takes a proof that
 %%
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Eq_cast : (x y : ?A) |$\Rrightarrow$| (p : Eq x y) |$\Rrightarrow$| (f : ?A |$\rightarrow$| Type) |$\Rrightarrow$| f x |$\rightarrow$| f y
+Eq_cast : (x y : ?A) |$\Rrightarrow$| (p : x |$\equiv$| y) |$\Rrightarrow$| (f : ?A |$\rightarrow$| Type) |$\Rrightarrow$| f x |$\rightarrow$| f y
 Eq_cast A x y p f fx =
   I_transp (A := |$\lambda$| t |$\Rrightarrow$| f (Eq_uneq (t := t) (p := p) (i := i)))
            fx (r := |$\ileft$|)
@@ -1703,20 +1712,20 @@ Here, we make use of the built-in function $\id{I\_transp}$ by passing it the
 argument $\earg{\id{r}}{\ileft}$, intending it to behave as a transport
 function. In other words, by passing it something of type
 $\Funapp{\id{f}}{\id{x}}$, it returns something of type
-$\Funapp{\id{f}}{\id{y}}$, which is precisely what the transport/cast function
-is meant to do.
+$\Funapp{\id{f}}{\id{y}}$, which is precisely what the transport function is
+meant to do.
 
-The $\id{I\_transp}$ function that looks slightly strange at first sight allows
-us to prove a certain property of the transport operation. Transporting across a
-reflexive path should be equivalent to a no-op, as illustrated in the
-following proof.
+Transporting across a reflexive path should be equivalent to a no-op, as
+illustrated in the following proof.
+
+%% NOTE: Check if I mentioned somewhere that the below may be generalised using
+%% the `r` argument of I_transp to relate `cast p x' and `x' with a Heq proof
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Eq_cast_refl : (A : Type) |$\Rrightarrow$| (x : A)
-               |$\rightarrow$| Eq (Eq_cast (p := Eq_refl (x := x)) (f := |$\lambda$| _ |$\rightarrow$| A) x) x
-Eq_cast_refl A x = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| I_transp (A := |$\lambda$| _ |$\Rrightarrow$| A) (r := i) x)
+               |$\rightarrow$| Eq_cast (p := Eq_refl (x := x)) (f := |$\lambda$| _ |$\rightarrow$| A) x |$\equiv$| x
+Eq_cast_refl A x = Eq_refl
 \end{minted}
-
 
 %% NOTE: This is just an extra piece of information that may or may not interest
 %% readers, i.e. the kind of thing that I could potentially remove
@@ -1729,100 +1738,18 @@ is shown by the following judgment in ETT that states that equality proofs can
 be converted to judgemental equalities.
 
 \begin{prooftree*}
-  \hypo{\oftype{\ctx}{t}{\Funapp{\kw{Eq}}{a}{b}}}
+  \hypo{\oftype{\ctx}{t}{a \equiv b}}
   \infer1{\ctx \vdash a \simeq b}
 \end{prooftree*}
 
 This is also the reason why type-checking is not decidable in ETT as the
 necessity to invoke the above rule is not syntax-directed.
 
-
-\subsection*{J-rule}\label{subsec:j-rule}
-The sole term former of the \id{Eq} only allows the construction of reflexive
-equalities, at first sight, this leads us to believe that not much can actually
-be done with the \id{Eq} type. After all, if all we had were proofs of the form
-\fn{x $\equiv$ x}, it would be difficult to imagine achieving anything with
-them. The true magic of the equality type lies in its elimination principle.
-Traditionally, the equality type comes with an elimination principle known as
-the J-rule. This was first introduced by Per Martin-Löf
-in\cite{martin1975intuitionistic}. Suppose that we have a type family \id{C}
-that is parametrised by two terms \id{x} and \id{y} of some type \id{A} as well
-as a proof that \id{x} and \id{y} are equal, i.e.\ of type \fn{Eq x y}. If we
-have a proof term \id{p} that witnesses the equality of two arbitrary terms
-\id{a} and \id{b} of type \id{A}, and we wish to produce a term of type \fn{C a
-  b p}, then the J-rule says that it suffices for us to provide a means of
-producing for all $\oftype{\id{x}}{\id{A}}$ a term of type \fn{C x x (refl x)}.
-We now state the type of the J-rule:
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-J : (A : Type) @$\Rrightarrow$@ (C : (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ Eq x y @$\rightarrow$@ Type)
-    @$\Rrightarrow$@ ((x : A) @$\rightarrow$@ C x x Eq_refl)
-    @$\rightarrow$@ (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ (p : Eq x y)
-    @$\rightarrow$@ C x y p;
-\end{minted}
-
-This rule is essentially saying that to know what to do with an equality between
-an arbitrary \id{x} and \id{y}, we merely need to know how to handle the case
-where we are dealing with a reflexivity proof. Now, given the fact that the
-reflexivity constructor is the only constructor of the \id{Eq} type, one might
-think that the above elimination principle is well justified. Recall that the
-elimination principle of strictly positive types\cite{abbott2005containers} can
-usually be derived based on the constructors of the datatype itself. For
-instance, consider the below inductive definition of the Peano natural numbers.
-
-\begin{minted}{haskell}
-type Nat
-    | zero
-    | succ Nat
-\end{minted}
-
-The corresponding elimination principle then takes on the following logical form:
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-Nat_elim : (P : Nat @$\rightarrow$@ Type) @$\Rrightarrow$@ P zero @$\rightarrow$@ ((n : Nat) @$\rightarrow$@ P n @$\rightarrow$@ P (succ n))
-           @$\rightarrow$@ (n : Nat) @$\rightarrow$@ P n;
-\end{minted}
-
-First, we need to define what needs to be done if the natural number we are
-trying to eliminate is \id{zero}. Next, if the natural number we want to
-eliminate is something of the form \fn{succ n}, then we can imagine making a
-recursive call to the eliminator to produce a result for \fn{succ n} for \id{n},
-and now we need a means of transforming a proof of \fn{P n} to one of \fn{P
-  (succ n)}. Indeed, the elimination principle of natural numbers is just
-mathematical induction. Hence, it is reasonable to say that to eliminate an
-equality proof, it suffices for us to define what needs to be done for
-reflexivity proofs.
-
-In Typer, the elimination rule for the $\id{Eq}$ type was not provided in the
-form of the J-rule before this work, instead a cast function was provided as
-mentioned in a previous section. It is possible to derive $\id{Eq\_cast}$ from
-the J-rule. The natural question that we should now ask ourselves is whether the
-J-rule can be derived from $\id{Eq\_cast}$, in other words we would like to know
-if the two elimination principles are equivalent. It turns out that one way of
-doing it hinges upon whether we can inhabit the following type:
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-eqUnique : (A : Type) @$\Rrightarrow$@ (a b : A) (p : Eq a b)
-           @$\rightarrow$@ Eq (t := @$\Sigma_{a':A}. a \equiv a'$@) <a, Eq_refl>  <b, p>
-\end{minted}
-
-This can be seen as a justification of the J-rule, by fixing one endpoint of an
-equality proof to be $\fn{a}$, it is provable that any equality proof between
-$\fn{a}$ and some other arbitrary $\fn{b}$ may be proved to be equal to the
-reflexivity proof at $\fn{a}$. The exact details of the construction of the
-above are given in Appendix~\ref{sec:interval-connections}. Once we have that,
-we may easily define the J-rule by performing a cast from \fn{P a Eq\_refl} to
-\fn{P b p}:
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-J h x y p = Eq_cast (p := eqUnique p) (f := @$\lambda$@ e @$\rightarrow$@ C x e.fst e.snd) (h x)
-\end{minted}
-
 \subsection*{Transitivity}\label{subsection:eqtransitivity}
 Continuing our analogy of equality proofs as paths, the transitivity property allows us to concatenate two paths. We join the right endpoint of the first path with the left endpoint of the second path, producing a new path. The proof of this theorem is as follows:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
-Eq_trans : (x y z: ?t) |$\Rrightarrow$| Eq x y |$\rightarrow$| Eq y z |$\rightarrow$| Eq x z
+Eq_trans : (x y z: ?t) |$\Rrightarrow$| x |$\equiv$| y |$\rightarrow$| y |$\equiv$| z |$\rightarrow$| x |$\equiv$| z
 Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
                                  (f := |$\lambda$| x' |$\rightarrow$| Eq x x')
                                  x=y
@@ -1863,70 +1790,7 @@ Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
 \caption{The concatenation of a path between x and y and a path between y and z to produce a new path between x and z.}
 \end{figure}
 
-\section{Equality as a mere proposition}
-Although we say that our equality type is a proposition, it is by no means a
-mere proposition (HoTT book\cite{HoTTbook} Chapter 3.3). This implies that it is
-not a given that two proofs of the same equality are provably
-equal\cite{hofmann1998groupoid}. In other words, when we ask ourselves the
-question ``Is it the case that a = b'', we do not only care if the answer is yes
-or no, if they are indeed equal, we can interest ourselves in what ways exactly
-are they equal. This is in contrast to other systems where the Uniqueness of
-Identity Proofs principle (UIP) applies to all types. Notably, this is true of
-systems that admit axiom K\cite{streicher1993investigations} that states all
-equality proofs are equal to the reflexivity proof, and by extension all proofs
-of the same equality are equal. In the remainder of this section, we show that
-UIP is a property that is true for a certain class of types in Typer.
-
-\subsection{Hedberg's theorem}\label{subsec:hedberg}
-
-%% FIXME: I think this should be moved to a later part of your thesis,
-%% because it delays discussion of quotient types.
-%% Maybe the same applies to some of the previous examples, actually.
-
-%% TODO: Do this soon, I want to create a chapter with more complicated
-%% examples, and leave the easy examples such as cong and funext with the eq
-%% type presentation. This way, I can present rules of the eq type and quotient
-%% types together in the same chapter
-
-To set the stage, we provide a few definitions. A type is said to be
-\textbf{decidable} if we can decide whether the type is inhabited or
-not. In the case where it is inhabited, we must also have a witness of such an
-inhabitant. In Typer, decidability can be represented by the following inductive
-type.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-type Dec (A : Type)
-  | yes A
-  | no (A -> False)
-\end{minted}
-
-A type is said to be \textbf{collapsed} if any two inhabitants of the type may
-be proved to be equal, this corresponds directly to the notion of a mere
-proposition. The two definitions that we just stated may also be used in the
-context of equality types. If we say that a type has decidable equality,
-this implies that for any two terms of this type, we can decide whether or not
-they are equal. On top of that, if the type has collapsed equality types, then
-for any pair of terms of this type, any two proofs that they are equal are also
-equal. The notion of collapsible equality types corresponds to the notion of a
-$\kw{Set}$ or h-set in HoTT.
-
-\begin{theo}[Hedberg's theorem\cite{hedberg1998coherence}]
-If a type \fn{A} has decidable equality, then \fn{A} has collapsed equality
-types.
-\end{theo}
-
-In this work, we provide a proof of this theorem in the form of Typer code. We
-present the type of the function without going into the details of its
-implementation\footnote{The actual implementation may be found in the attached \fn{samples/hedberg.typer} file}.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-dici : (di : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ Dec (x @$\equiv$@ y))
-       @$\rightarrow$@ (a : ?A) @$\rightarrow$@ (b : ?A)
-       @$\rightarrow$@ (u : a @$\equiv$@ b) @$\rightarrow$@ (v : a @$\equiv$@ b)
-       @$\rightarrow$@ u @$\equiv$@ v
-\end{minted}
-
-\section{Limitations}
+\subsection{Limitations}
 We don't have primitives such as $hcomp$, what does this imply? Is there a
 certain class of proofs we are unable to construct? Or do we just suffer from
 some amount of inconvenience?
@@ -1935,16 +1799,16 @@ From what I understand, this allows us to compose higher dimensional cubes, i.e.
 we don't really need or care about this here I believe. So either don't mention it,
 or briefly touch on it at the very end.
 
-\chapter{Quotient Type}\label{ch:quot}
+\section{Quotient Types}\label{ch:quot}
 
 %% TODO: change this to section when I move this
-In this chapter, we introduce our implementation of quotient types in Typer. We
+In this section, we introduce our implementation of quotient types in Typer. We
 first describe the syntax of the new constructs followed by their typing and
 computation rules.
 
-\section{Syntax}
+\subsection{Syntax}
 
-We extend the Typer's syntax of terms with our new constructs:
+We extend Typer's syntax of terms with our new constructs:
 
 \setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
 \setlength{\grammarindent}{4em} % increase separation between LHS/RHS
@@ -1973,14 +1837,10 @@ term \id{q} of a quotient type is done using the syntax \fn{Quotient\_elim f h
   q} where \id{f} is a function out of the base type and \id{h} is proof that
 \id{f} is compatible with the underlying relation of the quotient.
 
+\subsection{Typing rules}
 
-\section{Typing rules}
-%% SM: First present the syntax of the new elements (explaining what
-%% each thing is supposed to mean), then present their typing rules.
-%% The same holds for the previous chapter, actually.
 Now, we present the typing rules of the primitives introduced above.
 
-%% SM: Can we remove the implicit arguments to make the presentation lighter?
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{A}}{\kw{Type}}}
    \hypo{\oftype{\ctx}{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}}}
@@ -2061,7 +1921,7 @@ elimination of quotients is not limited to motives that live in the universe of
 \type{Prop}, as opposed to when quotient types are added to a theory interpreted
 in a setoid model as proposed by Li\cite{li2015quotient}.
 
-\section{Reduction rules}
+\subsection{Reduction rules}
 We present the computation rule for the elimination of quotients.
 
 \begin{prooftree*}
@@ -2090,27 +1950,27 @@ such a condition would be fulfilled if \id{f} was a normalisation function on
 \id{A}. However, the above requirement is not easily enforced, not to mention
 that the $\eta$-rule itself is not necessarily that useful to have.
 
-\section{Implementation}
+\subsection{Implementation}
 
 In this section, we describe how the rules described above were added to Typer.
 Subsequently, we describe some syntactic sugar that facilitates the usage of
 quotient types.
 
-\subsection{Primitives}
+\subsubsection{Primitives}
 
 The quotient constructs presented in the previous sections are implemented in
 Typer as primitives. In this subsection, we present their types and justify our
 choices where appropriate. For brevity, we do not explicitly indicate that the
 below functions are universe polymorphic.
 
-\subsubsection*{Formation}
+\paragraph{Formation}
 The $\id{Quotient}$ type former has the following type:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Quotient : (A : Type) |$\rightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| Type
 \end{minted}
 
-\subsubsection*{Introduction}
+\paragraph{Introduction}
 Two primitives are added, corresponding to the two introduction rules of $\id{Quotient}$.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
@@ -2127,7 +1987,7 @@ made implicit as they can often be inferred from the context.
 We postulated \id{Quotient\_eq} as an axiom to witness the equality between the
 projections of two related terms.
 
-\subsubsection*{Elimination}
+\paragraph{Elimination}
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Quotient_elim : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\Rrightarrow$| (P : Quotient A R |$\rightarrow$| Type)
@@ -2144,9 +2004,9 @@ passed to the function as it acts simply as a form of static information. Since
 the proof itself is computationally irrelevant, it is made to be an erasable
 argument.
 
-\subsection{Syntactic sugar}
+\subsubsection{Syntactic sugar}
 
-\subsubsection*{qcase}
+\paragraph{qcase}
 
 We provide some syntactic sugar to simplify the non-dependent elimination
 quotients. The syntax we opted for is reminiscent of that of
@@ -2199,7 +2059,7 @@ e2 q = qcase (q : Unit / R)
 More elaborate examples of usages of this macro are given in subsequent
 sections.
 
-\subsubsection*{Encoding of Quotient Inductive Types}
+\paragraph{Encoding of Quotient Inductive Types}
 
 We initially intended to encode QITs as quotient types with the help of a macro.
 Such an encoding is without a doubt possible, in \autoref{sec:multiset} and
@@ -2215,246 +2075,145 @@ construction is a tough ask for a macro. Hence, we ultimately decided to abandon
 this idea as even if such a macro were to come to fruition, it would most likely
 be user-unfriendly.
 
-\chapter{Quotient Effectiveness}\label{ch:quotient-effectiveness}
+\chapter{Equality Theorems}\label{ch:eq-theorems}
+In addition to the examples given in \autoref{subsec:eq-examples}, we derive
+more theorems related to the equality type, some of which shall facilitate the
+use of quotient types.
 
-We show that if it is the case that two projections of two terms into a quotient
-are equal, i.e. \fn{Quotient_in (R := R) a $\equiv$ Quotient (R := R) a'}, then
-two terms \id{a} and \id{a'} must necessarily be related under the relation. In
-other words, we want to show that the reverse of
-\hyperref[quot-intro-eq-rule]{\textsc{Quot-Intro-Eq}} is also valid. We note
-however that this is only valid for relations that are (mere) propositions and
-equivalence relations (i.e.\ reflexive, symmetric, and transitive).
+\section{J-rule}\label{subsec:j-rule}
+The sole term former of the \id{Eq} only allows the construction of reflexive
+equalities. At first sight, this leads us to believe that not much can be done
+with the \id{Eq} type. After all, if all we had were proofs of the form \fn{x
+  $\equiv$ x}, it would be difficult to imagine achieving anything meaningful
+with them. The true magic of the equality type lies in its elimination
+principle. Traditionally, the equality type comes with an elimination principle
+known as the J-rule. This was first introduced by Per Martin-Löf
+in\cite{martin1975intuitionistic}. Consider a type family \id{C} that is
+parametrised by two terms \id{x} and \id{y} of some type \id{A} as well as a
+proof that they are equal, i.e.\ of type \fn{x $\equiv$ y}. If we have a proof
+term \id{p} that witnesses the equality of two arbitrary terms \id{a} and \id{b}
+of type \id{A}, and we wish to produce a term of type \fn{C a b p}, then the
+J-rule says that it suffices for us to provide a means of producing for all
+$\oftype{\id{x}}{\id{A}}$ a term of type \fn{C x x (refl x)}. We now state the
+type of the J-rule:
 
-\section{Propositional Extensionality}
-We provide an alternative version of propositional extensionality that is
-slightly weaker. Consequently, the version of quotient effectiveness that we
-prove is also weaker.
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+J : (A : Type) @$\Rrightarrow$@ (C : (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ x @$\equiv$@ y @$\rightarrow$@ Type)
+    @$\Rrightarrow$@ ((x : A) @$\rightarrow$@ C x x Eq_refl)
+    @$\rightarrow$@ (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ (p : x @$\equiv$@ y)
+    @$\rightarrow$@ C x y p;
+\end{minted}
 
-\subsection*{Representation of propositions}\label{subsec:mere-propositions}
-
-Intuitively speaking, propositions are a type that contains no intrinsic data, it
-is their mere existence that counts. This is precisely the notion of proof
-irrelevance. In Typer, this notion is represented via erasability. We introduce
-a built-in data type that captures this idea.
+This rule essentially says that to know what to do with an equality between an
+arbitrary \id{x} and \id{y}, we merely need to know how to handle the case where
+we are dealing with a reflexivity proof. Now, given the fact that the
+reflexivity constructor is the only constructor of the \id{Eq} type, one might
+think that the above elimination principle is well justified. Recall that the
+elimination principle of strictly positive types\cite{abbott2005containers} can
+usually be derived based on the constructors of the datatype itself. For
+instance, consider the below inductive definition of the Peano natural numbers.
 
 \begin{minted}{haskell}
-type Erased (T : Type)
-  | erased (t ::: T)
+type Nat
+    | zero
+    | succ Nat
 \end{minted}
 
-By ensuring that the witness $\id{t}$ of the type $\id{T}$ is erasable, this
-provides us with a guarantee that during elimination, the witness $\id{t}$ can
-only be used in an erasable, i.e.\ proof irrelevant manner.
-
-To convince ourselves that this type does indeed capture the essence of a
-proposition, we provide a proof of
-$\Funapp{\id{isProp}}{(\Funapp{\id{Erased}}{?\id{T}})}$. We first state the
-definition of $\id{isProp}$:
-
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
-isProp : (T : Type) |$\rightarrow$| Type
-isProp T = (x y : T) |$\rightarrow$| Eq x y
-\end{minted}
-
-We now present the proof in the form of Typer code.
+The corresponding elimination principle then takes on the following logical form:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-erasedIsProp : (T : Type) @$\Rrightarrow$@ isProp (Erased T)
-erasedIsProp t1 t2 =
-  case t1
-    | erased (_ := e1) @$\Rightarrow$@
-        let
-          p1 = ##DeBruijn 0 : Eq (erased (t := e1)) t1
-        in
-          case t2
-            | erased (_ := e2) @$\Rightarrow$@
-                let
-                  p2 = ##DeBruijn 0 : Eq (erased (t := e2)) t2
-                in
-                  Eq_trans (Eq_comm p1) p2
+Nat_elim : (P : Nat @$\rightarrow$@ Type) @$\Rrightarrow$@ P zero @$\rightarrow$@ ((n : Nat) @$\rightarrow$@ P n @$\rightarrow$@ P (succ n))
+           @$\rightarrow$@ (n : Nat) @$\rightarrow$@ P n;
 \end{minted}
 
-Typer does not offer the direct specialisation of $\kw{case}$ targets in
-branches. In other words, in the first case branch, we do not have a
-definitional equality between $\id{t1}$ and
-$\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$. Instead, an equality proof between
-them is injected into the context, which can be accessed as the variable at
-deBruijn index 0. Now that we have the two equality proofs, in order to
-concatenate them\footnote{By considering equalities as paths, the application of
-the transitivity property of equality is conceptually similar to concatenating
-two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and
-$\Funapp{\id{erased}}{(\earg{\_}{\id{e2}})}$ to be equal. A priori, the two
-terms are not equal as $\id{e1}$ and $\id{e2}$ are completely arbitrary.
-However, Typer ignores erasable terms when checking the convertibility of terms,
-this is a property that was proven to be sound in\cite{barras2008implicit} as
-convertibility is tested on extracted terms. This allows the concatenation to
-succeed and thus concludes the proof.
+First, we need to define what needs to be done if the natural number we are
+trying to eliminate is \id{zero}. Next, if the natural number we want to
+eliminate is something of the form \fn{succ n}, then we can imagine making a
+recursive call to the eliminator to produce a result for \fn{succ n} for \id{n},
+and now we need a means of transforming a proof of \fn{P n} to one of \fn{P
+  (succ n)}. Indeed, the elimination principle of natural numbers is just
+mathematical induction. Hence, it is reasonable to say that to eliminate an
+equality proof, it suffices for us to define what needs to be done for
+reflexivity proofs.
 
-\subsection*{Implementation details}
-
-Propositional extensionality essentially means that if two logically equivalent
-propositions, i.e.\ each proposition implies the other, then we can say that
-they are equal. And precisely because we are postulating a new equality
-constructor, we have to be very careful that the resulting equality proof is
-indeed proof irrelevant. In other words, we need this equality proof to not have
-any runtime relevance. This is principally because we insist that the transport
-operation be a no-op during runtime. This is the motivation behind our choice to
-use the $\id{Erased}$ type to represent propositions, as it is a guarantee that
-such a type carries no useful runtime information. This implies that a transport
-operation from one $\id{Erased}$ type to another is necessarily simply a no-op.
-
-In a setting with univalence, propositional extensionality is simply a theorem
-that may be proven, more specifically, it may be seen as a degenerate case of univalence\cite{sozeau2013univalence}. This is a result that is
-immediate as an equivalence between logically equivalent propositions is
-trivial. In the setting of Typer, however, propositional extensionality is
-implemented as an axiom with the following type signature:
+In Typer, the elimination rule for the $\id{Eq}$ type was not provided in the
+form of the J-rule before this work, instead a cast function was provided as
+mentioned in a previous section. It is possible to derive $\id{Eq\_cast}$ from
+the J-rule. The natural question that we should now ask ourselves is whether the
+J-rule can be derived from $\id{Eq\_cast}$, in other words we would like to know
+if the two elimination principles are equivalent. It turns out that one way of
+doing it hinges upon whether we can inhabit the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-propExt : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (Erased A @$\rightarrow$@ Erased B)
-           @$\rightarrow$@ (Erased B @$\rightarrow$@ Erased A) @$\rightarrow$@ Erased A @$\equiv$@ Erased B
+eqUnique : (A : Type) @$\Rrightarrow$@ (a b : A) (p : Eq a b)
+           @$\rightarrow$@ Eq (t := @$\Sigma_{a':A}. a \equiv a'$@) <a, Eq_refl>  <b, p>
 \end{minted}
 
-The above is a weaker notion of propositional extensionality compared to what is
-proposed in Cubical Agda, which has the following type signature:
+This can be seen as a justification of the J-rule, by fixing one endpoint of an
+equality proof to be $\fn{a}$, it is provable that any equality proof between
+$\fn{a}$ and some other arbitrary $\fn{b}$ may be proved to be equal to the
+reflexivity proof at $\fn{a}$. The exact details of the construction of the
+above are given in Appendix~\ref{sec:interval-connections}. Once we have that,
+we may easily define the J-rule by performing a cast from \fn{P a Eq\_refl} to
+\fn{P b p}:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{Agda}
-propExt : {A B : Type} @$\rightarrow$@ isProp A @$\rightarrow$@ isProp B @$\rightarrow$@ (A @$\rightarrow$@ B)
-          @$\rightarrow$@ (B @$\rightarrow$@ A) @$\rightarrow$@ A @$\equiv$@ B
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+J h x y p = Eq_cast (p := eqUnique p) (f := @$\lambda$@ e @$\rightarrow$@ C x e.fst e.snd) (h x)
 \end{minted}
 
-However, this produces an equality proof that is not proof irrelevant, as
-$\id{A}$ and $\id{B}$ are not necessarily the \emph{same} type. We illustrate
-the above with a simple example. We define two instances of the unit type which
-are trivially \emph{logically equivalent}.
+\section{Hedberg's theorem}\label{subsec:hedberg}
 
-\begin{minted}[escapeinside=@@,mathescape=true]{Agda}
-data Unit1 : Type where unit1 : Unit1
+Although we say that our equality type is a proposition, it is by no means a
+mere proposition (HoTT book\cite{HoTTbook} Chapter 3.3). This implies that it is
+not a given that two proofs of the same equality are provably
+equal\cite{hofmann1998groupoid}. In other words, when we ask ourselves the
+question ``Is it the case that a = b'', we do not only care if the answer is yes
+or no, if they are indeed equal, we could interest ourselves in what ways
+exactly are they equal. This is in contrast to other systems where the
+Uniqueness of Identity Proofs principle (UIP) applies to all types. Notably,
+this is true of systems that admit axiom K\cite{streicher1993investigations}
+that states all equality proofs are equal to the reflexivity proof, and by
+extension all proofs of the same equality are equal. In the remainder of this
+section, we show that UIP is a property that is true for a certain class of
+types in Typer.
 
-data Unit2 : Type where
-  unit2 : Unit2
+To set the stage, we provide a few definitions. A type is said to be
+\emph{decidable} if we can decide whether the type is inhabited or not. In the
+case where it is inhabited, we must also have a witness of such an inhabitant.
+In Typer, decidability can be represented by the following inductive type.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+type Dec (A : Type)
+  | yes A
+  | no (A -> False)
 \end{minted}
 
-$\Funapp{\kw{isProp}}{\id{Unit1}}$ and $\Funapp{\kw{isProp}}{\id{Unit2}}$ are
-trivially true, as is the case for all $\mathbb{1}$-types. $\id{Unit1}
-\rightarrow \id{Unit2}$ and $\id{Unit2} \rightarrow \id{Unit1}$ are also
-inhabited. Propositional extensionality thus gives us a proof of $\id{Unit1}
-\equiv \id{Unit2}$. This implies that we should be able to use said proof to
-transport $\id{unit1}$ to $\id{unit2}$, but since the two terms do not have the
-same runtime representation, this simply cannot be a no-op. This is in stark
-contrast to the version of propositional extensional that we are proposing in
-Typer that only accepts types that are boxed in the $\id{Erased}$ type. We would
-have no qualms about having a proof of equality between
-$\Funapp{\id{Erased}}{Unit1}$ and $\Funapp{\id{Erased}}{Unit2}$ as terms of
-these two types would essentially have the same runtime representation. It is
-also for this precise reason that our version of propositional extensionality is
-weaker, as we are constrained to construct an equality proof that is not
-computationally relevant.
+A type is said to be \emph{collapsed} if any two inhabitants of the type may be
+proved to be equal, this corresponds directly to the notion of a mere
+proposition. The two definitions that we just stated may also be used in the
+context of equality types. If we say that a type has decidable equality, this
+implies that for any two terms of this type, we can decide whether or not they
+are equal. On top of that, if the type has collapsed equality types, then for
+any pair of terms of this type, any two proofs that they are equal are also
+equal. The notion of collapsible equality types corresponds to the notion of a
+\emph{Set} or 0-type in HoTT\cite[Chap~3.1]{HoTTbook}. We shall see in a
+subsequent section that this property plays a substantial role in the
+%% TODO: Reference this section
+elimination of quotients.
 
-Another worthy comparison to make is with \Lean{}, which has a $\kw{Prop}$ sort.
-Terms of this sort are not autorised to be used in a proof relevant manner. Its
-version of propositional extensionality has the following form:
+\begin{theo}[Hedberg's theorem\cite{hedberg1998coherence}]
+If a type \fn{A} has decidable equality, then \fn{A} has collapsed equality
+types.
+\end{theo}
 
-\begin{minted}[escapeinside=@@,mathescape=true]{lean}
-axiom propext {a b : Prop} : (a @$\leftrightarrow$@ b) @$\rightarrow$@ a = b
+In this work, we provide a proof of this theorem in the form of Typer code. We
+present the type of the function without going into the details of its
+implementation\footnote{The actual implementation may be found in the attached \fn{samples/hedberg.typer} file}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+dici : (di : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ Dec (x @$\equiv$@ y)) @$\rightarrow$@ (a b : ?A) @$\rightarrow$@ (u v : a @$\equiv$@ b)
+       @$\rightarrow$@ u @$\equiv$@ v
 \end{minted}
-
-This is similar to what we have in Typer, except that proof irrelevance is
-enforced differently.
-
-\section{Equivalence relation}
-
-First, we state what we mean when we say \emph{relation} to set the stage for
-the subsequent discussion. For our purposes, we consider binary relations, which
-are type formers that take two arguments of some type $\kw{A}$. Assuming that we
-call the relation $\kw{R}$ and its two arguments $\id{a}$ and $\id{a}'$
-respectively, inhabitants of the type $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ are
-witnesses of this binary relation. The type signature of a binary relation has
-the below form:
-
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
-R : (A : Type) |$\Rrightarrow$| (a : A) |$\rightarrow$| (a' : A) |$\rightarrow$| Type
-\end{minted}
-
-For a quotient to be effective, its underlying relation has to be an equivalence relation, we shall use this property in the proof in the subsequent section. Recall that an equivalence relation implies that the relation is reflexive, symmetric and transitive. For it to be reflexive, it needs to be the case that given an arbitrary $\oftype{\id{a}}{\kw{A}}$, $\Funapp{\kw{R}}{\id{a}}{\id{a}}$ must be trivially inhabited. The symmetry of the relation implies that if we are given an arbitrary witness of $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$, we need to be able to transform that into an inhabitant of $\Funapp{\kw{R}}{\id{a}'}{\id{a}}$. The relation is transitive if we are able to transform witnesses of $\Funapp{\kw{R}}{\id{a}}{\id{b}}$ and $\Funapp{\kw{R}}{\id{b}}{\id{c}}$ into witnesses of $\Funapp{\kw{R}}{\id{a}}{\id{c}}$\footnote{The equality type fulfills these criteria and is an equivalence relation.}.
-
-In the built-in library, we define the following type as a witness that a certain relation is indeed an equivalence relation.
-
-\begin{minted}{haskell}
-type isEquivRel (A : Type) (R : A -> A -> Type) : Type
-  | equivRel (isRefl : (a : A) -> R a a)
-             (isSym : (a : A) -> (b : A) -> R a b -> R b a)
-             (isTrans : (a : A) -> (b : A) -> (c : A)
-                         -> R a b -> R b c -> R a c)
-\end{minted}
-
-\section{Proof}
-Given two arbitrary elements $\id{a}$ and $\id{a}'$ of a base type $\kw{A}$, a
-quotient is said to be effective if given a proof that the surjection of $\id{a}$
-and $\id{a}'$ into the quotient are equal, then it must be the case that
-$\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ is true, i.e.\ we are able to find an
-inhabitant of it. A sufficient condition for a quotient to be effective is that
-the underlying relation must be both a proposition and an equivalence relation.
-
-For an arbitrary binary relation $\kw{R}$, we can define the following:
-
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
-ErasedR : (A : Type) |$\Rrightarrow$| (A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| A |$\rightarrow$| A |$\rightarrow$| Type
-ErasedR R a b = Erased (R a b)
-\end{minted}
-
-Now, we state the proof of the effectiveness of quotients in the form of Typer code
-
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
-effective : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type)
-            |$\rightarrow$| isEquivRel A (ErasedR R) |$\rightarrow$| (a : A) |$\rightarrow$| (b : A)
-            |$\rightarrow$| Eq (Quotient_in (R := ErasedR R) a)
-                  (Quotient_in (R := ErasedR R) b)
-            |$\rightarrow$| ErasedR R a b
-effective = |$\lambda$| A |$\Rrightarrow$| |$\lambda$| R equiv a b eq |$\rightarrow$|
-  let
-    helper : Quotient A (ErasedR R) -> Type
-    helper x =
-      Quotient_rec
-        (R := ErasedR R)
-        (|$\lambda$| |$\rightarrow$| ErasedR R a c)
-        (p := @$\lambda$@ d cd |$\rightarrow$|
-          let
-            ac->ad : Erased (R a c) |$\rightarrow$| Erased (R a d)
-            ac->ad ac = equiv.isTrans a c d ac cd
-            ad->ac : Erased (R a d) |$\rightarrow$| Erased (R a c)
-            ad->ac ad = equiv.isTrans a d c ad
-                                      (equiv.isSym c d cd)
-          in
-            propExt ac->ad ad->ac)
-        x
-    aa=ab : Eq (Erased (R a a)) (Erased (R a b))
-    aa=ab = Eq_cong helper eq
-  in
-    Eq_cast (p := aa=ab) (f := id) (equiv.isRefl a)
-\end{minted}
-
-Compared to the more general version of the theorem we stated before, here we
-insist that the quotient we consider be based on the erased version of some
-binary relation $\kw{R}$. And instead of proving that the base relation itself
-holds for some $\id{a}$ and $\id{b}$, we can only show that the erased version
-of this relation holds.
-
-In this proof, we can see that all aspects of the sufficient condition are at
-play. It is mainly used to prove that for arbitrary terms $\id{a}$, $\id{b}$ and
-$\id{c}$ of type $\kw{A}$, if it is the case that if
-$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{b}}{\id{c}})}$ is inhabited, then
-$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ $\iff$
-$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$. Intuitively speaking
-this makes a lot of sense,
-$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{b}}{\id{c}})}$ implies that $\id{b}$
-and $\id{c}$ are in the same equivalence class of the quotient. Hence, if we
-know that $\id{a}$ is in the same equivalence class as $\id{b}$, we should
-naturally be able to infer that $\id{a}$ and $\id{c}$ are also in the same
-equivalence class, and vice versa. Propositional extensionality takes us even
-further, by allowing us to prove that
-$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ and
-$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$ are equal since they
-are both mere propositions.
 
 \chapter{Quotient Examples}\label{ch:quot-examples}
 The addition of quotient types to Typer allows us to define certain constructs
@@ -2478,7 +2237,7 @@ The second option is similar to the first:
 
 \begin{align*}
   & \mathbb{Q} \ \coloneqq \Sigma_{\oftype{(x, y)}{\mathbb{Z} \times \mathbb{Z}}} . y \ne 0 / \sim_{\mathbb{Q}} \\
-  & (x_1 , y_1, \_) \sim_{\mathbb{Q}} (x_2 , y_2, \_) \ \coloneqq Eq \ (x_1 * y_2) \ (y_1 * x_2)
+  & (x_1 , y_1, \_) \sim_{\mathbb{Q}} (x_2 , y_2, \_) \ \coloneqq x_1 * y_2 \equiv y_1 * x_2
 \end{align*}
 
 In this definition, the base type of a quotient is a pair of integers, along
@@ -2508,16 +2267,16 @@ operations on rational numbers do not rely on normalisation. However, this
 is not without its downsides as it entails heavier proof obligations, this is a
 topic that we shall discuss subsequently.
 
-Typer has a built-in $\kw{Integer}$ type. Behind the scenes, this is based on
-big integers in OCaml, leveraging the Zarith library. Operations on the typer
-$\kw{Integer}$ type such as addition, multiplication, etc are implemented as
+Typer has a built-in \id{Integer} type. Behind the scenes, this is based on big
+integers in OCaml, leveraging the Zarith library. Operations on the typer
+\id{Integer} type such as addition, multiplication, etc are implemented as
 axioms. At runtime, the responsibilities of these functions are simply delegated
 to their corresponding OCaml functions to carry out the necessary computations.
 So far, we are unable to reason about these operations in Typer as they are
 merely primitives that are implemented in the host language. In the following
 section, we propose the addition of several axioms that serve as witnesses of
-certain properties of the built-in $\kw{Integer}$ type, this will be crucial
-when we start reasoning about operations on rational numbers.
+certain properties of the built-in \id{Integer} type, this will be crucial when
+we start reasoning about operations on rational numbers.
 
 \subsection*{Integer axioms}
 We start by axiomatising the associativity and commutativity of the addition and multiplication operations.
@@ -2641,7 +2400,7 @@ Integer_NegateDistL* : (x : Integer) |$\rightarrow$| (y : Integer)
                               (Integer_* (Integer_- 0 x) y)
 Integer_NegateDistL* x y =
   Integer_- 0 (Integer_* x y)
-  ==< Eq_cong (@$\lambda$@ e |$\rightarrow$| Integer_- e (Integer_* x y))
+  ==< Eq_cong (|$\lambda$| e |$\rightarrow$| Integer_- e (Integer_* x y))
               (Eq_comm (Integer_*Lzero y)) >==
   Integer_- (Integer_* 0 y) (Integer_* x y)
   ==< Eq_comm (Integer_*DistL- 0 x y) >==
@@ -3303,6 +3062,247 @@ n
 equality. By making use of $\beta$-rule of \id{Quotient\_rec} and the
 $\eta$-equivalence of functions, we construct the desired proof by using the
 congruence property of equality.
+
+\chapter{Quotient Effectiveness}\label{ch:quotient-effectiveness}
+
+We show that if it is the case that two projections of two terms into a quotient
+are equal, i.e. \fn{Quotient_in (R := R) a $\equiv$ Quotient (R := R) a'}, then
+two terms \id{a} and \id{a'} must necessarily be related under the relation. In
+other words, we want to show that the reverse of
+\hyperref[quot-intro-eq-rule]{\textsc{Quot-Intro-Eq}} is also valid. We note
+however that this is only valid for relations that are (mere) propositions and
+equivalence relations (i.e.\ reflexive, symmetric, and transitive).
+
+\section{Propositional Extensionality}
+We provide an alternative version of propositional extensionality that is
+slightly weaker. Consequently, the version of quotient effectiveness that we
+prove is also weaker.
+
+\subsection*{Representation of propositions}\label{subsec:mere-propositions}
+
+Intuitively speaking, propositions are a type that contains no intrinsic data, it
+is their mere existence that counts. This is precisely the notion of proof
+irrelevance. In Typer, this notion is represented via erasability. We introduce
+a built-in data type that captures this idea.
+
+\begin{minted}{haskell}
+type Erased (T : Type)
+  | erased (t ::: T)
+\end{minted}
+
+By ensuring that the witness $\id{t}$ of the type $\id{T}$ is erasable, this
+provides us with a guarantee that during elimination, the witness $\id{t}$ can
+only be used in an erasable, i.e.\ proof irrelevant manner.
+
+To convince ourselves that this type does indeed capture the essence of a
+proposition, we provide a proof of
+$\Funapp{\id{isProp}}{(\Funapp{\id{Erased}}{?\id{T}})}$. We first state the
+definition of $\id{isProp}$:
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+isProp : (T : Type) |$\rightarrow$| Type
+isProp T = (x y : T) |$\rightarrow$| Eq x y
+\end{minted}
+
+We now present the proof in the form of Typer code.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+erasedIsProp : (T : Type) @$\Rrightarrow$@ isProp (Erased T)
+erasedIsProp t1 t2 =
+  case t1
+    | erased (_ := e1) @$\Rightarrow$@
+        let
+          p1 = ##DeBruijn 0 : Eq (erased (t := e1)) t1
+        in
+          case t2
+            | erased (_ := e2) @$\Rightarrow$@
+                let
+                  p2 = ##DeBruijn 0 : Eq (erased (t := e2)) t2
+                in
+                  Eq_trans (Eq_comm p1) p2
+\end{minted}
+
+Typer does not offer the direct specialisation of $\kw{case}$ targets in
+branches. In other words, in the first case branch, we do not have a
+definitional equality between $\id{t1}$ and
+$\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$. Instead, an equality proof between
+them is injected into the context, which can be accessed as the variable at
+deBruijn index 0. Now that we have the two equality proofs, in order to
+concatenate them\footnote{By considering equalities as paths, the application of
+the transitivity property of equality is conceptually similar to concatenating
+two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and
+$\Funapp{\id{erased}}{(\earg{\_}{\id{e2}})}$ to be equal. A priori, the two
+terms are not equal as $\id{e1}$ and $\id{e2}$ are completely arbitrary.
+However, Typer ignores erasable terms when checking the convertibility of terms,
+this is a property that was proven to be sound in\cite{barras2008implicit} as
+convertibility is tested on extracted terms. This allows the concatenation to
+succeed and thus concludes the proof.
+
+\subsection*{Implementation details}
+
+Propositional extensionality essentially means that if two logically equivalent
+propositions, i.e.\ each proposition implies the other, then we can say that
+they are equal. And precisely because we are postulating a new equality
+constructor, we have to be very careful that the resulting equality proof is
+indeed proof irrelevant. In other words, we need this equality proof to not have
+any runtime relevance. This is principally because we insist that the transport
+operation be a no-op during runtime. This is the motivation behind our choice to
+use the $\id{Erased}$ type to represent propositions, as it is a guarantee that
+such a type carries no useful runtime information. This implies that a transport
+operation from one $\id{Erased}$ type to another is necessarily simply a no-op.
+
+In a setting with univalence, propositional extensionality is simply a theorem
+that may be proven, more specifically, it may be seen as a degenerate case of univalence\cite{sozeau2013univalence}. This is a result that is
+immediate as an equivalence between logically equivalent propositions is
+trivial. In the setting of Typer, however, propositional extensionality is
+implemented as an axiom with the following type signature:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+propExt : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (Erased A @$\rightarrow$@ Erased B)
+           @$\rightarrow$@ (Erased B @$\rightarrow$@ Erased A) @$\rightarrow$@ Erased A @$\equiv$@ Erased B
+\end{minted}
+
+The above is a weaker notion of propositional extensionality compared to what is
+proposed in Cubical Agda, which has the following type signature:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{Agda}
+propExt : {A B : Type} @$\rightarrow$@ isProp A @$\rightarrow$@ isProp B @$\rightarrow$@ (A @$\rightarrow$@ B)
+          @$\rightarrow$@ (B @$\rightarrow$@ A) @$\rightarrow$@ A @$\equiv$@ B
+\end{minted}
+
+However, this produces an equality proof that is not proof irrelevant, as
+$\id{A}$ and $\id{B}$ are not necessarily the \emph{same} type. We illustrate
+the above with a simple example. We define two instances of the unit type which
+are trivially \emph{logically equivalent}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{Agda}
+data Unit1 : Type where unit1 : Unit1
+
+data Unit2 : Type where
+  unit2 : Unit2
+\end{minted}
+
+$\Funapp{\kw{isProp}}{\id{Unit1}}$ and $\Funapp{\kw{isProp}}{\id{Unit2}}$ are
+trivially true, as is the case for all $\mathbb{1}$-types. $\id{Unit1}
+\rightarrow \id{Unit2}$ and $\id{Unit2} \rightarrow \id{Unit1}$ are also
+inhabited. Propositional extensionality thus gives us a proof of $\id{Unit1}
+\equiv \id{Unit2}$. This implies that we should be able to use said proof to
+transport $\id{unit1}$ to $\id{unit2}$, but since the two terms do not have the
+same runtime representation, this simply cannot be a no-op. This is in stark
+contrast to the version of propositional extensional that we are proposing in
+Typer that only accepts types that are boxed in the $\id{Erased}$ type. We would
+have no qualms about having a proof of equality between
+$\Funapp{\id{Erased}}{Unit1}$ and $\Funapp{\id{Erased}}{Unit2}$ as terms of
+these two types would essentially have the same runtime representation. It is
+also for this precise reason that our version of propositional extensionality is
+weaker, as we are constrained to construct an equality proof that is not
+computationally relevant.
+
+Another worthy comparison to make is with \Lean{}, which has a $\kw{Prop}$ sort.
+Terms of this sort are not autorised to be used in a proof relevant manner. Its
+version of propositional extensionality has the following form:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{lean}
+axiom propext {a b : Prop} : (a @$\leftrightarrow$@ b) @$\rightarrow$@ a = b
+\end{minted}
+
+This is similar to what we have in Typer, except that proof irrelevance is
+enforced differently.
+
+\section{Equivalence relation}
+
+First, we state what we mean when we say \emph{relation} to set the stage for
+the subsequent discussion. For our purposes, we consider binary relations, which
+are type formers that take two arguments of some type $\kw{A}$. Assuming that we
+call the relation $\kw{R}$ and its two arguments $\id{a}$ and $\id{a}'$
+respectively, inhabitants of the type $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ are
+witnesses of this binary relation. The type signature of a binary relation has
+the below form:
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+R : (A : Type) |$\Rrightarrow$| (a : A) |$\rightarrow$| (a' : A) |$\rightarrow$| Type
+\end{minted}
+
+For a quotient to be effective, its underlying relation has to be an equivalence relation, we shall use this property in the proof in the subsequent section. Recall that an equivalence relation implies that the relation is reflexive, symmetric and transitive. For it to be reflexive, it needs to be the case that given an arbitrary $\oftype{\id{a}}{\kw{A}}$, $\Funapp{\kw{R}}{\id{a}}{\id{a}}$ must be trivially inhabited. The symmetry of the relation implies that if we are given an arbitrary witness of $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$, we need to be able to transform that into an inhabitant of $\Funapp{\kw{R}}{\id{a}'}{\id{a}}$. The relation is transitive if we are able to transform witnesses of $\Funapp{\kw{R}}{\id{a}}{\id{b}}$ and $\Funapp{\kw{R}}{\id{b}}{\id{c}}$ into witnesses of $\Funapp{\kw{R}}{\id{a}}{\id{c}}$\footnote{The equality type fulfills these criteria and is an equivalence relation.}.
+
+In the built-in library, we define the following type as a witness that a certain relation is indeed an equivalence relation.
+
+\begin{minted}{haskell}
+type isEquivRel (A : Type) (R : A -> A -> Type) : Type
+  | equivRel (isRefl : (a : A) -> R a a)
+             (isSym : (a : A) -> (b : A) -> R a b -> R b a)
+             (isTrans : (a : A) -> (b : A) -> (c : A)
+                         -> R a b -> R b c -> R a c)
+\end{minted}
+
+\section{Proof}
+Given two arbitrary elements $\id{a}$ and $\id{a}'$ of a base type $\kw{A}$, a
+quotient is said to be effective if given a proof that the surjection of $\id{a}$
+and $\id{a}'$ into the quotient are equal, then it must be the case that
+$\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ is true, i.e.\ we are able to find an
+inhabitant of it. A sufficient condition for a quotient to be effective is that
+the underlying relation must be both a proposition and an equivalence relation.
+
+For an arbitrary binary relation $\kw{R}$, we can define the following:
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+ErasedR : (A : Type) |$\Rrightarrow$| (A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| A |$\rightarrow$| A |$\rightarrow$| Type
+ErasedR R a b = Erased (R a b)
+\end{minted}
+
+Now, we state the proof of the effectiveness of quotients in the form of Typer code
+
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+effective : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type)
+            |$\rightarrow$| isEquivRel A (ErasedR R) |$\rightarrow$| (a : A) |$\rightarrow$| (b : A)
+            |$\rightarrow$| Eq (Quotient_in (R := ErasedR R) a)
+                  (Quotient_in (R := ErasedR R) b)
+            |$\rightarrow$| ErasedR R a b
+effective = |$\lambda$| A |$\Rrightarrow$| |$\lambda$| R equiv a b eq |$\rightarrow$|
+  let
+    helper : Quotient A (ErasedR R) -> Type
+    helper x =
+      Quotient_rec
+        (R := ErasedR R)
+        (|$\lambda$| |$\rightarrow$| ErasedR R a c)
+        (p := |$\lambda$| c d cd |$\rightarrow$|
+          let
+            ac->ad : Erased (R a c) |$\rightarrow$| Erased (R a d)
+            ac->ad ac = equiv.isTrans a c d ac cd
+            ad->ac : Erased (R a d) |$\rightarrow$| Erased (R a c)
+            ad->ac ad = equiv.isTrans a d c ad
+                                      (equiv.isSym c d cd)
+          in
+            propExt ac->ad ad->ac)
+        x
+    aa=ab : Eq (Erased (R a a)) (Erased (R a b))
+    aa=ab = Eq_cong helper eq
+  in
+    Eq_cast (p := aa=ab) (f := id) (equiv.isRefl a)
+\end{minted}
+
+Compared to the more general version of the theorem we stated before, here we
+insist that the quotient we consider be based on the erased version of some
+binary relation $\kw{R}$. And instead of proving that the base relation itself
+holds for some $\id{a}$ and $\id{b}$, we can only show that the erased version
+of this relation holds.
+
+In this proof, we can see that all aspects of the sufficient condition are at
+play. It is mainly used to prove that for arbitrary terms $\id{a}$, $\id{b}$ and
+$\id{c}$ of type $\kw{A}$, if it is the case that if
+$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{b}}{\id{c}})}$ is inhabited, then
+$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ $\iff$
+$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$. Intuitively speaking
+this makes a lot of sense,
+$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{b}}{\id{c}})}$ implies that $\id{b}$
+and $\id{c}$ are in the same equivalence class of the quotient. Hence, if we
+know that $\id{a}$ is in the same equivalence class as $\id{b}$, we should
+naturally be able to infer that $\id{a}$ and $\id{c}$ are also in the same
+equivalence class, and vice versa. Propositional extensionality takes us even
+further, by allowing us to prove that
+$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ and
+$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$ are equal since they
+are both mere propositions.
 
 \chapter{Relationship to Category Theory}
 There is an intricate relationship between logic, programming (type theory), and
