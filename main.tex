@@ -147,6 +147,7 @@
 \usepackage{cite}
 
 \usepackage{xspace}
+\usepackage{syntax} %% BNF syntax
 
 %% Packages - END.
 
@@ -881,12 +882,6 @@ $\frac{0}{-1}$, $\frac{0}{2}$, $\frac{0}{3}$ etc. However, the naive encoding of
 the rationals as pairs of integers does nothing to ensure that equal rationals
 are indeed treated equally. This problem is remedied by quotienting pairs of
 integers by an appropriate equivalence relation.
-
-%% SM: I think the Miranda article also fits here.
-%% That article might also be a good way to motivate your work: quotients
-%% were introduced early on in FP, but they didn't catch on, and you can
-%% argue that it's maybe because they couldn't manipulate proofs, so now
-%% the time is ripe for the second coming.
 
 There also exists a class of quotients that can be defined without the addition
 of a new type former, i.e.\ quotients that are characterised by a normalisation
@@ -1936,58 +1931,97 @@ We don't have primitives such as $hcomp$, what does this imply? Is there a
 certain class of proofs we are unable to construct? Or do we just suffer from
 some amount of inconvenience?
 
+From what I understand, this allows us to compose higher dimensional cubes, i.e.
+we don't really need or care about this here I believe. So either don't mention it,
+or briefly touch on it at the very end.
 
 \chapter{Quotient Type}\label{ch:quot}
 
-%% SM: as before, you need text here.
+%% TODO: change this to section when I move this
+In this chapter, we introduce our implementation of quotient types in Typer. We
+first describe the syntax of the new constructs followed by their typing and
+computation rules.
+
+\section{Syntax}
+
+We extend the Typer's syntax of terms with our new constructs:
+
+\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
+\setlength{\grammarindent}{4em} % increase separation between LHS/RHS
+
+%% Make the angle brackets go away
+\renewcommand{\syntleft}{}
+\renewcommand{\syntright}{}
+\begin{grammar}
+<\id{T}> ::= \ldots
+\alt{} \fn{Quotient T T}
+\alt{} \fn{Quotient_in T}
+\alt{} \fn{Quotient_eq T}
+\alt{} \fn{Quotient_elim T T T}
+\end{grammar}
+
+We added a new \id{Quotient} type former, we can construct a quotient type using
+the \fn{Quotient A R} syntax. Here, \id{A} is the base type of the quotient and
+\id{R} is a binary relation defined on \id{A}. In order to project a term \id{a}
+into the quotient \fn{Quotient A R}, we use the syntax \fn{Quotient\_in a}. The
+projection requires us to specify what the underlying relation of the quotient
+should be. Given that we have some evidence \id{r} that two terms \id{a$_1$} and
+\id{a$_2$} are related by some quotient, we can construct an equality proof that
+says that their projections into a quotient based on the aforementioned relation
+are equal using the \fn{Quotient\_eq r} syntax. Finally, the elimination of a
+term \id{q} of a quotient type is done using the syntax \fn{Quotient\_elim f h
+  q} where \id{f} is a function out of the base type and \id{h} is proof that
+\id{f} is compatible with the underlying relation of the quotient.
+
 
 \section{Typing rules}
 %% SM: First present the syntax of the new elements (explaining what
 %% each thing is supposed to mean), then present their typing rules.
 %% The same holds for the previous chapter, actually.
-We present the $\id{Quotient}$ primitives along with their typing rules.
+Now, we present the typing rules of the primitives introduced above.
 
 %% SM: Can we remove the implicit arguments to make the presentation lighter?
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{A}}{\kw{Type}}}
    \hypo{\oftype{\ctx}{\id{R}}{\id{A} \rightarrow \id{A} \rightarrow \kw{Type}}}
-   \infer2[\textsc{Quot-Formation}]{\oftype{\ctx}{\Funapp{\kw{Quotient}}{\id{A}}{\id{R}}}
+   \infer2[\textsc{Quot-Formation}]{\oftype{\ctx}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}
                                              {\kw{Type}}}
 \end{prooftree*}
 
-We introduce the $\kw{Quotient}$ type former, which takes a base type $\id{A}$
+The $\kw{Quotient}$ type former is a function which takes a base type $\id{A}$
 along with a relation $\id{R}$ as arguments. At this stage, just like
 in\cite{hofmann1995simple}, we do not require the relation to be an equivalence
-relation, though to define a meaningful quotient type, the above
-requirement is often necessary. We also do not enforce that the relation be a
-mere proposition, however as we will see in \autoref{ch:quotient-effectiveness},
-%% SM: Define what you mean by "effective" (and put it in \emph).
-this is required for the quotient to be effective.
+relation, though to define a meaningful quotient type, the above requirement is
+often necessary. We also do not enforce that the relation be a mere proposition,
+however as we will see in \autoref{ch:quotient-effectiveness}, this is required
+for the quotient to be \emph{effective}. We say that a quotient is effective if
+it is the case that when the projections of two terms into a quotient are equal,
+then the two terms are necessarily also related by the underlying relation of
+the said quotient.
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{a}}{\id{A}}}
    \hypo{\oftype{\ctx}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}
                       {\kw{Type}}}
-   \infer2[\textsc{Quot-Intro-In}]{\oftype{\ctx}{\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}}}
+   \infer2[\textsc{Quot-Intro-In}]{\oftype{\ctx}{\Funapp{\id{Quotient\_in}}{\id{a}}}
+   %% \infer2[\textsc{Quot-Intro-In}]{\oftype{\ctx}{\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}}}
                                          {\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}}
 \end{prooftree*}
 
-$\id{Quotient\_in}$ is none other than a term former that acts as the canonical
-surjection of a term of type $\id{A}$ into a quotient under some relation.
+$\id{Quotient\_in}$ takes a term \id{a} of type \id{A} and projects it into a
+quotient of type \fn{Quotient A R} defined on some relation \id{R}.
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{a}_1}{\id{A}}}
    \hypo{\oftype{\ctx}{\id{a}_2}{\id{A}}}
    \hypo{\oftype{\ctx}{\id{r}}{\Funapp{\id{R}}{\id{a}_1}}{\id{a}_2}}
    \infer3[\textsc{Quot-Intro-Eq}]{
-\oftype{\ctx}{\Funapp{\id{Quotient\_eq}}{\id{A}}{\id{R}}
-                                        {\id{a}_1}{\id{a}_2}{\id{r}}}
-             {\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}_1} \equiv \Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}_2}}}
-
-\end{prooftree*}
+\oftype{\ctx}{\Funapp{\id{Quotient\_eq}}{\id{r}}}
+             {\Funapp{\id{Quotient\_in}}{\id{a}_1} \equiv \Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}_2}}}
+\end{prooftree*}\label{quot-intro-eq-rule}
 
 By definition, given that two terms $\id{a}_1$ and $\id{a}_2$ of type $\id{A}$
-are related by some relation, then the surjections of these two terms into a
+are related by some relation, then the projections of these two terms into a
 quotient under the aforementioned relation should be equal. $\id{Quotient\_eq}$
 is a witness of the above property.
 
@@ -1995,39 +2029,43 @@ is a witness of the above property.
    \hypo{\oftype{\ctx}{\id{P}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}} \rightarrow \kw{Type}}}
    \hypo{\oftype{\ctx}{\id{q}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}}
    \infer[no rule]2{\oftype{\ctx}{\id{f}}
-                           {(\oftype{\id{a}}{\id{A}}) \rightarrow \Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}})}}}
+                           {(\oftype{\id{a}}{\id{A}}) \rightarrow \Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{a}})}}}
    \infer[no rule]1{\oftype{\ctx}{\id{h}}{(\oftype{\id{a}_1 \ \id{a}_2}{\id{A}})
                                           \rightarrow \Funapp{\id{R}}{\id{a}_1}{\id{a}_2}}
                                           \rightarrow \Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}_1})}
                                                                        {(\Funapp{\id{f}}{\id{a}_2})}}
-   \infer1[\textsc{Quot-Elim}]{\oftype{\ctx}{\Funapp{\id{Quotient\_elim}}{\id{A}}{\id{R}}{\id{f}}{\id{h}}{\id{q}}}
+   \infer1[\textsc{Quot-Elim}]{\oftype{\ctx}{\Funapp{\id{Quotient\_elim}}{\id{f}}{\id{h}}{\id{q}}}
                                         {\Funapp{\id{P}}{\id{q}}}}
 \end{prooftree*}
 
 %% SM: Give an example of dependent elimination on a quotient.
-We would like to enable the dependent elimination of quotients, in other words
+We would like to enable the dependent elimination of quotients, in other words,
 we would like to be able to eliminate a term of some quotient type
 $\Funapp{\id{Quotient}}{\id{A}}{\id{R}}$ to some type family $\id{P}$ that is
-indexed by the quotient type itself. To that end, we require some function
-$\id{f}$ that takes some $\id{a}$ of the base type $\id{A}$ to
+indexed by the quotient type itself. For instance, we could define the type of
+integers as the quotient of pairs of natural numbers, which we denote by \fn{Z =
+  Quotient (Nat $\times$ Nat) R} for some appropriate \id{R}. We might want to
+define a function that determines whether a certain integer is positive,
+i.e.\ of type \fn{(z:Z) $\rightarrow$ Dec (isPos z)}. This is known as dependent
+elimination as the term that we are trying to eliminate, \id{z}, is itself
+present in the return type. To that end, we require some function $\id{f}$ that
+takes some $\id{a}$ of the base type $\id{A}$ to
 $\Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}})}$. In a
 way, this implies that the function $\id{f}$ has the chance of `looking inside'
 the quotient, and thus we also require a proof that such a function $\id{f}$
 behaves consistently when applied to terms that are related by the underlying
 relation of the quotient. The usage of heterogeneous equality here is necessary
-as $\Funapp{\id{f}}{\id{a}_1}$ and $\Funapp{\id{f}}{\id{a}_2}$ are not of the
-same type. We note as well that our dependent elimination of quotients is not
-limited to motives that are \type{Props}, as opposed to when quotient types are
-added to a theory interpreted in a setoid model as proposed by
-Li\cite{li2015quotient}.
+as $\Funapp{\id{f}}{\id{a}_1}$ and $\Funapp{\id{f}}{\id{a}_2}$ are not
+necessarily of the \textbf{same} type. We note as well that our dependent
+elimination of quotients is not limited to motives that live in the universe of
+\type{Prop}, as opposed to when quotient types are added to a theory interpreted
+in a setoid model as proposed by Li\cite{li2015quotient}.
 
 \section{Reduction rules}
 We present the computation rule for the elimination of quotients.
 
-%% SM: Usually this would be shown on a single line with no hypothesis.
 \begin{prooftree*}
-   \hypo{\id{q} \rightsquigarrow \Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}}}
-   \infer1[]{\Funapp{\id{Quotient\_elim}}{\id{A}}{\id{R}}{\id{f}}{\id{h}}{\id{q}}
+   \infer0{\Funapp{\id{Quotient\_elim}}{\id{f}}{\id{h}}{(\Funapp{\id{Quotient\_in}}{\id{a}})}
              \rightsquigarrow \Funapp{\id{f}}{\id{a}}}
 \end{prooftree*}
 
@@ -2038,50 +2076,56 @@ proof that the elimination respects the quotient is unused during computation
 and is merely utilised during type-checking justifies our subsequent choice of
 making the proof an erasable argument of $\id{Quotient\_elim}$.
 
-%% SM: The generalization of η to eliminators like Quotient_elim is
-%% sufficiently different from the usual η that you need to spell it out.
-%% SM: IIRC there are even different notions of η for such eliminators.
-It is also interesting to note that we are not able to derive a meaningful
-$\eta$-rule. If we wish to apply $\id{Quotient\_in}$ after applying
-$\id{Quotient\_elim}$ such that the composition amounts to the identity
-function, this would imply that $\id{Quotient\_elim}$ would need to be called with
-a function $\id{f}$ such that \fn{$\forall$ a. R a (f a)} is valid.
-Unfortunately, in the general case, this would not respect the underlying
-relation of the quotient.
+It is also interesting to note that we are not able to derive a useful
+$\eta$-rule for quotient types. One instance of it that we could possibly define
+is the following:
+
+\begin{align*}
+  & \Funapp{\id{Quotient\_in}}{(\Funapp{\fn{Quotient\_elim}}{\id{f}}{\id{h}}{\id{q}})} \rightsquigarrow{} \id{q} \\
+\end{align*}
+
+This requires the condition that \id{f} be some function of type \fn{A
+  $\rightarrow$ A} such that $\forall \id{a} \ . \ \fn{R a (f a)}$ is valid. For instance,
+such a condition would be fulfilled if \id{f} was a normalisation function on
+\id{A}. However, the above requirement is not easily enforced, not to mention
+that the $\eta$-rule itself is not necessarily that useful to have.
 
 \section{Implementation}
 
 In this section, we describe how the rules described above were added to Typer.
-Subsequently, we describe the library that we provide to facilitate the usage of
-quotient types in the development of Typer programs and proofs.
+Subsequently, we describe some syntactic sugar that facilitates the usage of
+quotient types.
 
-\subsection{Axioms}
+\subsection{Primitives}
 
-Quotient types are introduced in Typer in an axiomatic manner, i.e.\ the existence
-of the type former, terms formers and eliminators are simply postulated.
-However, the appropriate computational behaviour of the above constructs are
-also added to the system whenever necessary such that we do not find ourselves
-with stuck terms that adversely affect the computational properties of our
-system.
+The quotient constructs presented in the previous sections are implemented in
+Typer as primitives. In this subsection, we present their types and justify our
+choices where appropriate. For brevity, we do not explicitly indicate that the
+below functions are universe polymorphic.
 
 \subsubsection*{Formation}
-The existence of the $\id{Quotient}$ type is postulated as follows:
+The $\id{Quotient}$ type former has the following type:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Quotient : (A : Type) |$\rightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| Type
 \end{minted}
 
 \subsubsection*{Introduction}
-Two axioms are added, corresponding to the two introduction rules of $\id{Quotient}$.
+Two primitives are added, corresponding to the two introduction rules of $\id{Quotient}$.
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
 Quotient_in : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\Rrightarrow$| A |$\rightarrow$| Quotient A R
 Quotient_eq : (A : Type) |$\Rrightarrow$| (R A |$\rightarrow$| A |$\rightarrow$| Type)  |$\Rrightarrow$| (a a' : A) |$\Rrightarrow$| R a a'
-              |$\rightarrow$| Eq (Quotient_in (R := R) a) (Quotient_in (R := R) a')
+              |$\rightarrow$| Quotient_in (R := R) a |$\equiv$| Quotient_in (R := R) a'
 \end{minted}
 
-As a constructor of equalities, $\id{Quotient\_eq}$ does not take part in
-computations. As such, no special reduction rules needed to be added for it.
+The \id{Quotient\_in} primitive may be seen as a box that stores an expression
+of the base type \id{A}. Such a value may only be accessed by a subsequent usage
+of the eliminator, which we describe shortly. Arguments \id{A} and \id{R} are
+made implicit as they can often be inferred from the context.
+
+We postulated \id{Quotient\_eq} as an axiom to witness the equality between the
+projections of two related terms.
 
 \subsubsection*{Elimination}
 
@@ -2096,7 +2140,9 @@ As mentioned in the previous section, the appropriate $\beta$-reduction rule is
 added for the eliminator. When $\id{Quotient\_elim}$ is passed a term of the
 form $\Funapp{\id{Quotient\_in}}{\id{a}}$, the entire $\id{Quotient\_elim}$ term
 reduces to just $\Funapp{\id{f}}{\id{a}}$, ignoring the coherence proof that is
-passed to the function as it acts simply as a form of static information.
+passed to the function as it acts simply as a form of static information. Since
+the proof itself is computationally irrelevant, it is made to be an erasable
+argument.
 
 \subsection{Syntactic sugar}
 
@@ -2171,8 +2217,13 @@ be user-unfriendly.
 
 \chapter{Quotient Effectiveness}\label{ch:quotient-effectiveness}
 
-This only works for relations that are propositions and equivalence relations
-(i.e.\ reflexive, symmetric and transitive).
+We show that if it is the case that two projections of two terms into a quotient
+are equal, i.e. \fn{Quotient_in (R := R) a $\equiv$ Quotient (R := R) a'}, then
+two terms \id{a} and \id{a'} must necessarily be related under the relation. In
+other words, we want to show that the reverse of
+\hyperref[quot-intro-eq-rule]{\textsc{Quot-Intro-Eq}} is also valid. We note
+however that this is only valid for relations that are (mere) propositions and
+equivalence relations (i.e.\ reflexive, symmetric, and transitive).
 
 \section{Propositional Extensionality}
 We provide an alternative version of propositional extensionality that is
@@ -2359,14 +2410,14 @@ effective : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$|
             |$\rightarrow$| Eq (Quotient_in (R := ErasedR R) a)
                   (Quotient_in (R := ErasedR R) b)
             |$\rightarrow$| ErasedR R a b
-effective = lambda A |$\Rrightarrow$| lambda R equiv a b eq |$\rightarrow$|
+effective = |$\lambda$| A |$\Rrightarrow$| |$\lambda$| R equiv a b eq |$\rightarrow$|
   let
     helper : Quotient A (ErasedR R) -> Type
     helper x =
       Quotient_rec
         (R := ErasedR R)
-        (lambda c |$\rightarrow$| ErasedR R a c)
-        (p := lambda c d cd |$\rightarrow$|
+        (|$\lambda$| |$\rightarrow$| ErasedR R a c)
+        (p := @$\lambda$@ d cd |$\rightarrow$|
           let
             ac->ad : Erased (R a c) |$\rightarrow$| Erased (R a d)
             ac->ad ac = equiv.isTrans a c d ac cd
@@ -2564,10 +2615,10 @@ Integer_*DistR+ : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z
 Integer_*DistR+ x y z =
   Eq_trans (Integer_*-comm x (Integer_+ y z))
            (Eq_trans (Integer_*DistL+ y z x)
-                     (Eq_trans (Eq_cong (lambda e |$\rightarrow$|
+                     (Eq_trans (Eq_cong (@$\lambda$@ e |$\rightarrow$|
                                            Integer_+ e (Integer_* z x))
                                         (Integer_*-comm y x))
-                               (Eq_cong (lambda e |$\rightarrow$|
+                               (Eq_cong (@$\lambda$@ e |$\rightarrow$|
                                            Integer_+ (Integer_* x y) e)
                                         (Integer_*-comm z x))))
 \end{minted}
@@ -2590,7 +2641,7 @@ Integer_NegateDistL* : (x : Integer) |$\rightarrow$| (y : Integer)
                               (Integer_* (Integer_- 0 x) y)
 Integer_NegateDistL* x y =
   Integer_- 0 (Integer_* x y)
-  ==< Eq_cong (lambda e |$\rightarrow$| Integer_- e (Integer_* x y))
+  ==< Eq_cong (@$\lambda$@ e |$\rightarrow$| Integer_- e (Integer_* x y))
               (Eq_comm (Integer_*Lzero y)) >==
   Integer_- (Integer_* 0 y) (Integer_* x y)
   ==< Eq_comm (Integer_*DistL- 0 x y) >==
@@ -2647,11 +2698,11 @@ negate_compat a b r =
     (-1 * a.z1) * b.z2
     ==< Eq_comm (Integer_*-assoc -1 a.z1 b.z2) >==
     -1 * (a.z1 * b.z2)
-    ==< Eq_cong (lambda e @$\rightarrow$@ -1 * e) r >==
+    ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ -1 * e) r >==
     -1 * (a.z2 * b.z1)
     ==< Integer_*-assoc -1 a.z2 b.z1 >==
     (-1 * a.z2) * b.z1
-    ==< Eq_cong (lambda e @$\rightarrow$@ e * b.z1)
+    ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ e * b.z1)
                 (Integer_*-comm -1 a.z2) >==
     (a.z2 * -1) * b.z1
     ==< Eq_comm (Integer_*-assoc a.z2 -1 b.z1) >==
@@ -2696,12 +2747,12 @@ relation.
   let
     compat =
       (a.z1 * b.z2 + b.z1 * a.z2) * (b.z2 * a.z2)
-        ==< Eq_cong (lambda e @$\rightarrow$@ (a.z1 * b.z2 + b.z1 * a.z2) * e)
+        ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ (a.z1 * b.z2 + b.z1 * a.z2) * e)
                     (Integer_*-comm b.z2 a.z2) >==
       (a.z1 * b.z2 + b.z1 * a.z2) * (a.z2 * b.z2)
         ==< Integer_*-comm (a.z1 * b.z2 + b.z1 * a.z2) (a.z2 * b.z2) >==
       a.z2 * b.z2 * (a.z1 * b.z2 + b.z1 * a.z2)
-        ==< Eq_cong (lambda e @$\rightarrow$@ a.z2 * b.z2 * e)
+        ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ a.z2 * b.z2 * e)
                     (Integer_+-comm (a.z1 * b.z2) (b.z1 * a.z2)) >==
       a.z2 * b.z2 * (b.z1 * a.z2 + a.z1 * b.z2) @$\qed$@
   in
@@ -2748,7 +2799,7 @@ rationals as follows:
 Rational_+ : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational
 Rational_+ a b =
   Quotient_rec2 (R := @$\equalq$@) (S := @$\equalq$@)
-                Rational_isSet (lambda x y @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))
+                Rational_isSet (@$\lambda$@ x y @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))
                 @$\mathbb{Q}$+\_feql@ @$\mathbb{Q}$+\_feqr@ a b
 
 Rational_- : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational
@@ -2771,12 +2822,12 @@ identity using a trivial representative of its equivalence class.
            (a.z2 * a.z2 * 0)
     h =
       (-1 * a.z1 * a.z2 + a.z1 * a.z2) * 1
-      ==< Eq_cong (lambda e @$\rightarrow$@ (e * a.z2 + a.z1 * a.z2) * 1)
+      ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ (e * a.z2 + a.z1 * a.z2) * 1)
                   (Integer_Negate@$\equiv$@ a.z1) >==
       ((0 - a.z1) * a.z2 + a.z1 * a.z2) * 1
       ==< Integer_*Rid ((0 - a.z1) * a.z2 + a.z1 * a.z2) >==
       (0 - a.z1) * a.z2 + a.z1 * a.z2
-      ==< Eq_cong (lambda e @$\rightarrow$@ e + a.z1 * a.z2)
+      ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ e + a.z1 * a.z2)
                   (Eq_comm (Integer_NegateDistL* a.z1 a.z2)) >==
       (0 - (a.z1 * a.z2)) + a.z1 * a.z2
       ==< Integer_+-comm (0 - (a.z1 * a.z2)) (a.z1 * a.z2) >==
@@ -2795,10 +2846,10 @@ Rational_+Linv : (q : Rational) @$\rightarrow$@ Eq (Rational_+ (Rational_negate 
                                       Rational_0
 Rational_+Linv q =
   Quotient_elimProp (R := @$\equalq$@)
-                    (P := lambda q @$\rightarrow$@
+                    (P := @$\lambda$@ q @$\rightarrow$@
                             Eq (Rational_+ (Rational_negate q) q)
                                Rational_0)
-                    (lambda q @$\rightarrow$@
+                    (@$\lambda$@ q @$\rightarrow$@
                         Rational_isSet (Rational_+ (Rational_negate q) q)
                                        Rational_0)
                     @$\zpairplus$@-Linv q
@@ -2897,7 +2948,7 @@ of $\fn{consPerm}$ that we previously defined.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{haskell}
 Multiset_cons : ?A @$\rightarrow$@ Multiset ?A @$\rightarrow$@ Multiset ?A
-Multiset_cons = lambda _ A @$\Rrightarrow$@ lambda a s @$\rightarrow$@
+Multiset_cons = @$\lambda$@ _ A @$\Rrightarrow$@ @$\lambda$@ a s @$\rightarrow$@
   qcase (s : List A / ListPerm A)
     | Quotient_in l @$\Rightarrow$@ Quotient_in (R := ListPerm A) (cons a l)
     | Quotient_eq l l' r @$\Rightarrow$@ Quotient_eq (R := ListPerm A)
@@ -2932,7 +2983,7 @@ type Any (A : Type) (P : ((a : A) -> Type)) (l : List A) : Type
           (eq ::: Eq l (cons x xs))
 
 isMember : (A : Type) => A -> List A -> Type
-isMember = lambda A => lambda x l -> Any A (lambda x' -> Eq x x') l
+isMember = @$\lambda$@ A => @$\lambda$@ x l -> Any A (@$\lambda$@ x' -> Eq x x') l
 \end{minted}
 
 %% The omitted proofs are uninteresting so far as quotient types are concerned
@@ -3237,8 +3288,8 @@ funext A B f1 f2 h =
 
     extfun_app : (f : Quotient fn_type equiv_rel) @$\rightarrow$@ fn_type
     extfun_app f a = Quotient_rec (R := equiv_rel)
-                                  (f := lambda f @$\rightarrow$@ f a)
-                                  (p := lambda f1 f2 r @$\rightarrow$@ r a) f
+                                  (f := @$\lambda$@ f @$\rightarrow$@ f a)
+                                  (p := @$\lambda$@ f1 f2 r @$\rightarrow$@ r a) f
 
     sound : Quotient_in (R := equiv_rel) f1 @$\equiv$@ Quotient_in (R := equiv_rel) f2
     sound = Quotient_eq (R := equiv_rel) (a := f1) (a' := f2) h
@@ -3624,7 +3675,7 @@ We define the above type, intending to return the propositional truncation of it
 Quotient_in_surjective : (A : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
                          @$\Rrightarrow$@ (x : Quotient A R)
                          @$\rightarrow$@ PropTrunc (SurjectiveQuotientProof A R x)
-Quotient_in_surjective = lambda A R @$\Rrightarrow$@
+Quotient_in_surjective = @$\lambda$@ A R @$\Rrightarrow$@
   elimProp (@$\lambda$@ x @$\rightarrow$@ squash (P := SurjectiveQuotientProof A R x))
            (@$\lambda$@ a @$\rightarrow$@ inPropTrunc (surjectiveQuotientProof a Eq_refl))
 \end{minted}
@@ -4553,9 +4604,9 @@ nevertheless not completely equal, as we shall see by examining the Elexp
 $\fn{Rational\_+}$:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
-(lambda (a) @$\rightarrow$@ (lambda (b) @$\rightarrow$@
-  (Quotient_rec2 (lambda (x) @$\rightarrow$@
-                     (lambda (y) @$\rightarrow$@
+(@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
+  (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@
+                     (@$\lambda$@ (y) @$\rightarrow$@
                          (@$\zpairplus$@ x y))) a b)))
 \end{minted}
 
@@ -4607,8 +4658,8 @@ it on the subsequent arguments.
 
 \begin{figure}[H]
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
-(lambda (xs) ->
- (lambda (ys) ->
+(@$\lambda$@ (xs) ->
+ (@$\lambda$@ (ys) ->
   (Quotient_rec2 (List_append) xs ys)))
 \end{minted}
 \caption{Elexp of \id{Multiset\_append}}
@@ -4616,10 +4667,10 @@ it on the subsequent arguments.
 
 \begin{figure}[H]
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
-(lambda (disc) ->
- (lambda (a) ->
-  (lambda (s) ->
-   (Quotient_rec (lambda (l) ->
+(@$\lambda$@ (disc) ->
+ (@$\lambda$@ (a) ->
+  (@$\lambda$@ (s) ->
+   (Quotient_rec (@$\lambda$@ (l) ->
                   (Dec2Bool (isMemberDec disc a l))) s))))
 \end{minted}
 \caption{Elexp of \id{Multiset\_mem}}
