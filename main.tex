@@ -273,7 +273,7 @@
 \NewDocumentCommand{\refl}{mg}{\IfValueTF{#2}{\kw{refl}_{#1} (#2)}{\kw{refl} (#1)}}
 
 \NewDocumentCommand{\zpair}{}{\mathbb{Z}{\times}\mathbb{Z}{\ne}0}
-\NewDocumentCommand{\equalq}{}{equal\mathbb{Q}}
+\NewDocumentCommand{\equalq}{}{equalQ}
 \NewDocumentCommand{\zpairplus}{}{\mathbb{Z}{\times}\mathbb{Z}+}
 
 \NewDocumentCommand{\oftype}{mmg}{\IfValueTF{#3}{#1\vdash#2:#3}{#1:#2}}
@@ -586,7 +586,7 @@ certain terms to be marked as erasable, a point that we shall come back to
 later. Consider a function that accesses the i$^{th}$ element of an array with the
 below type:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 arrayGet : (a : Array A) @$\rightarrow$@ (i : Nat) @$\rightarrow$@ i < length a @$\rightarrow$@ A
 \end{minted}
 
@@ -636,7 +636,7 @@ equality between terms of the same type. This gives us a type former that takes
 a type as input, along with two terms of that type. In Typer, equality between
 terms is represented by the $\kw{Eq}$ type former.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\rightarrow$@ Type
 \end{minted}
 
@@ -655,7 +655,7 @@ equal, and its terms are proofs of this proposition.
 We could then construct the type that stipulates that the addition of natural
 numbers is commutative by using the $\kw{Eq}$ type former.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Nat+_comm : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m
 \end{minted}
 
@@ -671,7 +671,7 @@ numbers in \autoref{app:other-proofs}.
 To see how such a proof may be utilised, suppose we have a type of
 length-indexed vectors:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Vector : (A : Type) @$\rightarrow$@ Nat @$\rightarrow$@ Type
 \end{minted}
 
@@ -694,7 +694,7 @@ length. Hence, the zipping of a \fn{Vector A (m + n)} and a \fn{Vector A (n +
   m)} would not type-check. Below is a typical definition of the addition
 operation on natural numbers:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 _+_ : Nat @$\rightarrow$@ Nat @$\rightarrow$@ Nat
 _+_ x y = case x
   | zero @$\Rightarrow$@ y
@@ -731,7 +731,7 @@ Now that we have seen how equality proofs may be used in programs, the next
 question that ought to be answered is how are such terms introduced. The one and
 only constructor of the $\kw{Eq}$ type is the following:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Eq_refl : (x : ?A) @$\Rrightarrow$@ x @$\equiv$@ x;
 \end{minted}
 
@@ -752,7 +752,7 @@ things to truly be equal, they need to be one and the same, their types
 included. This is witnessed by the constructor of \fn{Heq} which has the
 following type.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Heq_refl : (x : ?A) @$\Rrightarrow$@ Heq x x;
 \end{minted}
 
@@ -1025,7 +1025,7 @@ rules. Rewrites are automatically applied to terms of the data type such that
 they shall always be in \emph{normal} form. To illustrate this, we show a
 definition of the integer data type.
 
-\begin{minted}{haskell}
+\begin{minted}{agda}
 integer :: Zero |
            Succ integer |
            Pred integer
@@ -1037,7 +1037,7 @@ be represented as \fn{Succ (Pred Zero)}, \fn{Pred (Succ Zero)}, etc. This is
 where laws come into play, since the composition of \id{Succ} with \id{Pred}
 should be equal to the identity function, we define the following laws:
 
-\begin{minted}{haskell}
+\begin{minted}{agda}
 Succ (Pred n) => n
 Pred (Succ n) => n
 \end{minted}
@@ -1051,7 +1051,7 @@ negative numerator and a positive denominator. We also want the rational numbers
 to be as `simplified' as possible, i.e.\ we want the numerator and denominator
 to be coprime.
 
-\begin{minted}{haskell}
+\begin{minted}{agda}
 rational ::= Rat num num
 
 Rat a b => error "zero denominator", b == O
@@ -1069,7 +1069,7 @@ need not worry about normalisation both before and after computation as this is
 taken care of by the language itself. We may define the addition operation on
 rationals via pattern-matching with a syntax that is reminiscent of Haskell.
 
-\begin{minted}{haskell}
+\begin{minted}{agda}
 radd :: rational -> rational -> rational
 radd (Rat x1 y1) (Rat x2 y2) = Rat ((x1 mul y2) add (x2 mul y1)) (y1 mul y2)
 \end{minted}
@@ -1832,11 +1832,9 @@ work.
 
 We postulate the existence of the interval type $\bI$, along with its endpoints
 \id{$i_0$} and \id{$i_1$}. The intuition is that elements of $\bI$ correspond to
-%% SM: Your readers might still not intuitively equate "\equiv" with "continuous
-%% path", so state it both ways to remind them that we're considering both
-%% notions as interchangeable.
 points in the real unit interval $[0, 1]$. We also have \id{seg} which is a
-witness of a continuous path between \id{$i_0$} and \id{$i_1$}.
+witness of equality between \id{$i_0$} and \id{$i_1$}, or more specifically, a
+continuous path between them.
 
 All inductive types have their own \emph{elimination principles}, which is a way
 to \emph{eliminate} a term of the inductive type \id{A} to some other type
@@ -1941,7 +1939,7 @@ define the \id{Interval} type as a normal algebraic data type. Next, we can
 model the equality type as a function with an erasable argument out of the
 \id{Interval} type.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 type I
   | @$i_0$@
   | @$i_1$@
@@ -1949,7 +1947,7 @@ type I
 
 More concretely, we define a function with the following type:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 h : I @$\Rrightarrow$@ A
 \end{minted}
 
@@ -1977,13 +1975,12 @@ interval type.
 The negation operator does what its name suggests, i.e.\ it simply negates
 endpoints of the Interval type. Unsurprisingly, it has the following type:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 I_not : I @$\rightarrow$@ I
 \end{minted}
 
 The negation operator computes as follows:
 
-%% SM: A common practice is to use \textsc to name rules.
 \begin{mdframed}[nobreak=true]
   \begin{center}
     \begin{prooftree}
@@ -2019,7 +2016,7 @@ fully benefit from having an interval-based equality type.
 The meet operator returns the minimum of two terms of the Interval type. The
 order of the Interval type is such that $i_0 \le i \le i_1, \forall i \in I$
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 I_meet : I @$\rightarrow$@ I @$\rightarrow$@ I
 \end{minted}
 
@@ -2159,7 +2156,7 @@ The computational behaviour of the function is as follows:
 The function is implemented in Typer as a primitive with the following type
 signature:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ A (_ := i0) @$\rightarrow$@ (r : I) @$\Rrightarrow$@ A (_ := I_not r)
 \end{minted}
 
@@ -2179,7 +2176,7 @@ heterogeneous equality. Such an equality type allows us to identify two terms
 that are not necessarily definitionally equal. The heterogeneous equality type
 has the following type:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Heq : (t : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ t (_ := i0) @$\rightarrow$@ t (_ := i1) @$\rightarrow$@ Type
 \end{minted}
 
@@ -2193,7 +2190,7 @@ accept an argument of that form as a witness of the equality being constructed.
 %% Heq_eq : (l : TypeLevel) ≡> (t : I ≡> Type_ l) ≡> (f : (i : I) ≡> t (_ := i))
 %%           ≡> Heq (f (_ := i0)) (f (_ := i1))
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Heq_eq : (t : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (f : (i : I) @$\Rrightarrow$@ t (_ := i)) @$\Rrightarrow$@ Heq (f (_ := i0)) (f (_ := i1))
 \end{minted}
 
@@ -2204,7 +2201,7 @@ equality.
 %% Heq_uneq : (l : TypeLevel) ≡> (t : I ≡> Type_ l)
 %%                     ≡> (x : t (_ := i0)) => (y : t (_ := i1))
 %%                     => (p : Heq x y) ≡> (i : I) ≡> t (_ := i)
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Heq_uneq : (t : I @$\Rrightarrow$@ Type)
            @$\Rrightarrow$@ (x : t (_ := i0)) @$\Rightarrow$@ (y : t (_ := i1))
            @$\Rightarrow$@ (p : Heq x y) @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t (_ := i)
@@ -2250,8 +2247,7 @@ $\fn{y}$ are of the same type.
 %%             lambda _ => lambda _ =>
 %%               lambda p ≡> lambda i ≡>
 %%                 Heq_uneq (t := lambda _ ≡> t) (p := p) (i := i)
-%% SM: Here you use `lambda` once and `λ` other times.  Stick to one.
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Eq : (t : Type) @$\Rrightarrow$@ t @$\rightarrow$@ t @$\rightarrow$@ Type
 Eq x y = Heq (t := @$\lambda$@ _ @$\Rrightarrow$@ t) x y
 
@@ -2406,7 +2402,7 @@ not a problem in our system as performing a cast on an equality proof
 constructed by functionality extensionality does not lead to a stuck term as
 shown in the following code snippet:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 plus0 : (x : Nat) -> zero + x @$\equiv$@ x + zero
 plus0 x = Nat+_comm zero x
 
@@ -2437,7 +2433,7 @@ simplified in a system with a cubical equality.
 %%           -> Eq (f x) (f y)
 %% Eq_cong = lambda f -> lambda p ->
 %%             Eq_eq (f := lambda i ≡> f (Eq_uneq (p := p) (i := i)))
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Eq_cong : (x y : ?A) |$\Rightarrow$| (g : (?A |$\rightarrow$| ?)) |$\rightarrow$| (p : x |$\equiv$| y) |$\rightarrow$| f x |$\equiv$| f y
 Eq_cong g p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| g (Eq_uneq (p := p) (i := i)))
 \end{minted}
@@ -2572,7 +2568,6 @@ is a witness of the above property.
                                         {\Funapp{\id{P}}{\id{q}}}}
 \end{prooftree*}
 
-%% SM: Give an example of dependent elimination on a quotient.
 We would like to enable the dependent elimination of quotients, in other words,
 we would like to be able to eliminate a term of some quotient type
 $\Funapp{\id{Quotient}}{\id{A}}{\id{R}}$ to some type family $\id{P}$ that is
@@ -2795,7 +2790,7 @@ illustrated in the following proof.
 %% NOTE: Check if I mentioned somewhere that the below may be generalised using
 %% the `r` argument of I_transp to relate `cast p x' and `x' with a Heq proof
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Eq_cast_refl : (A : Type) |$\Rrightarrow$| (x : A)
                |$\rightarrow$| Eq_cast (p := Eq_refl (x := x)) (f := |$\lambda$| _ |$\rightarrow$| A) x |$\equiv$| x
 Eq_cast_refl A x = Eq_refl
@@ -2822,7 +2817,7 @@ necessity to invoke the above rule is not syntax-directed.
 \section{Transitivity}\label{sec:eqtransitivity}
 Continuing our analogy of equality proofs as paths, the transitivity property allows us to concatenate two paths. We join the right endpoint of the first path with the left endpoint of the second path, producing a new path. The proof of this theorem is as follows:
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Eq_trans : (x y z: ?t) |$\Rrightarrow$| x |$\equiv$| y |$\rightarrow$| y |$\equiv$| z |$\rightarrow$| x |$\equiv$| z
 Eq_trans x y z x=y y=z = Eq_cast (p := y=z)
                                  (f := |$\lambda$| x' |$\rightarrow$| Eq x x')
@@ -3066,7 +3061,7 @@ we start reasoning about operations on rational numbers.
 \subsection*{Integer axioms}
 We start by axiomatising the associativity and commutativity of the addition and multiplication operations.
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Integer_+-comm : (x : Integer) |$\rightarrow$| (y : Integer)
                  |$\rightarrow$| Eq (Integer_+ x y) (Integer_+ y x)
 
@@ -3087,7 +3082,7 @@ to addition. We only add left distributivity as an axiom, as right
 distributivity can be easily proven as a theorem, this is also the case for the
 other axioms that we will describe below.
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Integer_*DistL+ : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z : Integer)
                   |$\rightarrow$| Eq (Integer_* (Integer_+ x y) z)
                         (Integer_+ (Integer_* x z) (Integer_* y z))
@@ -3097,7 +3092,7 @@ The above properties can also be stated for the subtraction operation. We also
 want to be able to say that we have additive inverses for all integers and that
 0 is the additive identity.
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Integer_+Linv : (x : Integer) |$\rightarrow$| Eq (Integer_+ (Integer_- 0 x) x) 0
 
 Integer_+Lid : (x : Integer) |$\rightarrow$| Eq (Integer_+ 0 x) x
@@ -3105,7 +3100,7 @@ Integer_+Lid : (x : Integer) |$\rightarrow$| Eq (Integer_+ 0 x) x
 
 Of course, we should also be able to say that 1 is the multiplicative identity.
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Integer_*Lid : (x : Integer) |$\rightarrow$| Eq (Integer_* 1 x) x
 \end{minted}
 
@@ -3116,7 +3111,7 @@ operations on the resulting $\kw{Rational}$ type. Notably, we need to be able to
 say that if the product of two integers is zero, then at least one of them is
 zero. We formulate this in the following manner:
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Integer_isIntegral : (x : Integer) |$\rightarrow$| (y : Integer)
                      |$\rightarrow$| Eq (Integer_* x y) 0 |$\rightarrow$| (Eq x 0 |$\rightarrow$| Void)
                      |$\rightarrow$| Eq y 0
@@ -3130,7 +3125,7 @@ Another useful axiom to have is one that asserts that 0 is an absorbing element
 with respect to multiplication. In other words, multiplying by 0 always yields 0
 as a result.
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Integer_*Lzero : (x : Integer) |$\rightarrow$| Eq (Integer_* 0 x) 0
 \end{minted}
 
@@ -3139,7 +3134,7 @@ As stated in the subsequent section, we only added the `left' version of some
 axioms, as their `right' counterparts may be trivially proven as theorems based
 on the commutativity property of addition and multiplication.
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Integer_+Rid : (x : Integer) |$\rightarrow$| Eq (Integer_+ x 0) x
 Integer_+Rid x = Eq_trans (Integer_+-comm x 0) (Integer_+Lid x)
 
@@ -3169,7 +3164,7 @@ Integer_*DistR+ x y z =
 
 Another useful theorem that we can prove states that the product of two non-zero integers is necessarily non-zero.
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Integer_0-product : (x : Integer) |$\rightarrow$| (y : Integer)
                     |$\rightarrow$| (Eq x 0 |$\rightarrow$| Void) |$\rightarrow$| (Eq y 0 |$\rightarrow$| Void)
                     |$\rightarrow$| (Eq (Integer_* x y) 0 |$\rightarrow$| Void)
@@ -3179,7 +3174,7 @@ Integer_0-product x y x|$\ne$|0 y|$\ne$|0 xy|$\ne$|0 =
 
 We will eventually also make use of the below theorem that states that the negation of an integer may be distributed over multiplication. Its `right' counterpart may also be proven in a similar manner.
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 Integer_NegateDistL* : (x : Integer) |$\rightarrow$| (y : Integer)
                         |$\rightarrow$| Eq (Integer_- 0 (Integer_* x y))
                               (Integer_* (Integer_- 0 x) y)
@@ -3195,13 +3190,13 @@ Integer_NegateDistL* x y =
 \subsection*{Implementation of Rationals}
 As stated before, the base type of our quotient type is essentially a pair of integers along with a proof that the second integer is non-zero. We decided to implement this as an inductive type with a single constructor.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 type @$\mathbb{Z}{\times}\mathbb{Z}{\ne}0$@
   | inR (@$z_1$@ : Integer) (@$z_2$@ : Integer) (p : Not (Eq @$z_2$@ 0))
 \end{minted}
 
 $\kw{Not}$ has the typical definition as follows:
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Not : (T : Type) @$\rightarrow$@ Type
 Not T = T @$\rightarrow$@ Void
 \end{minted}
@@ -3211,23 +3206,23 @@ both an equivalence relation as well as a mere proposition. These properties are
 useful if we wish to prove that the resulting quotient is effective and that
 \id{Rational} is discrete.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
-equal@$\mathbb{Q}$@ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ Type
-equal@$\mathbb{Q}$@ p1 p2 = Eq (p1.z1 * p2.z2) (p1.z2 * p2.z1)
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+equalQ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ Type
+equalQ p1 p2 = Eq (p1.z1 * p2.z2) (p1.z2 * p2.z1)
 \end{minted}
 
 Finally, we can state the definition of the Rationals.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Rational : Type
-Rational = Quotient @$\zpair$@ equal@$\mathbb{Q}$@
+Rational = Quotient @$\zpair$@ equalQ
 \end{minted}
 
 Negation is the simplest operation that we can define on the rationals, it is
 achieved by simply negating the integer numerator. This is done via the below
 function.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 negate_fst : @$\zpair \rightarrow \zpair$@
 negate_fst x = inR (-1 * x.z1) x.z2 x.p
 \end{minted}
@@ -3235,7 +3230,7 @@ negate_fst x = inR (-1 * x.z1) x.z2 x.p
 We also need to prove that $\id{negate\_fst}$ respects the underlying relation
 $equal\mathbb{Q}$. In other words, we need to prove the following:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 negate_compat : (a : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@) @$\rightarrow$@
                 @$\equalq$@ a b @$\rightarrow$@ @$\equalq$@ (negate_fst a) (negate_fst b)
 negate_compat a b r =
@@ -3259,7 +3254,7 @@ appendix.
 
 Finally, the negation operation of rational numbers may be constructed like so:
 
-\begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
 Rational_negate : Rational @$\rightarrow$@ Rational
 Rational_negate x =
   qcase (x : @$\zpair$@ / @$\equalq$@)
@@ -3273,7 +3268,7 @@ Rational_negate x =
 We can also define the addition operation on the rationals. As before, we start
 off by defining a function that operates on expressions of the base type.
 
-\begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
 @$\zpairplus$@ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ @$\zpair$@
 @$\zpairplus$@ a b = inR ((a.z1 * b.z2) + (b.z1 * a.z2))
                  (a.z2 * b.z2)
@@ -3283,10 +3278,10 @@ off by defining a function that operates on expressions of the base type.
 This is an operation that can be shown to be commutative with respect to the
 relation.
 
-\begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
 @$\zpairplus$-Comm@ : (a : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@)
                @$\rightarrow$@ Eq (t := Quotient @$\zpair$@ @$\equalq$@)
-                     (Quotient_in (@$\zpairplus$@+ a b)) (Quotient_in (@$\zpairplus$@+ b a))
+                     (Quotient_in (@$\zpairplus$@ a b)) (Quotient_in (@$\zpairplus$@ b a))
 @$\zpairplus$-Comm@ a b =
   let
     compat =
@@ -3301,8 +3296,8 @@ relation.
       a.z2 * b.z2 * (b.z1 * a.z2 + a.z1 * b.z2) @$\qed$@
   in
       Quotient_eq (R := @$\equalq$@)
-                  (a  := @$\zpairplus$@+ a b)
-                  (a' := @$\zpairplus$@+ b a)
+                  (a  := @$\zpairplus$@ a b)
+                  (a' := @$\zpairplus$@ b a)
                   compat
 \end{minted}
 
@@ -3310,7 +3305,7 @@ We still need to show that the $\zpairplus$ function itself respects the
 underlying relation, and since this is a binary operation, we will have to prove
 it for `both sides'. In other words, we have to produce the below proofs.
 
-\begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
 @$\mathbb{Q}$+\_feql@ : (a : @$\zpair$@) @$\rightarrow$@ (a' : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@) @$\rightarrow$@ @$\equalq$@ a a'
           @$\rightarrow$@ Eq (t := Quotient @$\zpair$@ @$\equalq$@)
                 (Quotient_in (@$\zpairplus$@ a b))
@@ -3330,7 +3325,7 @@ to online repository since the proof itself is not instructive enough to
 warrant being put here}. However, once this has been proved, its counterpart is
 a trivial corollary by virtue of the commutativity of $\zpairplus$.
 
-\begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
 @$\mathbb{Q}$+\_feqr@ a b b' p =
     Eq_trans (@$\zpairplus$-Comm@ a b)
              (Eq_trans (@$\mathbb{Q}$@+_feql b b' a p) (@$\zpairplus$-Comm@ b' a))
@@ -3339,7 +3334,7 @@ a trivial corollary by virtue of the commutativity of $\zpairplus$.
 We can now assemble the above to define both the addition and subtraction of
 rationals as follows:
 
-\begin{minted}[escapeinside=@@,mathescape=true,samepage]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
 Rational_+ : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational
 Rational_+ a b =
   Quotient_rec2 (R := @$\equalq$@) (S := @$\equalq$@)
@@ -3356,7 +3351,7 @@ eliminate two quotient expressions, more details are given in
 produces its additive inverse. We define $\id{Rational\_0}$ to be the additive
 identity using a trivial representative of its equivalence class.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 @$\zpairplus$@-Linv : (a : @$\zpair$@) @$\rightarrow$@ Eq (t := Rational)
                               (Quotient_in (@$\zpairplus$@ (negate_a.z1) a))
                               Rational_0
@@ -3424,7 +3419,7 @@ To that end, we wish to define a relation $\fn{ListPerm $l_1$ $l_2$}$ such that
 $\fn{$l_1$}$ and $\fn{$l_2$}$ are permutations of each other. The relation would
 thus need a constructor of the following form:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 swapPerm : (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ (l : List A)
            @$\rightarrow$@ ListPerm ?A (cons y (cons x l)) (cons x (cons y l))
 \end{minted}
@@ -3438,7 +3433,7 @@ For the relation to be reflexive, we would require the following constructors
 such that $\fn{ListPerm}$ is closed under the base constructors of the List
 datatype.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 nilPerm : ListPerm ?A nil nil
 
 consPerm : (x : ?A) @$\rightarrow$@ (l1 : List ?A) @$\rightarrow$@ (l2 : List ?A)
@@ -3447,7 +3442,7 @@ consPerm : (x : ?A) @$\rightarrow$@ (l1 : List ?A) @$\rightarrow$@ (l2 : List ?A
 
 Finally, the following addition makes the relation transitive:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 transPerm : (l1 : List ?A) @$\rightarrow$@ (l2 : List ?A) @$\rightarrow$@ (l3 : List ?A)
             @$\rightarrow$@ (ListPerm ?A l1 l2) @$\rightarrow$@ (ListPerm ?A l2 l3)
             @$\rightarrow$@ (ListPerm ?A l1 l3)
@@ -3458,7 +3453,7 @@ that it would most appropriately be defined as a GADT. Typer does not have built
 support for GADTs, however, we draw inspiration from\cite{sulzmann2007systemfeq} to
 encode such a GADT as an inductive type with explicit equality proofs.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 ListPerm : (A : Type_ ?) @$\rightarrow$@ List A @$\rightarrow$@ List A @$\rightarrow$@ Type_ ?
 type ListPerm (l ::: TypeLevel) (A : Type_ l) (l1 : List A) (l2 : List A) : Type_ l
   | nilPerm (p1 :: Eq l1 nil) (p2 :: Eq l2 nil)
@@ -3474,7 +3469,7 @@ type ListPerm (l ::: TypeLevel) (A : Type_ l) (l1 : List A) (l2 : List A) : Type
 
 With that, we may now define the $\fn{Multiset}$ type former.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Multiset : Type_ ? @$\rightarrow$@ Type_ ?
 Multiset A = Quotient (List A) (ListPerm A)
 \end{minted}
@@ -3482,7 +3477,7 @@ Multiset A = Quotient (List A) (ListPerm A)
 An empty multiset is simply the canonical surjection of the $\fn{nil}$ List into
 the Quotient.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Multiset_empty : Multiset ?A
 Multiset_empty = Quotient_in nil
 \end{minted}
@@ -3490,7 +3485,7 @@ Multiset_empty = Quotient_in nil
 Insertion is merely the application of the $\fn{cons}$ constructor of List with the help
 of $\fn{consPerm}$ that we previously defined.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Multiset_cons : ?A @$\rightarrow$@ Multiset ?A @$\rightarrow$@ Multiset ?A
 Multiset_cons = @$\lambda$@ _ A @$\Rrightarrow$@ @$\lambda$@ a s @$\rightarrow$@
   qcase (s : List A / ListPerm A)
@@ -3509,7 +3504,7 @@ definition $\fn{Multiset\_mem}$ as it is more interesting. This function
 determines if a certain term of type $\fn{A}$ is a member of a multiset. Its
 type is as follows:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Multiset_mem : (A : Type) @$\Rrightarrow$@ Discrete A @$\rightarrow$@ A @$\rightarrow$@ Multiset A @$\rightarrow$@ Bool
 \end{minted}
 
@@ -3519,7 +3514,7 @@ We define $\fn{Any}$ to be a witness that a certain predicate is valid for some
 element in a given list. We then define a predicate $\fn{isMember}$ such that
 $\fn{isMember a l}$ means that $\fn{a}$ is a member of the list $\fn{l}$.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Any : (A : Type) -> (P : (a : A) -> Type) -> List A -> Type
 type Any (A : Type) (P : ((a : A) -> Type)) (l : List A) : Type
   | here (x : A) (xs : List A) (p ::: P x) (eq ::: Eq l (cons x xs))
@@ -3537,7 +3532,7 @@ $\fn{isMember a $l_2$}$ is also valid, we omit this proof. Next, we just need to
 define $\fn{isMemberDec}$, whose details we shall once again omit. Finally, we
 may proceed to define $\fn{Multiset\_mem}$.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 isMemberDec : (A : Type) @$\Rightarrow$@ Discrete A @$\rightarrow$@ (a : A) @$\rightarrow$@ (l : List A)
               @$\rightarrow$@ Decidable (isMember a l)
 isMemberDec = ...
@@ -3577,7 +3572,7 @@ We can encode propositional truncation as a quotient type. The required properti
 
 The encoding is simple, we simply define the following type former along with its term former:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 PropTrunc : (P : Type) @$\rightarrow$@ Type
 PropTrunc P = Quotient P (@$\lambda$@ p1 p2 @$\rightarrow$@ Unit)
 
@@ -3587,7 +3582,7 @@ inPropTrunc p = Quotient_in (R := @$\lambda$@ p1 p2 @$\rightarrow$@ Unit) p
 
 The choice of $\id{R}$ here essentially implies that every term of the base type $\kw{P}$ shall be equated in the resulting quotient type. This is witnessed by the following function:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 squash : (P : Type) @$\Rrightarrow$@ (x : PropTrunc P) @$\rightarrow$@ (y : PropTrunc P) @$\rightarrow$@ Eq x y
 squash = @$\lambda$@ P @$\Rrightarrow$@ @$\lambda$@ x y @$\rightarrow$@
   let
@@ -3604,7 +3599,7 @@ squash = @$\lambda$@ P @$\Rrightarrow$@ @$\lambda$@ x y @$\rightarrow$@
 
 $\id{inPropTrunc}$ and $\id{squash}$ combined imply that the first property is satisfied. Next, we state the elimination principle of the propositional truncation of some type $\id{P}$.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 propTruncRec : (A P : Type) @$\Rrightarrow$@ isProp P @$\rightarrow$@ (A @$\rightarrow$@ P) @$\rightarrow$@ PropTrunc A @$\rightarrow$@ P
 propTruncRec prop f a = elimProp (R := @$\lambda$@ _ _ @$\rightarrow$@ Unit)
                                  (P := @$\lambda$@ _ @$\rightarrow$@ P)
@@ -3621,7 +3616,7 @@ property.
 Nomalised types introduced in \autoref{sec:normalised-types-courtieu} are a
 strict subset of our quotient types, we show how we encode them in our system.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Qnorm : (A : Type) @$\rightarrow$@ (nf : A @$\rightarrow$@ A) @$\rightarrow$@ Type
 Qnorm A nf = Quotient A (@$\lambda$@ x y @$\rightarrow$@ Eq (nf x) (nf y))
 
@@ -3658,7 +3653,7 @@ boilerplate in user code.
 \subsection*{rec2}\label{subsec:rec2}
 We start off by describing \id{Quotient\_rec2}, which serves to eliminate two arbitrary quotient expressions.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 rec2 : (A B C: Type_ ?) @$\Rrightarrow$@
        (R : A @$\rightarrow$@ A @$\rightarrow$@ Type_ ?) @$\Rrightarrow$@
        (S : B @$\rightarrow$@ B @$\rightarrow$@ Type_ ?) @$\Rrightarrow$@
@@ -3752,7 +3747,7 @@ diagram.
 
 The circles represent the two types and points in the circle are elements of the corresponding types. With our definition of equality, we can trivially construct an equality between $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and $\Funapp{\id{A}}{(\earg{\_}{\iright})}$. Now, given that the two circles are `equal', intuitively speaking, every point in one circle should have a counterpart in the other circle, and this can be obtained transporting a point along the equality between the two types. The result of transporting $\id{x}$ to the type $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ is a point that we shall call $\id{transport\_x}$. Additionally, suppose also that we have an equality between $\id{transport\_x}$ and $\id{y}$, this is indicated by the path $\id{p}$ between the two points in the diagram. Given that $\id{x}$ is transported to $\id{transport\_x}$, and that $\id{transport\_x}$ is equal to $\id{y}$, we also want to be able to say something about the relationship between $\id{x}$ and $\id{y}$. Since they are not of the same type, all we can do is construct a heterogeneous equality between them, and this is precisely what the function $\id{toPathOver}$ seeks to do.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 toPathOver : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0)) @$\Rightarrow$@ (y : A (_ := i1))
              @$\Rightarrow$@ Eq (Eq_cast (p := Eq_eq (f := A)) (f := id) x) y
              @$\rightarrow$@ Heq x y;
@@ -3772,7 +3767,7 @@ toPathOver = @$\lambda$@ _  A @$\Rrightarrow$@ @$\lambda$@ x y @$\Rightarrow$@ @
 
 We construct a heterogeneous equality between $\id{x}$ and $\id{transport\_x}$ and we concatenate it with the equality proof between $\id{transport\_x}$ and $\id{y}$ to complete the proof.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 elimProp : (A : Type_ ?) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
            @$\Rrightarrow$@ (P : Quotient A R @$\rightarrow$@ Type)
            @$\Rrightarrow$@ (prop : (x : Quotient A R) @$\rightarrow$@ isProp (P x))
@@ -3797,7 +3792,7 @@ elimProp = @$\lambda$@ _ _ _ A R P @$\Rrightarrow$@ @$\lambda$@ prop f @$\righta
 
 $\fn{toPathOver}$ does the heavy lifting in this proof by allowing us to leverage $\Funapp{\fn{isProp}}{(\Funapp{\id{P}}{\id{x}})}$ to easily produce a proof of $\Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}})}{(\Funapp{\id{f}}{\id{a}'})}$. We can also iterate this to define $\fn{elimProp}_2$, $\fn{elimProp}_3$ etc. In general, we can define $\fn{elimProp}_n$ in terms of $\fn{elimProp}_{n-1}$ and $\fn{elimProp}$. To illustrate this, we define $\fn{elimProp}_2$.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 elimProp2 : (A B : Type)
             @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type) @$\Rrightarrow$@ (S : B @$\rightarrow$@ B @$\rightarrow$@ Type)
             @$\Rrightarrow$@ (P : Quotient A R @$\rightarrow$@ Quotient B S @$\rightarrow$@ Type)
@@ -3819,7 +3814,7 @@ respected by all functions, however, typically this may not be proven. In this
 section, we demonstrate that the existence of quotient types implies functional
 extensionality.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 funext : (A : Type_ ?) @$\rightarrow$@ (B : A @$\rightarrow$@ Type_ ?)
          @$\rightarrow$@ (f1 : (a : A) @$\rightarrow$@ B a) @$\rightarrow$@ (f2 : (a : A) @$\rightarrow$@ B a)
          @$\rightarrow$@ (h : (a : A) @$\rightarrow$@ f1 a @$\equiv$@ f2 a) @$\rightarrow$@ f1 @$\equiv$@ f2
@@ -3870,7 +3865,7 @@ is their mere existence that counts. This is precisely the notion of proof
 irrelevance. In Typer, this notion is represented via erasability. We introduce
 a built-in data type that captures this idea.
 
-\begin{minted}{haskell}
+\begin{minted}{agda}
 type Erased (T : Type)
   | erased (t ::: T)
 \end{minted}
@@ -3884,14 +3879,14 @@ proposition, we provide a proof of
 $\Funapp{\id{isProp}}{(\Funapp{\id{Erased}}{?\id{T}})}$. We first state the
 definition of $\id{isProp}$:
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 isProp : (T : Type) |$\rightarrow$| Type
 isProp T = (x y : T) |$\rightarrow$| Eq x y
 \end{minted}
 
 We now present the proof in the form of Typer code.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 erasedIsProp : (T : Type) @$\Rrightarrow$@ isProp (Erased T)
 erasedIsProp t1 t2 =
   case t1
@@ -3942,7 +3937,7 @@ immediate as an equivalence between logically equivalent propositions is
 trivial. In the setting of Typer, however, propositional extensionality is
 implemented as an axiom with the following type signature:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 propExt : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (Erased A @$\rightarrow$@ Erased B)
            @$\rightarrow$@ (Erased B @$\rightarrow$@ Erased A) @$\rightarrow$@ Erased A @$\equiv$@ Erased B
 \end{minted}
@@ -4004,7 +3999,7 @@ respectively, inhabitants of the type $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ are
 witnesses of this binary relation. The type signature of a binary relation has
 the below form:
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 R : (A : Type) |$\Rrightarrow$| (a : A) |$\rightarrow$| (a' : A) |$\rightarrow$| Type
 \end{minted}
 
@@ -4012,7 +4007,7 @@ For a quotient to be effective, its underlying relation has to be an equivalence
 
 In the built-in library, we define the following type as a witness that a certain relation is indeed an equivalence relation.
 
-\begin{minted}{haskell}
+\begin{minted}{agda}
 type isEquivRel (A : Type) (R : A -> A -> Type) : Type
   | equivRel (isRefl : (a : A) -> R a a)
              (isSym : (a : A) -> (b : A) -> R a b -> R b a)
@@ -4030,14 +4025,14 @@ the underlying relation must be both a proposition and an equivalence relation.
 
 For an arbitrary binary relation $\kw{R}$, we can define the following:
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 ErasedR : (A : Type) |$\Rrightarrow$| (A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| A |$\rightarrow$| A |$\rightarrow$| Type
 ErasedR R a b = Erased (R a b)
 \end{minted}
 
 Now, we state the proof of the effectiveness of quotients in the form of Typer code
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
 effective : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type)
             |$\rightarrow$| isEquivRel A (ErasedR R) |$\rightarrow$| (a : A) |$\rightarrow$| (b : A)
             |$\rightarrow$| Eq (Quotient_in (R := ErasedR R) a)
@@ -4448,7 +4443,7 @@ surjective, we are essentially saying that $\forall y \in Y. \ \exists x \in X.
 \ f(x) = y$. Note that we should represent this by a weak sum, i.e.\ we do not
 require a concrete witness of $x$.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 type SurjectiveQuotientProof (A : Type) (R : A -> A -> Type)
                              (x : Quotient A R) : Type
    | surjectiveQuotientProof (a : A) (Eq (Quotient_in (R := R) a) x);
@@ -4456,7 +4451,7 @@ type SurjectiveQuotientProof (A : Type) (R : A -> A -> Type)
 
 We define the above type, intending to return the propositional truncation of it as a proof of the surjectivity of $\kw{Quotient\_in}$. The proof goes as follows:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Quotient_in_surjective : (A : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
                          @$\Rrightarrow$@ (x : Quotient A R)
                          @$\rightarrow$@ PropTrunc (SurjectiveQuotientProof A R x)
@@ -4777,14 +4772,14 @@ First, we introduce a helper function that simply invokes the transitivity
 property of equality proofs. This function carries out a single step of
 equational reasoning.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 step-@$\equiv$@ : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ (z : ?A) @$\rightarrow$@ Eq x y @$\rightarrow$@ Eq y z @$\rightarrow$@ Eq x z
 step-@$\equiv$@ _ p q = Eq_trans p q
 \end{minted}
 
 Next, we require a second function to conclude a chain of equational reasoning.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 qed : (x : ?A) @$\rightarrow$@ Eq x x
 qed x = Eq_refl
 \end{minted}
@@ -4792,7 +4787,7 @@ qed x = Eq_refl
 To make it all come together, we wrap the above functions with some syntactic
 sugar.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 _==<_>==_ = step-@$\equiv$@
 _@$\qed$@ = qed
 \end{minted}
@@ -4816,7 +4811,7 @@ When we write the following
 
 We require that $\id{p}$ be a proof of equality between $\id{x}$ and $\id{y}$, and this can be chained \latinphrase{ad infinitum}. The expression in its entirety is a proof of equality between $\id{x}$ and $\id{z}$. The usage of this is best illustrated via a simple example:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 example : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ (z : ?A) @$\rightarrow$@ (w : ?A)
           @$\rightarrow$@ (p : Eq x y) @$\rightarrow$@ (q : Eq y z) @$\rightarrow$@ (r : Eq z w) @$\rightarrow$@ Eq x w
 example x y z w p q r =
@@ -4828,7 +4823,7 @@ example x y z w p q r =
 
 For a more involved example, we rewrite the proof of \verb|Integer_*DistR+| that was shown in Section~\ref{subsection:int-theorems} by using equational reasoning.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Integer_*DistR+ : (x : Integer) @$\rightarrow$@ (y : Integer) @$\rightarrow$@ (z : Integer)
                   @$\rightarrow$@ Eq (Integer_* x (Integer_+ y z))
                         (Integer_+ (Integer_* x y) (Integer_* x z))
@@ -4931,7 +4926,7 @@ definitionally equal, allowing us to proof $\beta$ by reflexivity.\end{proof}
 We first define the type of natural numbers along with the addition operation
 the usual way.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Nat : Type
 
 type Nat
@@ -4947,7 +4942,7 @@ _+_ x y = case x
 We then define two lemmas that we ultimately use to prove the commutativity of
 addition.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Nat+_zero : (m : Nat) @$\rightarrow$@ Eq (m + zero) m
 Nat+_zero m =
   case m return Eq (m + zero) m
@@ -4975,7 +4970,7 @@ type.
 
 %% TODO: Use Σ syntax instead?
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
   | sigma (fst : A) (snd : B fst);
 \end{minted}
@@ -4983,7 +4978,7 @@ type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
 $\eta$-equivalence does not hold definitionally for the \id{Sigma} type, however
 it may be proven propositionally:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Sigma_@$\eta$@ : (l : TypeLevel) @$\Rrightarrow$@ (A : Type_ l) @$\Rrightarrow$@ (P : (a : A) @$\rightarrow$@ Type_ l)
           @$\Rrightarrow$@ (p : Sigma A P) @$\rightarrow$@ Eq p (sigma (B := P) p.fst p.snd)
 Sigma_@$\eta$@ p = case p
@@ -5005,7 +5000,7 @@ prove that two terms of type \fn{Sigma A B} are equal, if \fn{$\Pi_{x:A}$ isProp
   (B x)} is true, then it suffices to show that the first projection of the two
 dependent pairs are equal. The proof of this lemma is as follows:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 @$\Sigma$@@$\equiv$@Prop : (A : Type_ ?l1) @$\Rrightarrow$@ (B : (a : A) @$\rightarrow$@ Type_ ?l2)
          @$\Rrightarrow$@ ((x : A) @$\rightarrow$@ HoTT_isProp (B x))
          @$\rightarrow$@ (u : Sigma A B) @$\rightarrow$@ (v : Sigma A B)
@@ -5041,7 +5036,7 @@ homogeneous equality proof between \id{a1} and \id{a2}, then we can construct a
 heterogeneous equality proof between \id{a0} and \id{a2}. The proof is as
 follows:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 whiskerRight : (A : I @$\Rrightarrow$@ Type_ ?) @$\Rrightarrow$@ (a0 : A (_ := i0)) @$\rightarrow$@ (a1 : A (_ := i1))
                @$\rightarrow$@ (a2 : A (_ := i1)) @$\rightarrow$@ Heq a0 a1 @$\rightarrow$@ Eq a1 a2 @$\rightarrow$@ Heq a0 a2
 whiskerRight = @$\lambda$@ l A @$\Rrightarrow$@ @$\lambda$@ a0 a1 a2 p1 p2 @$\rightarrow$@
@@ -5094,7 +5089,7 @@ of each other. \fn{e' $\circ{}$ e $\equiv$ id} is proved without too much hassle
 by using functional extensionality and the fact that the output type \id{B} is a
 Set.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 e'e=id : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
          @$\Rrightarrow$@ HoTT_isSet B
          @$\rightarrow$@ (f : Quotient A R @$\rightarrow$@ B)
@@ -5180,7 +5175,7 @@ Suppose that we have some proof $\fn{p}$ between terms $\fn{a}$ and $\fn{b}$,
 the interval meet operation allows us to construct a square that corresponds to
 the following expression:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 sq : Heq (t := @$\lambda$@ i @$\Rrightarrow$@ x @$\equiv$@ Eq_uneq (p := p) (i := i))
          (Eq_refl (_ := x)) p
 sq = Heq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i j)))
@@ -5243,7 +5238,7 @@ without the \id{Eq\_eq} constructor and the \id{Eq\_uneq} deconstructor by
 treating functions out of the interval themselves as equality proofs. This
 reduces \id{sq} to the following expression:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 sq = @$\lambda$@ i @$\Rrightarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p (I_meet i j)
 \end{minted}
 
@@ -5253,7 +5248,7 @@ the resulting expression is the following, which we can reduce to the constant
 path on $\fn{a}$ by using the reduction rules of $\fn{I\_meet}$ defined in
 \autoref{subsubsec:interval-meet}:
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 @$\lambda$@ j @$\Rrightarrow$@ p (I_meet @$i_0$@ j)
 @$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p @$i_0$@
 @$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ x
@@ -5263,7 +5258,7 @@ path on $\fn{a}$ by using the reduction rules of $\fn{I\_meet}$ defined in
 For the bottom side, we fix $\fn{j}$ to be $i_0$ to obtain the below expression,
 which is once again a constant path on $\fn{a}$.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 @$\lambda$@ i @$\Rrightarrow$@ p (I_meet i @$i_0$@)
 @$\rightsquigarrow$@ @$\lambda$@ i @$\Rrightarrow$@ p @$i_0$@
 @$\rightsquigarrow$@ Eq_refl (_ := x)
@@ -5272,7 +5267,7 @@ which is once again a constant path on $\fn{a}$.
 The right side requires us to fix $\fn{i}$ to be $i_1$, giving us the below
 expression which simply reduces to $\fn{p}$.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 @$\lambda$@ j @$\Rrightarrow$@ p (I_meet @$i_1$@ j)
 @$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p j
 @$\rightsquigarrow$@ p
@@ -5280,7 +5275,7 @@ expression which simply reduces to $\fn{p}$.
 
 By fixing $\fn{j}$ to be $i_1$, we get the expression that corresponds to the top side, which also reduces to $\fn{p}$.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 @$\lambda$@ i @$\Rrightarrow$@ p (I_meet i @$i_1$@)
 @$\rightsquigarrow$@ @$\lambda$@ i @$\Rrightarrow$@ p i
 @$\rightsquigarrow$@ p
@@ -5288,7 +5283,7 @@ By fixing $\fn{j}$ to be $i_1$, we get the expression that corresponds to the to
 
 With that, we may complete the definition of \id{eqUnique}.
 
-\begin{minted}[escapeinside=@@,mathescape=true]{haskell}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 eqUnique a b p = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@
                           < Eq_uneq (p := p) (i := i),
                             Heq_uneq (p := sq) (i := i) >)
