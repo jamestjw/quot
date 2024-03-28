@@ -2760,8 +2760,7 @@ passed to the function as it acts simply as a form of static information. Since
 the proof itself is computationally irrelevant, it is made to be an erasable
 argument.
 
-%% SM: Maybe this can be promoted to a \subsection?
-\subsubsection{Syntactic sugar}
+\subsection{Syntactic sugar}
 
 \paragraph{qcase}
 
@@ -2787,8 +2786,11 @@ prove that the above mapping respects the quotient by constructing a term
 \fn{e2: [x/a]e1 $\equiv$ [y/a]e2}.
 
 To illustrate how this works, we construct a simple example based on the
-quotient of the \id{Unit} type along with a total relation \id{R} defined on
-\id{Unit}. We define a function of type \fn{Quotient Unit R $\rightarrow$ Unit}.
+quotient of the \id{A $\rightarrow$ B} type along with a relation
+\id{PointwiseEq} that represents the pointwise equality of such functions. We
+then define a function that composes quotiented functions with plain functions
+of type \id{B $\rightarrow$ C} to produce functions of type \id{A $\rightarrow$
+  C}.
 
 %% SM: Using the Unit type makes it a bit too trivial, I think.
 %% How 'bout using the Boolean type with:
@@ -2796,32 +2798,49 @@ quotient of the \id{Unit} type along with a total relation \id{R} defined on
 %% and have an elimination like:
 %%     Quotient_in a => if a then 1 else 1
 %%     Quotient_eq a a' r => Quotient_eq (not a) (not a') unit
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-R : Unit @$\rightarrow$@ Unit @$\rightarrow$@ Type
-R u1 u2 = Unit
+%% \begin{minted}[escapeinside=@@,mathescape=true]{agda}
+%% R : Unit @$\rightarrow$@ Unit @$\rightarrow$@ Type
+%% R u1 u2 = Unit
 
-e1 : Quotient Unit R @$\rightarrow$@ Unit
-e1 q = qcase (q : Unit / R)
-        | Quotient_in a @$\Rightarrow$@ ()
-        | Quotient_eq a a' r @$\Rightarrow$@ Eq_refl
+%% e1 : Quotient Unit R @$\rightarrow$@ Unit
+%% e1 q = qcase (q : Unit / R)
+%%         | Quotient_in a @$\Rightarrow$@ ()
+%%         | Quotient_eq a a' r @$\Rightarrow$@ Eq_refl
+%% \end{minted}
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+PointwiseEq : (A : ?) @$\Rightarrow$@ (B : ?) @$\Rightarrow$@ (A @$\rightarrow$@ B) @$\rightarrow$@ (A @$\rightarrow$@ B) @$\rightarrow$@ Type_ ?;
+PointwiseEq f g = (x : A) @$\rightarrow$@ Eq (f x) (g x);
+
+e1 : Quotient (?A @$\rightarrow$@ ?B) PointwiseEq @$\rightarrow$@ (?B @$\rightarrow$@ ?C) @$\rightarrow$@ ?A @$\rightarrow$@ ?C;
+e1 q g a = qcase (q : (A @$\rightarrow$@ B) / PointwiseEq)
+        | Quotient_in f @$\Rightarrow$@ g (f a)
+        | Quotient_eq f f' r @$\Rightarrow$@ Eq_cong g (r a);
 \end{minted}
 
 Drawing inspiration from Arend, the \id{Quotient\_eq} branch may also be handled
 by introducing an Interval variable into the scope. Instead of directly
 constructing an equality proof, we simply specify what the given map for the
-\id{Quotient\_in} branch would map us to for a certain endpoint \id{i}. We may
-rewrite the above example as follows:
+\id{Quotient\_in} branch would map us to for a certain endpoint \id{i} of the
+\id{Quotient\_eq} proof. We may rewrite the above example as follows:
 
 %% SM: Hmm... indeed my Boolean example doesn't work well here,
 %% unless we changed Quotient_eq to return a function `I ≡> Quotient A R`
 %% rather than an equality. 🙁
 %% It would be good to find n example that's similarly simple as the
 %% one I suggest above but which can also benefit from this "path notation",
+%% \begin{minted}[escapeinside=@@,mathescape=true]{agda}
+%% e2 : Quotient Unit R @$\rightarrow$@ Unit
+%% e2 q = qcase (q : Unit / R)
+%%         | Quotient_in a @$\Rightarrow$@ ()
+%%         | Quotient_eq a a' r i @$\Rightarrow$@ ()
+%% \end{minted}
+
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-e2 : Quotient Unit R @$\rightarrow$@ Unit
-e2 q = qcase (q : Unit / R)
-        | Quotient_in a @$\Rightarrow$@ ()
-        | Quotient_eq a a' r i @$\Rightarrow$@ ()
+e2 : Quotient (?A -> ?B) PointwiseEq -> (?B -> ?C) -> ?A -> ?C
+e2 q g a = qcase (q : (A -> B) / PointwiseEq)
+        | Quotient_in f => g (f a)
+        | Quotient_eq f f' r i => g (Eq_uneq (p := r a) (i := i))
 \end{minted}
 
 More elaborate examples of usages of this macro are given in subsequent
