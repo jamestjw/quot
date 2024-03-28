@@ -1239,16 +1239,19 @@ idempodent.
 Cubical Agda\cite{vezzosi2021cubical} is an extension of the \Agda{} proof
 assistant which serves to provide computational meaning to HoTT. This work is
 of particular interest to us because of two of its prominent features, cubical
-equality and higher inductive types (HITs). The thing that makes the type theory
-cubical is its notion of equality that is represented by functions out of an
-interval type, i.e.\ of type \fn{I $\rightarrow$ A}. More specifically, such
-equality types are known as \emph{paths} in the literature. If an equality
-between two terms is seen as a line, then we may construct an equality between
-two lines to produce a square. This process may be iterated to produce cubes,
-hypercubes, etc, justifying the name of the type theory. Cubical Agda introduced
-the interval type as a primitive with two endpoints \fn{i0 : I} and \fn{i1 : I}.
-Unlike normal types, pattern matching on an interval variable is disallowed. The
-type of homogeneous equality is represented by $\equiv$ with the following type:
+equality and higher inductive types (HITs).
+
+\subsection{Equality}
+The thing that makes the type theory cubical is its notion of equality that is
+represented by functions out of an interval type, i.e.\ of type \fn{I
+  $\rightarrow$ A}. More specifically, such equality types are known as
+\emph{paths} in the literature. If an equality between two terms is seen as a
+line, then we may construct an equality between two lines to produce a square.
+This process may be iterated to produce cubes, hypercubes, etc, justifying the
+name of the type theory. Cubical Agda introduced the interval type as a
+primitive with two endpoints \fn{i0 : I} and \fn{i1 : I}. Unlike normal types,
+pattern matching on an interval variable is disallowed. The type of homogeneous
+equality is represented by $\equiv$ with the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 _@$\equiv$@_ : {A : Set @$\ell$@} @$\rightarrow$@ A @$\rightarrow$@ A @$\rightarrow$@ Set @$\ell$@
@@ -1333,6 +1336,8 @@ it implies that \fn{$\lambda$ x $\rightarrow$ f x} is definitionally equal to
 %% \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 %% PathP : @$\forall$@ {@$\ell$@} (A : I @$\rightarrow$@ Set @$\ell$@) @$\rightarrow$@ A i0 @$\rightarrow$@ A i1 @$\rightarrow$@ Set @$\ell$@
 %% \end{minted}
+
+\subsection{Higher Inductive Types}
 
 HITs are a generalisation of inductive types that has been popularised by
 homotopy type theory\cite{HoTTbook}. Aside from the usual term constructors of
@@ -1500,10 +1505,10 @@ setting. Depending on the context, a term \fn{Pair x y} may be treated as a term
 of type of \fn{Pair a} or of \fn{UnorderedPair a} due to subtyping, i.e.\ the
 quotient of a base type is a subtype of the base type. Suppose that we would
 like to eliminate a term of type \fn{UnorderedPair a}, unsurprisingly we start
-off by defining a function \fn{f::Pair a -> b}\footnote{\fn{a::A} is the syntax
-used in Haskell to say that the term \id{a} has type \id{A}.}. If \id{f}
+off by defining a function \fn{f :: Pair a -> b}\footnote{\fn{a::A} is the
+syntax used in Haskell to say that the term \id{a} has type \id{A}.}. If \id{f}
 respects the equations introduced by \fn{UnorderedPair a}, then Quotient Haskell
-would allow us to treat \id{f} as a function of type \fn{f::UnorderedPair a ->
+would allow us to treat \id{f} as a function of type \fn{f :: UnorderedPair a ->
   b}, more specifically it would allow \id{f} to be \emph{refined} over
 unordered pairs. In some cases, such proofs may even be automatically discharged
 by the SMT solver. For instance, if we were dealing with pairs of integers and
@@ -2091,9 +2096,17 @@ TODO:\ I'm leaning towards adding it anyway for completeness' sake
 %% Note: Hmm good point, probably not for any particular reason since i0 and i1
 %% are symmetrical for all intents and purposes
 
-We present the one and only elimination rule of our \type{Interval} type. It is
-largely inspired by the (generalised) transport operation used in Cubical
-Agda\cite{vezzosi2021cubical}. It has the following typing rule:
+We present a special elimination principle of our interval type. It is designed
+to be a primitive upon which we would like to redefine the cast operation shown
+in \autoref{sec:typer-old-eq}. Consider some term \id{x}, an equality proof
+\id{p}, and an expression \fn{Eq\_cast (p := p) (f := id) x} which we denote as
+\id{y}. It makes sense to say that \id{x} and \id{y} are related, although they
+are not (necessarily) of the same type, they should still in some sense be
+`equal'. The elimination principle that we implement aims to kill two birds with
+one stone, not only does it implement the transport operation, it will
+eventually also allow us to prove a heterogeneous equality between \id{x} and
+\id{y}. It is largely inspired by the (generalised) transport operation used in
+Cubical Agda\cite{vezzosi2021cubical}. It has the following typing rule:
 
 \begin{prooftree*}
   \hypo{\oftype{\ctx}{\id{A}}{\bI \Rrightarrow \type{Type}}}
@@ -2101,14 +2114,25 @@ Agda\cite{vezzosi2021cubical}. It has the following typing rule:
   \hypo{\oftype{\ctx}{\id{r}}{\bI}}
   \infer3{\oftype{\ctx}
                  {\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{r}})}}
-                 {\Funapp{\id{A}}{(\earg{\Funapp{\id{I\_not}}{\id{r}}})}}}
+                 {\Funapp{\id{A}}{(\earg{\id{r}})}}}
+\end{prooftree*}
+
+And the following reduction rules:
+
+\begin{prooftree*}
+  \infer0{\Funapp{\id{I\_transp}}{\id{A}}{\ileft}{\id{a}} \rightsquigarrow \id{a}}
+\end{prooftree*}
+
+\begin{prooftree*}
+  \hypo{\Funapp{\id{A}}{(\earg{\ileft})} \simeq{} \Funapp{\id{A}}{(\earg{\iright})}}
+  \infer1{\Funapp{\id{I\_transp}}{\id{A}}{\iright}{\id{a}} \rightsquigarrow \id{a}}
 \end{prooftree*}
 
 We claim that this is a generalised version of the transport operation as the
 argument \id{r} dictates when \id{I\_transp} should behave like the identity
-function. This is the case when $\id{r} = \id{i}_1$, the type of
-$\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_1})}$ is
-$\Funapp{\id{A}}{(\earg{\id{i}_0})}$, i.e.\ this is coherent with its behaviour
+function. This is the case when $\id{r} = \id{i}_0$, the type of
+$\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_0})}$ is
+$\Funapp{\id{A}}{(\earg{\id{i}_1})}$, i.e.\ this is coherent with its behaviour
 as the identity function on \id{a}.
 
 %% SM: Don't make such comments about details of Agda's rule
@@ -2124,44 +2148,31 @@ as the identity function on \id{a}.
 %% above expression to typecheck. This is primarily because the ultimate return
 %% type of the function is dependent on $\id{r}$ itself.
 
-When $\id{r} = \id{i}_0$, then the type of
-$\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_0})}$ is
-$\Funapp{\id{A}}{(\earg{\id{i}_1})}$, this gives us a function that transports
-an expression of type $\Funapp{\id{A}}{(\earg{\id{i}_0})}$ to type
-$\Funapp{\id{A}}{(\earg{\id{i}_1})}$. We shall make use of this property
-subsequently to define the actual transport function. The other
-property of the $\id{I\_transp}$ function may appear bizarre at first sight, but
-in reality it allows us to relate the transported value of \id{a} with \id{a}
+When $\id{r} = \id{1}_1$, then the type of
+$\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_1})}$ is
+$\Funapp{\id{A}}{(\earg{\id{i}_1})}$, we thus have a function that transports an
+expression of type $\Funapp{\id{A}}{(\earg{\id{i}_0})}$ to type
+$\Funapp{\id{A}}{(\earg{\id{i}_0})}$. We shall make use of this property
+subsequently to define the actual transport function. The other property of
+$\id{I\_transp}$ allows us to relate the transported value of \id{a} with \id{a}
 itself by allowing us to prove that
-$\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_0})}$ is equal to
+$\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_1})}$ is equal to
 $\id{a}$\footnote{This equality would be heterogeneous as the two terms may not
 have the same type}. Indeed, $\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}$ has the
-type $(\id{r} : \bI) \Rrightarrow
-\Funapp{\id{A}}{(\earg{\Funapp{\id{I\_not}}{\id{r}}})}$ and by evaluating this
-function at both endpoints of $\bI$, we see that we have an equivalent of an
-equality proof between
+type $(\id{r} : \bI) \Rrightarrow \Funapp{\id{A}}{(\earg{\id{r}})}$ and by
+evaluating this function at both endpoints of $\bI$, we see that we have an
+equivalent of an equality proof between
 $\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_0})}$ and \id{a}.
-
-The computational behaviour of the function is as follows:
-
-\begin{prooftree*}
-  \hypo{\Funapp{\id{A}}{(\earg{\ileft})} \simeq \Funapp{\id{A}}{(\earg{\iright})}}
-  \infer1{\Funapp{\id{I\_transp}}{\id{A}}{\ileft}{\id{a}} \rightsquigarrow \id{a}}
-\end{prooftree*}
-
-\begin{prooftree*}
-  \infer0{\Funapp{\id{I\_transp}}{\id{A}}{\iright}{\id{a}} \rightsquigarrow \id{a}}
-\end{prooftree*}
 
 The function is implemented in Typer as a primitive with the following type
 signature:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ A (_ := i0) @$\rightarrow$@ (r : I) @$\Rrightarrow$@ A (_ := I_not r)
+I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ A (_ := i0) @$\rightarrow$@ (r : I) @$\Rrightarrow$@ A (_ := r)
 \end{minted}
 
 Its implementation is simple in that it simply returns the argument $\id{a}$
-untouched when \id{r} is a canonical value of \id{Interval}.
+untouched when \id{r} is a canonical value of $\bI$.
 
 \subsection{Equality type}\label{sec:identity}
 
@@ -2471,10 +2482,15 @@ or briefly touch on it at the very end.
 
 \section{Quotient Types}\label{ch:quot}
 
-%% TODO: change this to section when I move this
 In this section, we introduce our implementation of quotient types in Typer. We
-first describe the syntax of the new constructs followed by their typing and
-computation rules.
+opted for an implementation more or less in accordance with the rules presented
+by Hoffman\cite[Chap~5.1.5]{hofmann1995extensional}. This may be seen as a
+compromise as our quotient types do not benefit from the convenience that one
+gets with HITs and QITs that allow the definition of arbitrary equation
+constructors. Our minimalistic approach provides an implementation of quotient
+types that is sufficient for general programming without requiring an extensive
+overhaul of the existing system. In the rest of this section, we describe the
+syntax of the new constructs followed by their typing and computation rules.
 
 \subsection{Syntax}
 
@@ -2774,11 +2790,11 @@ aforementioned section, we now define it in terms of the interval primitive,
 Eq_cast : (x y : ?A) |$\Rrightarrow$| (p : x |$\equiv$| y) |$\Rrightarrow$| (f : ?A |$\rightarrow$| Type) |$\Rrightarrow$| f x |$\rightarrow$| f y
 Eq_cast A x y p f fx =
   I_transp (A := |$\lambda$| t |$\Rrightarrow$| f (Eq_uneq (t := t) (p := p) (i := i)))
-           fx (r := |$\ileft$|)
+           fx (r := |$\iright$|)
 \end{minted}
 
 Here, we make use of the built-in function $\id{I\_transp}$ by passing it the
-argument $\earg{\id{r}}{\ileft}$, intending it to behave as a transport
+argument $\earg{\id{r}}{\iright}$, intending it to behave as a transport
 function. In other words, by passing it something of type
 $\Funapp{\id{f}}{\id{x}}$, it returns something of type
 $\Funapp{\id{f}}{\id{y}}$, which is precisely what the transport function is
@@ -2792,8 +2808,24 @@ illustrated in the following proof.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
 Eq_cast_refl : (A : Type) |$\Rrightarrow$| (x : A)
-               |$\rightarrow$| Eq_cast (p := Eq_refl (x := x)) (f := |$\lambda$| _ |$\rightarrow$| A) x |$\equiv$| x
+               |$\rightarrow$| Eq_cast (p := Eq_refl (x := A)) (f := id) x |$\equiv$| x
 Eq_cast_refl A x = Eq_refl
+\end{minted}
+
+The above is possible because of the first reduction rule of \id{I\_transp},
+allowing us to recover the reduction rule of Typer's existing implementation of
+\id{Eq\_cast} as presented in \autoref{sec:typer-old-eq}. With cubical equality,
+this property is not restricted to reflexivity, it may be generalised to
+arbitrary equality proofs by using the special property of \id{I\_transp}.
+
+%% NOTE: Not sure what to name this
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+h : (p : ?A @$\equiv$@ ?B) @$\rightarrow$@ (x : ?A)
+    @$\Rrightarrow$@ Heq (t := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := p) (i := i)) x (Eq_cast (p := p) (f := id) x)
+h p x = Heq_eq (t := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := p) (i := i))
+               (f := @$\lambda$@ i @$\Rrightarrow$@
+                       I_transp (A := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i j))
+                                x (r := i));
 \end{minted}
 
 %% NOTE: This is just an extra piece of information that may or may not interest
@@ -2815,7 +2847,10 @@ This is also the reason why type-checking is not decidable in ETT as the
 necessity to invoke the above rule is not syntax-directed.
 
 \section{Transitivity}\label{sec:eqtransitivity}
-Continuing our analogy of equality proofs as paths, the transitivity property allows us to concatenate two paths. We join the right endpoint of the first path with the left endpoint of the second path, producing a new path. The proof of this theorem is as follows:
+Continuing our analogy of equality proofs as paths, the transitivity property
+allows us to concatenate two paths. We join the right endpoint of the first path
+with the left endpoint of the second path, producing a new path. The proof of
+this theorem is as follows:
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
 Eq_trans : (x y z: ?t) |$\Rrightarrow$| x |$\equiv$| y |$\rightarrow$| y |$\equiv$| z |$\rightarrow$| x |$\equiv$| z
@@ -3555,8 +3590,8 @@ Multiset_mem disc a s =
         | Quotient_eq a a' r @$\Rightarrow$@ compat a a' r
 \end{minted}
 
-Although this has not be done in this work, another operation that one may find
-useful to have is one that counts how many elements of the multiset are equal to
+Although this has not been done in this work, another operation that one may find
+useful to have counts how many elements of the multiset are equal to
 a certain term of type $\fn{A}$.
 
 \section{Propositional Truncation}
@@ -3699,12 +3734,13 @@ the target type is a $\kw{Prop}$ as was introduced in
 \autoref{subsec:mere-propositions}. We will see that the nature of the function
 $\id{f}$ has no bearing on our proof obligations, as they can be discharged in a
 very systematic way by leveraging the fact that output type is a $\kw{Prop}$.
-First, we need to proof a lemma, $\id{toPathOver}$. Suppose that we have a type
+First, we need to prove a lemma, $\id{toPathOver}$. Suppose that we have a type
 former $\id{A} : \id{I} \Rrightarrow \kw{Type}$ and two terms $\id{x}$ and
 $\id{y}$ of types $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and
 $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ respectively, we get the following
 diagram.
 
+%% FIXME: Fix alignment
 
 \begin{center}
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
@@ -3875,7 +3911,7 @@ provides us with a guarantee that during elimination, the witness $\id{t}$ can
 only be used in an erasable, i.e.\ proof irrelevant manner.
 
 To convince ourselves that this type does indeed capture the essence of a
-proposition, we provide a proof of
+mere proposition, we provide a proof of
 $\Funapp{\id{isProp}}{(\Funapp{\id{Erased}}{?\id{T}})}$. We first state the
 definition of $\id{isProp}$:
 
@@ -3886,6 +3922,8 @@ isProp T = (x y : T) |$\rightarrow$| Eq x y
 
 We now present the proof in the form of Typer code.
 
+%% FIXME: This would no longer work without conv_erase!
+%% I guess we just have to live without this proof?
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 erasedIsProp : (T : Type) @$\Rrightarrow$@ isProp (Erased T)
 erasedIsProp t1 t2 =
@@ -3907,7 +3945,7 @@ branches. In other words, in the first case branch, we do not have a
 definitional equality between $\id{t1}$ and
 $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$. Instead, an equality proof between
 them is injected into the context, which can be accessed as the variable at
-deBruijn index 0. Now that we have the two equality proofs, in order to
+deBruijn index 0. Now that we have the two equality proofs, to
 concatenate them\footnote{By considering equalities as paths, the application of
 the transitivity property of equality is conceptually similar to concatenating
 two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and
@@ -4553,8 +4591,18 @@ manually construct the reflexive, symmetric, and transitive closure of the
 resulting relation. This complicates the underlying relation of the quotient,
 leading to additional proof obligations that are often easily satisfied but
 unnecessary. This may be seen as a glaring disadvantage of our approach as
-opposed to quotient inductive types that allow the direct definition of path
-constructors on inductive types.
+opposed to QITs that allow the direct definition of path constructors on
+inductive types.
+
+HITs and QITs are also strictly more expressive than the combination of ordinary
+inductive types with quotient types\cite{fiore2022quotients}. However, in
+practice, we think that the additional expressivity is often unrequired for
+general programming. The example provided by the aforementioned paper of a QIT
+that we may not trivially define using quotient types in the form of unordered
+infinitely branching trees is indeed not a data type that one would expect to
+make a frequent appearance in daily programming tasks. The simpler
+implementation of our quotient types thus gives us the benefit of preserving the
+modularity of the existing implementation of inductive types in Typer.
 
 The introduction of \id{Quotient\_eq} as an axiom also leads to the absence of a
 desirable computational property. Suppose that the following terms \fn{a : A},
