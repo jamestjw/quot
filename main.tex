@@ -563,15 +563,11 @@ truths. Since equalities are mathematical propositions, we require a type that
 plays the role of equality in mathematical proofs. For instance, we might want
 to state the theorem that the addition of natural numbers is commutative, i.e.
 $\forall xy. \ x + y \equiv y + x$. To this end, our system requires an equality
-type\footnote{In the literature, the terms `equality type', `identity type', and
-`path' are used interchangeably. For our purposes, we shall employ the term
-`equality type', though occasionally we shall use the term `path' to draw an
-%% SM: First occurrence of "HoTT", not yet defined.
-analogy with HoTT.} that allows us to make statements such as the above. Such a
-type provides us with a proposition that can be manipulated like any other. This
-implies that we can manipulate it with other operations such as logical
-negation, conjunction, disjunction, etc. What we have just described is what is
-commonly known as \emph{propositional equality}.
+type that allows us to make statements such as the above. Such a type provides
+us with a proposition that can be manipulated like any other. This implies that
+we can manipulate it with other operations such as logical negation,
+conjunction, disjunction, etc. What we have just described is what is commonly
+known as \emph{propositional equality}.
 
 %% TODO: I could add one more example if something good comes to mind.
 %% SM: A bit of motivation for why we care about proofs in programs
@@ -644,20 +640,23 @@ Eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\rightarrow$@ Type
 Just like $\id{arrayGet}$, $\id{Eq}$ is a function. However, instead of
 returning values, it returns types. Since this type of function constructs
 types, it is also known as a type former. $\id{Eq}$ takes as arguments a type
-$\id{A}$ and two terms $\id{x}$ and $\id{y}$ of type $\id{A}$. The usage of
-$\Rrightarrow$ indicates that the parameter $\id{A}$ is implicit and erasable,
-this is explained in greater detail in \autoref{sec:eq-justification}. Recall
-that types may be seen as propositions, the type $\fn{Eq x y}$\footnote{For
-aesthetic purposes, we shall use the operator $\equiv$ to represent the
-$\kw{Eq}$ type throughout the rest of this work, i.e.\ we write $\fn{Eq x y}$ as
-$\fn{x $\equiv$ y}$.} is thus a proposition that $\fn{x}$ and $\fn{y}$ are
-equal, and its terms are proofs of this proposition.
+$\id{A}$ and two terms $\id{x}$ and $\id{y}$ of type $\id{A}$. Whenever we have
+two parameters in a row that have the same type, we use the shorthand notation
+\fn{(x y $\colon$ A)} instead of the more verbose \fn{(x $\colon$ A)
+  $\rightarrow$ (y $\colon$ A)}. The usage of $\Rrightarrow$ indicates that the
+parameter $\id{A}$ is implicit and erasable, this is explained in greater detail
+in \autoref{sec:eq-justification}. Recall that types may be seen as
+propositions, the type $\fn{Eq x y}$\footnote{For aesthetic purposes, we shall
+use the operator $\equiv$ to represent the $\kw{Eq}$ type throughout the rest of
+this work, i.e.\ we write $\fn{Eq x y}$ as $\fn{x $\equiv$ y}$.} is thus a
+proposition that $\fn{x}$ and $\fn{y}$ are equal, and its terms are proofs of
+this proposition.
 
 We could then construct the type that stipulates that the addition of natural
 numbers is commutative by using the $\kw{Eq}$ type former.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Nat+_comm : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m
+Nat+_comm : (m n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m
 \end{minted}
 
 $\fn{Nat+\_comm}$ takes 2 natural numbers $\fn{m}$ and $\fn{n}$ as arguments and
@@ -711,23 +710,30 @@ use a term of type \fn{Vector A (n + m)} in place of one of type \fn{Vector A
 may then use it to cast vectors between those two types. This is achieved by
 defining a function like the one below:
 
-%% SM: The `?A` and `:=` notations need to be briefly explained.
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Vlength_comm+ : (m n : Nat) @$\Rrightarrow$@ Vector ?A (m + n) @$\rightarrow$@ Vector ?A (n + m)
 Vlength_comm+ = @$\lambda$@ A m n @$\Rrightarrow$@ Eq_cast (p := Nat+_comm m n) (f := Vector A)
 \end{minted}
 
+The \id{?A} notation when used in a type allows us to say that we want the
+variable \id{A} to be defined as an implicit argument of the function, allowing
+us to write more succinct types. In this case, the type signature is expanded to
+\fn{(A $\colon$ ?) $\Rrightarrow$ (m n $\colon$ Nat) $\Rrightarrow$ Vector A (m
+  + n) $\rightarrow$ Vector A (n + m)}. Here, the type of \id{A} is a
+metavariable that will be initialised to \id{Type} through unification.
 \fn{Vlength\_comm+} is a function that converts a vector of type \fn{Vector A (m
-  + n)} to one of type \fn{Vector A (n + m)}. By making use of a proof that
-\fn{m + n $\equiv$ n + m}, we can perform type casting on a vector of
-type \fn{Vector A (m + n)} to produce a vector of the desired type. If we had a data
-type of matrices indexed by their dimensions, the cast operation might also be
-necessary to ensure the appropriate alignment of dimensions when working with a
-function that calculates matrix products. The equality type satisfies Leibniz's
-principle of the indiscernibility of identicals, i.e.\ two identical things may
-be substituted for one another. \fn{Eq\_cast} is thus of the fact that if two
-terms are equal, then if a predicate is true of the first term, it is
-necessarily also true for the other.
+  + n)} to one of type \fn{Vector A (n + m)}. When calling a function, we might
+want to explicitly instantiate an implicit argument, we do so using the \fn{(x
+  := y)} notation that instantiates the implicit argument \id{x} with the term
+\id{y}. By making use of a proof that \fn{m + n $\equiv$ n + m}, we can perform
+type casting on a vector of type \fn{Vector A (m + n)} to produce a vector of
+the desired type. If we had a data type of matrices indexed by their dimensions,
+the cast operation might also be necessary to ensure the appropriate alignment
+of dimensions when working with a function that calculates matrix products. The
+equality type satisfies Leibniz's principle of the indiscernibility of
+identicals, i.e.\ two identical things may be substituted for one another.
+\fn{Eq\_cast} is thus of the fact that if two terms are equal, then if a
+predicate is true of the first term, it is necessarily also true for the other.
 
 Now that we have seen how equality proofs may be used in programs, the next
 question that ought to be answered is how are such terms introduced. The one and
@@ -770,6 +776,7 @@ Typer and its role in the elimination of quotients.
 %% sections instead.
 \subsection*{Cubical Equality}
 
+%% TODO: Mention and define at the very start here so I can refer to it later
 Recent advances in type theory inspired by topology propose a different approach
 to represent equality proofs by modeling them as functions whose argument is of
 the interval type, i.e.\ functions of the type \fn{I $\rightarrow$ A} given that
@@ -779,7 +786,7 @@ alternative formulation of equality proofs, equality is viewed as a continuous
 path along the unit interval that connects two equal terms. The return value of
 such functions is not allowed to directly depend on the value of the interval
 argument. For instance, the function may not do a case analysis on the interval
-and return a different term of type A depending on which endpoint of the
+and return a different term of type \id{A} depending on which endpoint of the
 interval is encountered. This essentially implies that such a function would
 indeed be constant on the unit interval and aptly respects the requirements of
 an equality proof. An equality type based on the interval also allows us to
@@ -787,28 +794,27 @@ derive many proofs regarding the equality type in an alternative manner that is
 much cleaner and more elegant. It also allows us to derive new theorems
 regarding the equality type that are desirable, such as functional
 extensionality. This flavour of equality was first conceived in cubical type
-theories to provide a computational interpretation of the univalence
-axiom\cite{bezem2014model}. This allows the encoding of equivalences as
-equalities. This is much like what is done in informal mathematics where objects
-with equivalent structures are just taken to be the ``the same''.
+theories\cite{bezem2014model} to provide a computational interpretation of
+homotopy type theory (HoTT)\cite{HoTTbook}.
 
-%% SM: Second occurrence of HoTT, still not defined.
-Encoding equivalences as equalities is the bread and butter of univalence. It is
-thus crucial that equality proofs are not irrelevant in a HoTT setting, as their
-equalities could be constructed based on equivalences and thus have a
-computational role. As a general-purpose programming language, Typer has no
-ambitions of supporting univalence. Thus, it is desirable for equality proofs in
-Typer to remain irrelevant so that they may be erased before runtime. This is
-essential so that operations involving the equality type may be treated as
-no-ops during runtime. If all equality proofs are merely reflexivity proofs in
-disguise (?), then type casts using the \fn{Eq\_cast} primitive simply behave
-like the identity function at runtime as we would merely need to cast a term to
-its own type. This is in stark contrast to equalities that are equivalences, a
-cast at runtime would involve applying the underlying function of the
-equivalence, i.e.\ casting involves computation. In our work, we carefully adapt
-the cubical equality type to Typer to reap the benefits of having a more
-powerful equality type, all while preserving our equality type's compatibility
-with proof irrelevance.
+One of the key ideas introduced by HoTT is the univalence axiom which suggests
+that equivalences may be encoded as equalities. This is much like what is done
+in informal mathematics where objects with equivalent structures are just taken
+to be the ``the same''. It is thus crucial that equality proofs are not
+irrelevant in a HoTT setting, as their equalities could be constructed based on
+equivalences and thus have a computational role. As a general-purpose
+programming language, Typer has no ambitions of supporting univalence. Thus, it
+is desirable for equality proofs in Typer to remain irrelevant so that they may
+be erased before runtime. This is essential so that operations involving the
+equality type may be treated as no-ops during runtime. If all equality proofs
+may be evaluated to reflexivity proofs , then type casts using the \fn{Eq\_cast}
+primitive simply behave like the identity function at runtime as we would merely
+need to cast a term to its own type. This is in stark contrast to equalities
+that are equivalences, a cast at runtime would involve applying the underlying
+function of the equivalence, i.e.\ casting involves computation. In our work, we
+carefully adapt the cubical equality type to Typer to reap the benefits of
+having a more powerful equality type, all while preserving our equality type's
+compatibility with proof irrelevance.
 
 \section{Quotients}
 
@@ -1283,7 +1289,7 @@ _@$\equiv$@_ : {A : Set @$\ell$@} @$\rightarrow$@ A @$\rightarrow$@ A @$\rightar
 Readers that are not familiar with \Agda{} are reminded that \fn{\_$\equiv$\_}
 means that $\equiv$ is an infix operator\footnote{The underscores indicate where
 the arguments should go, in this case, there should be an argument before and
-after the $\equiv$ operator.}. We mention as well that parameters that are
+after the $\equiv$ operator. Subsequently, we shall use the same convention when introducing operators.}. We mention as well that parameters that are
 %% SM: In my world "brackets" are square, so either say "curly brackets"
 %% or "braces".
 within brackets are implicit, i.e.\ to be inferred. So if we have two terms
@@ -1851,17 +1857,16 @@ proof of reflexivity that \id{x} is equal to itself to obtain what we require.
 
 \section{Cubical Equality}
 
-%% SM: "higher inductive type" is not yet defined.
-%% SM: "the HoTT book": Maybe that book is famous for us, but this might
-%% be the first time the reader hears about it.
 We first present the typical definition of the \emph{interval type} defined as a
 higher inductive type as can be found in various sources such as the HoTT
-book\cite[Chap~6.3]{HoTTbook}. We subsequently present our alternative
-formulation of the interval type and show that it is equivalent to the
-traditional definition. Finally, we define \emph{cubical} equality, a different
-take on the equality type, based on the aforementioned interval type.
+book\cite[Chap~6.3]{HoTTbook}, a recent work that describes the fundamental
+concepts of HoTT and innovations in mathematics made possible by univalent
+foundations. We subsequently present our alternative formulation of the interval
+type and show that it is equivalent to the traditional definition. Finally, we
+define \emph{cubical equality}, a different take on the equality type, based on
+the aforementioned interval type.
 
-\subsection{Interval type}
+\subsection{Interval type}\label{sec:interval-introduction}
 
 In this section, we base our definitions on the assumption that we have an
 existing equality type as was described in \autoref{sec:intro-eq}, i.e.\ that we
@@ -1902,17 +1907,12 @@ to \emph{eliminate} a term of the inductive type \id{A} to some other type
 \kw{else} branches should both have a term of some type \id{B}. The elimination
 of $\bI$ is similar to that of \id{Boolean}, the only difference is that we need
 to prove that $\id{seg} : \eqtype{i_0}{i_1}$ is respected. We define the
-elimination principle of $\bI$ using the \fn{elim$_{\bI}^{\_.A}$ (M, N, P, i)}
-%% SM: $\_.A$ is the motive but not the *type*: only A is the type.
-%% SM: Maybe it would be better to just use "A" without the "_." at this
-%% point and adjust the syntax later if/when you need dependent elimination.
-%% Because at this stage some readers will be very confused, a bit as
-%% if you had written "because we're only dealing with wet water".
-syntax. $\_.A$ is the \emph{motive} of the elimination, i.e.\ the type we wish
-to eliminate to. The underscore indicates that the output type does not depend
-on the interval term \id{i} that we wish to eliminate. \id{M} and \id{N} are
-what we would like the output of the elimination to be when \id{i} is equal to
-$\ileft$ and $\iright$ respectively, this is analagous to what we would place in
+elimination principle of $\bI$ using the \fn{elim$_{\bI}^{A}$ (M, N, P, i)}
+syntax. $A$ is the \emph{motive} of the elimination, i.e.\ the type we wish to
+eliminate to. The underscore indicates that the output type does not depend on
+the interval term \id{i} that we wish to eliminate. \id{M} and \id{N} are what
+we would like the output of the elimination to be when \id{i} is equal to
+$\ileft$ and $\iright$ respectively, this is analogous to what we would place in
 the \kw{then} and \kw{else} branches during \id{Boolean} elimination. \id{P} is
 a proof that \id{M} and \id{N} are equal, thus ensuring that the elimination is
 coherent. More formally, the typing rule of the elimination rule may be stated
@@ -1922,16 +1922,16 @@ as follows:
    \hypo{\oftype{\ctx}{M}{A}}
    \hypo{\oftype{\ctx}{N}{A}}
    \hypo{\oftype{\ctx}{P}{\eqtype{M}{N}}}
-   \infer3{\oftype{\ctx, \oftype{i}{\bI}}{elim_{\bI}^{\_.A} (M, N, P, i)}{A}}
+   \infer3{\oftype{\ctx, \oftype{i}{\bI}}{elim_{\bI}^{A} (M, N, P, i)}{A}}
 \end{prooftree*}
 
 %% SM: Try and give some intuition for what I is like.
 It has the below computation rules:
 
 \begin{align*}
-  & elim_{\bI}^{\_.A}(M, N, P, \ileft) \rightsquigarrow{} M \\
-  & elim_{\bI}^{\_.A}(M, N, P, \iright) \rightsquigarrow{} N \\
-  & \kw{cong}_{elim_{\bI}^{\_.A}(M, N, P)}(\id{seg}) \rightsquigarrow{} P
+  & elim_{\bI}^{A}(M, N, P, \ileft) \rightsquigarrow{} M \\
+  & elim_{\bI}^{A}(M, N, P, \iright) \rightsquigarrow{} N \\
+  & \kw{cong}_{elim_{\bI}^{A}(M, N, P)}(\id{seg}) \rightsquigarrow{} P
 \end{align*}
 
 \kw{cong} refers to the congruence property of equality, if we have a proof
@@ -1943,13 +1943,13 @@ expanding out definitions. So when we say that $elim_{\bI}^{_.A}(M, N , P,
 reduces to the latter when we check for equality. If we imagine that the first
 two computation rules were defined via pattern-matching, it would make sense for
 these equations to hold definitionally. The third rule is a more curious case,
-by the congruence of equality, the application of the $\kw{Interval}$ eliminator
-with the equality proof $\id{P}$ to $\id{seg}$ should yield an equality proof
-between $\id{M}$ and $\id{N}$. The rule suggests that this should compute to
-$\id{P}$ itself. From a computational point of view, equalities between equality
-proofs are only an important consideration in a proof-relevant setting, e.g.\ in
-the context of HoTT. In the world of Typer where we demand that equality proofs
-be erasable and play no role during computation, such equalities are less
+by the congruence of equality, the application of the interval eliminator with
+the equality proof $\id{P}$ to $\id{seg}$ should yield an equality proof between
+$\id{M}$ and $\id{N}$. The rule suggests that this should compute to $\id{P}$
+itself. From a computational point of view, equalities between equality proofs
+are only an important consideration in a proof-relevant setting, e.g.\ in the
+context of HoTT\@. In the world of Typer where we demand that equality proofs be
+erasable and play no role during computation, such equalities are less
 meaningful. However, they are not completely irrelevant as we occasionally need
 %% SM: You haven't mentioned this notion of "coherence" yet.
 to construct such proofs for coherence purposes. In most cases, the third
@@ -1958,7 +1958,7 @@ independently and it would be highly unusual to separately define how it should
 compute on new constructs such as the interval type. In cases where we are
 %% SM: Why should we?  What happens if we don't?
 unable to make the third rule hold definitionally, we should then postulate a
-propositional equality between $\kw{cong}_{elim_{\bI}^{\_.A}(M, N,
+propositional equality between $\kw{cong}_{elim_{\bI}^{A}(M, N,
   P)}(\id{seg})$ and P.
 
 \subsection{Motivation}
@@ -1990,15 +1990,15 @@ The following type is inhabited:
 
 \end{theo}
 
-%% SM: You should maybe also discuss if that means we don't need the equality
-%% type (which we presumed as pre-existing) any more.
-We provide a proof of the above in Appendix~\ref{app:proof-i->a-equiv}.
+We provide a proof of the above in Appendix~\ref{app:proof-i->a-equiv}. By
+establishing the above equivalence, we no longer require the $\_\equiv\_$ type
+former that we assume we had in \autoref{sec:interval-introduction} as we may
+represent the equality type using functions out of the interval.
 
-%% SM: Why is this called "Justification"?
-\subsection{Justification}\label{sec:eq-justification}
+\subsection{Adaptation to Typer}\label{sec:eq-justification}
 We have established in the previous section that equality between two terms is
-equivalent to a function out of the interval. We have also illustrated that the
-output of such a function has to agree at both endpoints of the interval. This
+equivalent to a function out of the interval. Its defining characteristic is
+that the output of such a function has to agree at both endpoints of $\bI$. This
 is enforced by the elimination principle of the $\bI$ that ensures that \id{seg}
 is respected. An alternate way of enforcing this is by using functions with
 erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a type with two distinct
@@ -2007,9 +2007,8 @@ that is marked as erasable has no computational role during runtime. Within the
 function body, such an argument may only be used in an \emph{erasable} manner,
 for instance, it may be used in the computation of an expression that is passed
 as an erasable argument to yet another function. In other words, we can first
-define the \id{Interval} type as a normal algebraic data type. Next, we can
-model the equality type as a function with an erasable argument out of the
-\id{Interval} type.
+define the interval type as a normal algebraic data type. Next, we can model the
+equality type as a function with an erasable argument out of the interval type.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 type I
@@ -2026,10 +2025,12 @@ h : I @$\Rrightarrow$@ A
 %% SM: Not sure if "vacuously", since it depends on whether we were careful
 %% enough to define "erasable" appropriately.  It's not 100% trivial.
 In Typer, we use $\Rrightarrow$ to denote erasable arguments in function types.
-It is vacuously true that $\eqtype{h(i_0)}{h(i_1)}$ since what is returned by
-the function could not have been influenced by the argument that was passed to
-it because the argument is erasable. With that, we can postulate the following
-equivalence.
+%% FIXME: h(i_0) and h(i_1) are indeed not necessarily definitionally equal,
+%% making this claim a little dubious (especially after we implement
+%% Quotient_eq)
+It is true that $\eqtype{h(i_0)}{h(i_1)}$ since what is returned by the function
+could not have been influenced by the argument that was passed to it because the
+argument is erasable. With that, we can postulate the following equivalence.
 
 \begin{align*}
   & \bI \Rrightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} .
@@ -2558,47 +2559,65 @@ compromise as our quotient types do not benefit from the convenience that one
 gets with HITs and QITs that allow the definition of arbitrary equation
 constructors. Our minimalistic approach provides an implementation of quotient
 types that is sufficient for general programming without requiring an extensive
-overhaul of the existing system. In the rest of this section, we describe the
-syntax of the new constructs followed by their typing and computation rules.
+overhaul of the existing system. In the rest of this section, we give an
+abstract presentation of the syntax of the new constructs followed by their
+typing and computation rules. We then show how the above is adapted to Typer
+code.
 
-\subsection{Syntax}
+\subsection{Syntax}\label{sec:quot-syntax}
 
-We extend Typer's syntax of terms with our new constructs:
+%% TODO: Do this for other sections too! Starting with eq to show some syntax
+We extend the abstract language that we have been working with so far with our
+new constructs:
 
 \setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
 \setlength{\grammarindent}{4em} % increase separation between LHS/RHS
 
-%% Make the angle brackets go away
 %% SM: BTW, I completely forgot about it, but the convention we usually
 %% use in Type is to use capitalized names for types, non-capitalized
 %% names for constants and functions, and to use the same name for a type
 %% and for its constructor (modulo capitalization) if there's only one
 %% constructor.  So `Quotient_in` could be `quotient`.
+
+%% Make the angle brackets go away
 \renewcommand{\syntleft}{}
 \renewcommand{\syntright}{}
 \begin{grammar}
 <\id{T}> ::= \ldots
-\alt{} \fn{Quotient T T}
-\alt{} \fn{Quotient_in T}
-\alt{} \fn{Quotient_eq T}
-\alt{} \fn{Quotient_elim T T T}
+\alt{} \fn{Quotient T$_{A}$ T$_{R}$}
+\alt{} \fn{Quotient_in T$_{R}$ T$_{a}$}
+\alt{} \fn{Quotient_eq T$_{r}$}
+\alt{} \fn{Quotient_elim T$_{f}$ T$_{p}$ T$_{q}$}
 \end{grammar}
 
 We added a new \id{Quotient} type former, we can construct a quotient type using
 the \fn{Quotient A R} syntax. Here, \id{A} is the base type of the quotient and
 \id{R} is a binary relation defined on \id{A}. In order to project a term \id{a}
-into the quotient \fn{Quotient A R}, we use the syntax \fn{Quotient\_in a}. The
-%% SM: It's not at all clear here how/where R is specified in the projection.
-projection requires us to specify what the underlying relation of the quotient
-should be. Given that we have some evidence \id{r} that two terms \id{a$_1$} and
-\id{a$_2$} are related by some quotient, we can construct an equality proof that
-says that their projections into a quotient based on the aforementioned relation
-are equal using the \fn{Quotient\_eq r} syntax. Finally, the elimination of a
-term \id{q} of a quotient type is done using the syntax \fn{Quotient\_elim f h
-  q} where \id{f} is a function out of the base type and \id{h} is proof that
-\id{f} is compatible with the underlying relation of the quotient.
+into the quotient \fn{Quotient A R}, we use the syntax \fn{Quotient\_in R a}.
+The projection requires us to specify what the underlying relation of the
+quotient should be. Given that we have some evidence \id{r} that two terms
+\id{a$_1$} and \id{a$_2$} are related by some quotient, we can construct an
+equality proof that says that their projections into a quotient based on the
+aforementioned relation are equal using the \fn{Quotient\_eq r} syntax. Finally,
+the elimination of a term \id{q} of a quotient type is done using the syntax
+\fn{Quotient\_elim f h q} where \id{f} is a function out of the base type and
+\id{h} is proof that \id{f} is compatible with the underlying relation of the
+quotient.
 
 %% SM: A (very) small&simple example would be welcome here.
+For instance, we could define the integers as a quotient \fn{Z = Quotient (Nat
+  $\times$ Nat) R$_Z$}\footnote{The \fn{_$\times$_} syntax that we use is a
+shorthand for the $\Sigma$ type when the second projection does not depend on
+the first.} with \fn{R$_Z$ = $\lambda$ <a , b> <c , d> $\rightarrow$ a + d
+  $\equiv$ c + b} . For instance, we can construct the integer 0 using the
+syntax \fn{Quotient\_in R$_Z$ <0 , 0>}. We can also construct a proof that the
+pair \fn{<1 , 1>} would also correspond to the integer 0 by using the fact that
+natural number addition is commutative like so: \fn{Quotient\_eq (Nat+\_comm 0
+  1) : Quotient\_in R$_Z$ <0 , 0> $\equiv$ Quotient\_in R$_Z$ <1 , 1>}. Finally,
+we may want to eliminate an integer \id{z} by negating it, for brevity, we omit
+the full coherence proof term \id{p}, yielding the following term:
+\fn{Quotient\_elim ($\lambda$ <a , b> $\rightarrow$ Quotient\_in R$_Z$ <b , a>)
+  p q}.
 
 \subsection{Typing rules}
 
@@ -2632,22 +2651,14 @@ Now, we present the typing rules of the primitives introduced above.
 The $\kw{Quotient}$ type former is a function which takes a base type $\id{A}$
 along with a relation $\id{R}$ as arguments. At this stage, just like
 in\cite{hofmann1995simple}, we do not require the relation to be an equivalence
-relation, though to define a meaningful quotient type, the above requirement is
-%% SM: The reader may not know what is a "mere proposition" yet.
-often necessary. We also do not enforce that the relation be a mere proposition,
-%% SM: Maybe it's not worth mentioning this here, since we'd have to explain
-%% also what is the significance of being effective.
-however as we will see in \autoref{ch:quotient-effectiveness}, this is required
-for the quotient to be \emph{effective}. We say that a quotient is effective if
-it is the case that when the projections of two terms into a quotient are equal,
-then the two terms are necessarily also related by the underlying relation of
-the said quotient.
+relation, however, our experience tells us that the above requirement is often
+necessary to define a meaningful quotient type.
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{a}}{\id{A}}}
    \hypo{\oftype{\ctx}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}
                       {\kw{Type}}}
-   \infer2[\textsc{Quot-Intro-In}]{\oftype{\ctx}{\Funapp{\id{Quotient\_in}}{\id{a}}}
+   \infer2[\textsc{Quot-Intro-In}]{\oftype{\ctx}{\Funapp{\id{Quotient\_in}}{\id{R}}{\id{a}}}
    %% \infer2[\textsc{Quot-Intro-In}]{\oftype{\ctx}{\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}}}
                                          {\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}}
 \end{prooftree*}
@@ -2661,20 +2672,19 @@ quotient of type \fn{Quotient A R} defined on some relation \id{R}.
    \hypo{\oftype{\ctx}{\id{r}}{\Funapp{\id{R}}{\id{a}_1}}{\id{a}_2}}
    \infer3[\textsc{Quot-Intro-Eq}]{
 \oftype{\ctx}{\Funapp{\id{Quotient\_eq}}{\id{r}}}
-             {\Funapp{\id{Quotient\_in}}{\id{a}_1} \equiv \Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}_2}}}
+             {\Funapp{\id{Quotient\_in}}{\id{R}}{\id{a}_1} \equiv{} \Funapp{\id{Quotient\_in}}{\id{R}}{\id{a}_2}}}
 \end{prooftree*}\label{quot-intro-eq-rule}
 
-%% SM: Better name the relation than refer to it via "aforementioned".
 By definition, given that two terms $\id{a}_1$ and $\id{a}_2$ of type $\id{A}$
-are related by some relation, then the projections of these two terms into a
-quotient under the aforementioned relation should be equal. $\id{Quotient\_eq}$
+are related by some relation \id{R}, then the projections of these two terms
+into a quotient under the relation \id{R} should be equal. $\id{Quotient\_eq}$
 is a witness of the above property.
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{P}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}} \rightarrow \kw{Type}}}
    \hypo{\oftype{\ctx}{\id{q}}{\Funapp{\id{Quotient}}{\id{A}}{\id{R}}}}
    \infer[no rule]2{\oftype{\ctx}{\id{f}}
-                           {(\oftype{\id{a}}{\id{A}}) \rightarrow \Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{a}})}}}
+                           {(\oftype{\id{a}}{\id{A}}) \rightarrow \Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{R}}{\id{a}})}}}
    \infer[no rule]1{\oftype{\ctx}{\id{h}}{(\oftype{\id{a}_1 \ \id{a}_2}{\id{A}})
                                           \rightarrow \Funapp{\id{R}}{\id{a}_1}{\id{a}_2}}
                                           \rightarrow \Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}_1})}
@@ -2686,37 +2696,38 @@ is a witness of the above property.
 We would like to enable the dependent elimination of quotients, in other words,
 we would like to be able to eliminate a term of some quotient type
 $\Funapp{\id{Quotient}}{\id{A}}{\id{R}}$ to some type family $\id{P}$ that is
-indexed by the quotient type itself. For instance, we could define the type of
-integers as the quotient of pairs of natural numbers, which we denote by \fn{Z =
-  Quotient (Nat $\times$ Nat) R} for some appropriate \id{R}. We might want to
-%% SM: Some readers will think here "oh a thing that returns a boolean"...
-define a function that determines whether a certain integer is positive,
-%% SM: ... and then be stumped by "Dec" which is unknown to them.
-%% IOW, it's a good example, but you need to explain "Dec" first.
-i.e.\ of type \fn{(z:Z) $\rightarrow$ Dec (isPos z)}. This is known as dependent
-elimination as the term that we are trying to eliminate, \id{z}, is itself
-%% SM: I don't understand the "To that end" here.  It seems to refer to
-%% something else than what you just wrote.  It smells like this text has been
-%% moved around and needs to be adjusted to its new context.
-present in the return type. To that end, we require some function $\id{f}$ that
-takes some $\id{a}$ of the base type $\id{A}$ to
+indexed by the quotient type itself. To construct an example of this, we first
+introduce a new definition. A type is said to be \emph{decidable} if we can
+decide whether the type is inhabited or not. In the case where it is inhabited,
+we must have a witness of such an inhabitant. In Typer, decidability can be
+represented by the following inductive type.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+type Dec (A : Type)
+  | yes A
+  | no (A -> False)
+\end{minted}
+
+For this example, we reuse the definition of integers given in
+\autoref{sec:quot-syntax}. We might want to define a function that
+\emph{decides} whether a certain integer is positive, i.e.\ of type \fn{(z:Z)
+  $\rightarrow$ Dec (isPos z)}. This is known as dependent elimination as the
+term that we are trying to eliminate, \id{z}, is itself present in the return
+type. To perform the elimination of a quotient, we require some function
+$\id{f}$ that takes some $\id{a}$ of the base type $\id{A}$ to
 $\Funapp{\id{P}}{(\Funapp{\id{Quotient\_in}}{\id{A}}{\id{R}}{\id{a}})}$. In a
 way, this implies that the function $\id{f}$ has the chance of `looking inside'
 the quotient, and thus we also require a proof that such a function $\id{f}$
 behaves consistently when applied to terms that are related by the underlying
 relation of the quotient. The usage of heterogeneous equality here is necessary
 as $\Funapp{\id{f}}{\id{a}_1}$ and $\Funapp{\id{f}}{\id{a}_2}$ are not
-necessarily of the \textbf{same} type. We note as well that our dependent
-%% SM: This note should probably be moved elsewhere.
-elimination of quotients is not limited to motives that live in the universe of
-\type{Prop}, as opposed to when quotient types are added to a theory interpreted
-in a setoid model as proposed by Li\cite{li2015quotient}.
+necessarily of the \textbf{same} type.
 
 \subsection{Reduction rules}
 We present the computation rule for the elimination of quotients.
 
 \begin{prooftree*}
-   \infer0{\Funapp{\id{Quotient\_elim}}{\id{f}}{\id{h}}{(\Funapp{\id{Quotient\_in}}{\id{a}})}
+   \infer0{\Funapp{\id{Quotient\_elim}}{\id{f}}{\id{p}}{(\Funapp{\id{Quotient\_in}}{\id{R}}{\id{a}})}
              \rightsquigarrow \Funapp{\id{f}}{\id{a}}}
 \end{prooftree*}
 
@@ -2731,22 +2742,34 @@ making the proof an erasable argument of $\id{Quotient\_elim}$.
 %% so maybe describe it differently than "not able".  Personally,
 %% I'd just say that "we chose not to provide" such a rule because it's
 %% not clear which one(s) to use and whether it's useful.
-It is also interesting to note that we are not able to derive a useful
-$\eta$-rule for quotient types. One instance of it that we could possibly define
-is the following:
+
+We opted not to provide $\eta$-rules for quotient types as it was unclear to us
+which ones would actually be useful. One instance of it that we could possibly
+define is the following:
 
 \begin{align*}
   & \Funapp{\id{Quotient\_in}}{(\Funapp{\fn{Quotient\_elim}}{\id{f}}{\id{h}}{\id{q}})} \rightsquigarrow{} \id{q} \\
 \end{align*}
-%% SM: There's also "Q_elim Q_in h q ↝ q (if the R is the same in both)".
-
 
 This requires the condition that \id{f} be some function of type \fn{A
-  $\rightarrow$ A} such that $\forall \id{a} \ . \ \fn{R a (f a)}$ is valid. For instance,
-such a condition would be fulfilled if \id{f} was a normalisation function on
-\id{A}. However, the above requirement is not easily enforced, not to mention
-that the $\eta$-rule itself is not necessarily that useful to have.
+  $\rightarrow$ A} such that $\forall \id{a} \ . \ \fn{R a (f a)}$ is valid. For
+instance, such a condition would for instance be fulfilled if \id{f} was a
+normalisation function on \id{A}. However, the above requirement is not easily
+enforced, not to mention that the $\eta$-rule itself is not necessarily that
+useful to have.
 %% SM: Maybe we can prove some of those η-like rules to be true. instead?
+%% Note: To prove both rules, use the fact that the projection into the
+%% quotient is surjective.
+Another similar $\eta$-rule that is more easily enforced is the following:
+
+\begin{align*}
+  & \Funapp{\fn{Quotient\_elim}}{\id{Quotient\_in}}{(\lambda \ \id{a} \ \id{a'} \ \id{r} \rightarrow \Funapp{\id{Quotient\_eq}}{\id{r}})}{\id{q}} \rightsquigarrow{} \id{q} \\
+\end{align*}
+
+This rule says that if the elimination of a quotiented term \id{q} simply
+applies the projection into the quotient under the same relation, then the
+entire elimination may be seen as a no-op on \id{q}. Such a rule makes a great
+deal of sense, however we believe that it is of limited practical utility.
 
 \subsection{Implementation}
 
@@ -2776,11 +2799,9 @@ Quotient : (A : Type) |$\rightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| T
 \paragraph{Introduction}
 Two primitives are added, corresponding to the two introduction rules of $\id{Quotient}$.
 
-%% SM: Use the ?x notation to simplify the types.
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Quotient_in : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\Rrightarrow$| A |$\rightarrow$| Quotient A R
-Quotient_eq : (A : Type) |$\Rrightarrow$| (R A |$\rightarrow$| A |$\rightarrow$| Type)  |$\Rrightarrow$| (a a' : A) |$\Rrightarrow$| R a a'
-              |$\rightarrow$| Quotient_in (R := R) a |$\equiv$| Quotient_in (R := R) a'
+Quotient_in : ?A |$\rightarrow$| Quotient ?A ?R
+Quotient_eq : ?R ?a ?a' |$\rightarrow$| Quotient_in (R := ?R) ?a |$\equiv$| Quotient_in (R := ?R) ?a'
 \end{minted}
 
 The \id{Quotient\_in} primitive may be seen as a box that stores an expression
@@ -2794,10 +2815,10 @@ projections of two related terms.
 \paragraph{Elimination}
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Quotient_elim : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\Rrightarrow$| (P : Quotient A R |$\rightarrow$| Type)
-                |$\Rrightarrow$| ((a : A) |$\rightarrow$| P (Quotient_in a))
-                |$\rightarrow$| ((a a' : A) |$\rightarrow$| R a a' |$\rightarrow$| Heq (f a) (f a'))
-                |$\Rrightarrow$| (q : Quotient A R) |$\rightarrow$| P q
+Quotient_elim : (P : Quotient ?A ?R |$\rightarrow$| Type)
+                |$\Rrightarrow$| ((a : ?A) |$\rightarrow$| P (Quotient_in a))
+                |$\rightarrow$| ((a a' : ?A) |$\rightarrow$| ?R a a' |$\rightarrow$| Heq (f a) (f a'))
+                |$\Rrightarrow$| (q : Quotient ?A ?R) |$\rightarrow$| P q
 \end{minted}
 
 As mentioned in the previous section, the appropriate $\beta$-reduction rule is
@@ -2818,10 +2839,10 @@ Arend's\cite{arend}. The elimination of a quotient expression is done in the
 style of a case analysis where both the term and path constructors have to be
 addressed with the following syntax:
 
-\begin{minted}{agda}
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
 qcase q
-  | Quotient_in a => e1
-  | Quotient_eq x y r => e2;
+  | Quotient_in a @$\Rightarrow$@ e1
+  | Quotient_eq x y r @$\Rightarrow$@ e2;
 \end{minted}
 
 \id{q} is the scrutinee of the case analysis. A type annotation may be given to it
@@ -2893,26 +2914,6 @@ e2 q g a = qcase (q : (A -> B) / PointwiseEq)
 
 More elaborate examples of usages of this macro are given in subsequent
 sections.
-
-\paragraph{Encoding of Quotient Inductive Types}
-
-%% SM: This discussion uses terms not yet explained, and is hard
-%% to follow for anyone not familiar with the topic.
-%% Better either move it elsewhere or expand it substantially to
-%% explain what is at stake.
-We initially intended to encode QITs as quotient types with the help of a macro.
-Such an encoding is without a doubt possible, in \autoref{sec:multiset} and
-\autoref{sec:related-qit} we shall see the \id{Multiset} data type defined both
-as a quotient type and as a quotient inductive type. One could imagine that the
-translation of the latter version to the former may be done by repackaging the
-path constructors introduced by the QIT as constructors of a new relation over
-which we shall construct a new quotient type. However, as will be mentioned in
-\autoref{sec:multiset}, such a relation is not necessarily an equivalence
-relation. In the aforementioned section, we solved the problem by taking
-reflexive, symmetric, and transitive closure of the relation. However, such a
-construction is a tough ask for a macro. Hence, we ultimately decided to abandon
-this idea as even if such a macro were to come to fruition, it would most likely
-be user-unfriendly.
 
 \chapter{Equality Theorems}\label{ch:eq-theorems}
 In addition to the examples given in \autoref{subsec:eq-examples}, we derive
@@ -4742,28 +4743,37 @@ previously unprovable by using Typer's original equality type.
 
 We then introduced quotient types to Typer. We convinced ourselves that our
 quotient types behave as they should by proving that they fulfil the universal
-property of quotients. A library was provided with proofs of many other
-properties fulfilled by our quotient types. We also explored the practical
-aspects of our quotient types by using them to construct several examples. We
-then observed that when the identifications that we wish to impose on the base
-type may be immediately represented as an equivalence relation, the resulting
-construction was a lot simpler as was the case with \id{Rational}. However, our
-experience constructing \id{Multiset} showed that when the identifications that
-we require do not immediately induce an equivalence relation, we need to
-manually construct the reflexive, symmetric, and transitive closure of the
-resulting relation. This complicates the underlying relation of the quotient,
-leading to additional proof obligations that are often easily satisfied but
-unnecessary. This may be seen as a glaring disadvantage of our approach as
-opposed to QITs that allow the direct definition of path constructors on
-inductive types.
+property of quotients. We note as well that our dependent elimination of
+quotients is not limited to motives that live in the universe of \type{Prop}, as
+opposed to when quotient types are added to a theory interpreted in a setoid
+model as proposed by Li\cite{li2015quotient}. A library was provided with proofs
+of many other properties fulfilled by our quotient types. We also explored the
+practical aspects of our quotient types by using them to construct several
+examples. We then observed that when the identifications that we wish to impose
+on the base type may be immediately represented as an equivalence relation, the
+resulting construction was a lot simpler as was the case with \id{Rational}.
+However, our experience constructing \id{Multiset} in \autoref{sec:multiset}
+showed that when the identifications that we require do not immediately induce
+an equivalence relation, we need to manually construct the equivalence closure
+of the resulting relation. This complicates the underlying relation of the
+quotient, leading to additional proof obligations that are often easily
+satisfied but unnecessary. This may be seen as a glaring disadvantage of our
+approach as opposed to QITs that allow the direct definition of path
+constructors on inductive types. We initially intended to encode QITs as
+quotient types with the help of a macro, however, we then realised that the
+construction of the equivalence closure of arbitrary equality constructors using
+a macro is non-trivial. Hence, we ultimately decided to abandon this idea as
+even if such a macro were to come to fruition, it would most likely be
+user-unfriendly.
 
 HITs and QITs are also strictly more expressive than the combination of ordinary
-inductive types with quotient types\cite{fiore2022quotients}. However, in
-practice, we think that the additional expressivity is often unrequired for
-general programming. The example provided by the aforementioned paper of a QIT
-that we may not trivially define using quotient types in the form of unordered
-infinitely branching trees is indeed not a data type that one would expect to
-make a frequent appearance in daily programming tasks. The simpler
+inductive types with quotient types\cite{fiore2022quotients}. This implies that
+our above endeavour to encode QITs as quotient types was not a feasible task to
+begin with. In practice, we think that the additional expressivity is often
+unrequired for general programming. The example provided by the aforementioned
+paper of a QIT that we may not trivially define using quotient types in the form
+of unordered infinitely branching trees is indeed not a data type that one would
+expect to make a frequent appearance in daily programming tasks. The simpler
 implementation of our quotient types thus gives us the benefit of preserving the
 modularity of the existing implementation of inductive types in Typer.
 
@@ -5100,7 +5110,7 @@ that \fn{g} is a quasi-inverse of \fn{f} as defined in~\cite[Chap.
   & f : (\bI \rightarrow A) \rightarrow \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y} \\
   & f(h) := \braket{h(\ileft), \braket{h(\iright), \kw{cong}_{h}(seg)}} \\ \\
   & g : \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . (\eqtype{x}{y}) \rightarrow  (\bI \rightarrow A) \\
-  & g \braket{x, \braket{y, p}} := \lambda i . \ elim_{\bI}^{\_.A}(x, y, p, i)
+  & g \braket{x, \braket{y, p}} := \lambda i . \ elim_{\bI}^{A}(x, y, p, i)
 \end{align*}
 
 In order to construct $f$, we need to construct a term of type
@@ -5145,14 +5155,14 @@ now show how the expression $f \ (g \ (e))$ gets reduced.
 
 \begin{align*}
   & f \ (g \ \braket{x, \braket{y, p}})  \\
-  & \rightsquigarrow f \ (\lambda i . \ elim_{\bI}^{\_.A}(x, y, p, i)) \\
-  & \rightsquigarrow \braket{x, \braket{y, \kw{cong}_{\lambda i . \ elim_{\bI}^{\_.A}(x, y, p, i)}(seg)}} \\
-  & \rightsquigarrow \braket{x, \braket{y, \kw{cong}_{elim_{\bI}^{\_.A}(x, y, p)}(seg)}} \\
+  & \rightsquigarrow f \ (\lambda i . \ elim_{\bI}^{A}(x, y, p, i)) \\
+  & \rightsquigarrow \braket{x, \braket{y, \kw{cong}_{\lambda i . \ elim_{\bI}^{A}(x, y, p, i)}(seg)}} \\
+  & \rightsquigarrow \braket{x, \braket{y, \kw{cong}_{elim_{\bI}^{A}(x, y, p)}(seg)}} \\
   & \rightsquigarrow \braket{x, \braket{y, p}} \\
 \end{align*}
 
 The third reduction uses the $\eta$-equivalence of functions. As for the final
-reduction, we assume that the functorial action of $elim_{\bI}^{\_.A}(x, y, p)$
+reduction, we assume that the functorial action of $elim_{\bI}^{A}(x, y, p)$
 on $seg$ computes to $p$ to simplify the proof. Given that we may reduce $f \ (g
 \ \braket{x, \braket{y, p}})$ to $\braket{x, \braket{y, p}}$, they are thus
 definitionally equal, allowing us to proof $\beta$ by reflexivity.\end{proof}
