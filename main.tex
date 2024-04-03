@@ -1019,6 +1019,10 @@ drew our inspiration from and we also take this opportunity to give readers a
 taste of what quotient types are like and what they are capable of. We also
 present the existing implementation of Typer's \id{Eq} type.
 
+%% SM: The ordering of the sections is a bit puzzling.  I suggest you
+%% try to go by order of "complexity".  Maybe put Quotient Haskell
+%% right after Miranda.
+
 \section{Miranda}
 
 The Miranda programming language's\cite{thompson1986laws, thompson1990lawful}
@@ -1045,6 +1049,7 @@ Succ (Pred n) => n
 Pred (Succ n) => n
 \end{minted}
 
+%% SM: Clarify that this is a terminology used in Miranda and not universal.
 Types that are constrained by laws are known as \emph{lawful types}. Laws may
 also be defined with conditions so that rewriting only takes place when the
 appropriate conditions are fulfilled. To illustrate this, we define the type of
@@ -1086,6 +1091,7 @@ fact certain terms of our algebraic data types are equal.
 Courtieu's normalised types\cite{courtieu-normalizedtypes} may be seen as an
 effort to introduce a system that allows us to express a normalisation scheme
 for terms of a certain type to dependent type theory. More specifically,
+%% SM: "the above" can be understood to refer to Miranda's laws.
 Courtieu conceived the above as an extension to the Calculus of Inductive
 Constructions (CIC)\cite{werner-cic}, a dependent type theory that serves as the
 backbone of many modern proof assistants in some shape or form. It turns out
@@ -1112,13 +1118,17 @@ Courtieu's extension of the CIC benefits from having the above equality hold
 judgementally by virtue of an augmentation of the internal conversion and
 equality rules.
 
+%% SM: Spacing around `:` in this paragraph looks odd.
 To eliminate a term \id{u} of type \fn{\kw{Norm}(A, nf)}, we use the
 \kw{ElimNorm} primitive. By using a function \fn{f : A $\rightarrow$ B}, we can
+%% SM: "build" makes it sound like it's a runtime operation, whereas
+%% it's usually understand as "writing the code".
 build the term \fn{\kw{ElimNorm}(A, nf, f, u) : B}. The eliminator has the
 expected computation rule \fn{\kw{ElimNorm}(A, nf, f, \kw{Class}(A, nf, t))
   $\rightsquigarrow{}$ f (nf t)}.
 
 The idempotence of the normalisation function is not required, and thus the
+%% SM: "only apply it" => "apply it only"
 system takes care to only apply it once to the underlying term of the base type.
 This leads to the observation that the normalisation function may be further
 generalised such that it should not be restricted to producing terms of the same
@@ -1156,11 +1166,17 @@ his system.
 \caption{Equivalence classes of $\mathbb{Z}$ under the relation $x \equiv y \mod \ 4$}\label{fig:eq-class-zmod4}
 \end{figure}
 
+%% SM: AFAIK it's not quite the same as Courtieu's because the equalities
+%% you get are not definitional.
 Quotients based on normalisation may actually be represented in Typer without
 extending the language. Indeed, this can be done in any language that supports
 coproducts, as is suggested in\cite[Chap~6.10]{HoTTbook}. This is unsurprising
 given that Courtieu's implementation may also be translated to the Calculus of
 Inductive Constructions\cite{werner-cic}, a close relative of Typer. However, we
+%% SM: IIRC you can make it work for non-idempotent normalization functions
+%% (or even for normalization of type `A -> B`) if you additionally
+%% require an inverse function (when the normalization is idempotent,
+%% the inverse function is the identity).  Eg. Cohen 2013's approach.
 note that such a construction only works when the normalisation function is
 idempodent.
 
@@ -1245,6 +1261,8 @@ of particular interest to us because of two of its prominent features, cubical
 equality and higher inductive types (HITs).
 
 \subsection{Equality}
+%% SM: Mention that we're talking about "lines" and "paths" in the sense
+%% used in mathematical topology.  It may help the reader.
 The thing that makes the type theory cubical is its notion of equality that is
 represented by functions out of an interval type, i.e.\ of type \fn{I
   $\rightarrow$ A}. More specifically, such equality types are known as
@@ -1253,6 +1271,8 @@ line, then we may construct an equality between two lines to produce a square.
 This process may be iterated to produce cubes, hypercubes, etc, justifying the
 name of the type theory. Cubical Agda introduced the interval type as a
 primitive with two endpoints \fn{i0 : I} and \fn{i1 : I}. Unlike normal types,
+%% SM: Pattern matching is one particular way to observe differences,
+%% so clarify that it's not only pattern matching that's disallowed.
 pattern matching on an interval variable is disallowed. The type of homogeneous
 equality is represented by $\equiv$ with the following type:
 
@@ -1264,6 +1284,8 @@ Readers that are not familiar with \Agda{} are reminded that \fn{\_$\equiv$\_}
 means that $\equiv$ is an infix operator\footnote{The underscores indicate where
 the arguments should go, in this case, there should be an argument before and
 after the $\equiv$ operator.}. We mention as well that parameters that are
+%% SM: In my world "brackets" are square, so either say "curly brackets"
+%% or "braces".
 within brackets are implicit, i.e.\ to be inferred. So if we have two terms
 \id{x} and \id{y} of type \id{A}, the type representing a path between the two
 terms is \fn{x $\equiv$ y}. In order to construct such an equality, we need to
@@ -1276,6 +1298,8 @@ refl : {A : Set @$\ell$@} {x : A} @$\rightarrow$@ x @$\equiv$@ x
 refl {x = x} = @$\lambda$@ i @$\rightarrow$@ x
 \end{minted}
 
+%% SM: The fact that both are "x" can make it confusing.  Maybe change
+%% your code to `refl {x = a} = λ i → a` to avoid the problem.
 \fn{\{x = x\}} is how we tell \Agda{} that we would like to bind the implicit
 argument \id{x} (left) to the variable \id{x} (right) such that it may be used
 on the right-hand side. We constructed a constant function that returns \id{x}
@@ -1305,10 +1329,15 @@ Like before, we introduced a new interval variable \id{i} since we are
 constructing an equality proof which is simply a function. We also make use of
 the fact that the proof \id{p} of \fn{x $\equiv$ y} is also a function, hence we
 may freely use function application on it. The primitive operator \id{\~{}}
+%% SM: "negates" makes sense if you think of I as the boolean type, but
+%% "negating an endpoint" doesn't make sense in itself.  So I'd suggest
+%% you say it swaps endpoints and then mention that the symbol chosen
+%% is inspired from the boolean negation.
 negates an interval endpoint. We can thus verify that \fn{comm p i0 = y} and
 \fn{comm p i1 = x} as required.
 
 Having equality proofs that are based on functions out of the interval type also
+%% SM: "says that says that"
 allows us to derive the theorem of functional extensionality. This theorem says
 that says that functions that are pointwise equal are equal. This is a desirable
 property that is not typically provable in Martin-Löf type
@@ -1457,10 +1486,14 @@ constructor is handled easily as we simply pass the pair \id{p} to the function
 interesting. The placeholder needs to be equal to \fn{f (x1 , y1)} when \fn{i =
   i0} and it needs to be \fn{f (x2 , y2)} when \fn{i = i1}, in other hands we
 need to construct an equality between \fn{f (x1 , y1)} and \fn{f (x2 , y2)} and
+%% SM: "We provide" suggest it comes somewhere further than the current
+%% sentence/paragraph.  How'bout "Here is a sketch of the proof:".
 apply \id{i} to it. We provide a brief sketch of the proof, it may be
 constructed by doing case analysis on \id{r}, a term of type \fn{UPairR (x1 ,
   y1) (x2 , y2)}. In the case of the left injection into the disjunction, we
 prove the required equality using the congruence property of equality; in the
+%% SM: I don't think you've talked about "the substitution property of
+%% equality" yet.
 other case, we just use the substitution property of equality along with \id{h},
 a proof that \id{f} is commutative.
 
@@ -1478,10 +1511,13 @@ types may be used to annotate the arguments and return types of functions so
 that we can define the pre-conditions and post-conditions of functions. The type
 checker then makes use of the extra information to verify that function bodies
 and function applications respect the appropriate constraints by feeding them to
+%% SM: I'd use "an SMT (satisfiability modulo theories) solver" because the
+%% full name makes the sentence harder to read.
 a satisfiability modulo theories (SMT) solver. As such, the predicates that one
 may define have to be compatible with the decidable logic of SMT solvers which
 supports all logical connectives, integer and real linear arithmetic, etc. All
 this to say that a system such as Liquid Haskell is an attractive system to
+%% SM: "to as"?
 introduce quotient types to as proof obligations introduced by quotients may be
 translated to constraints solvable by SMT solvers.
 
@@ -1494,6 +1530,9 @@ then we use it to construct unordered pairs with the introduction of the
 \id{y} of the base type, swapping their positions in a pair produces an equal
 pair.
 
+%% SM: FWIW, in 2035, this kind of definition of Pair leaves the students
+%% really puzzled.  So maybe use a different name for the term constructor,
+%% and maybe use the `data Pair a where Pair : a -> a -> Pair a` syntax?
 \begin{minted}{haskell}
 data Pair a = Pair a a
 
@@ -1527,6 +1566,7 @@ From the point of view of general programming tasks, these quotients are as
 expressive as the HITs of Cubical Agda. Quotient Haskell does not permit the
 reasoning of equalities between equalities, however, though this should not
 bother the average Haskell programmer. Indeed, the class of quotients that are
+%% SM: Clarify the concrete difference between QIT and quotients.
 expressible in Quotient Haskell are what is known as quotient inductive types
 (QITs)\cite{fiore2022quotients, HoTTbook}. The lack of \emph{higher} paths is
 what distinguishes QITs from HITs.
@@ -1596,6 +1636,8 @@ a supertype of the list type.
 %% the first time, so I might be prone to misunderstanding the article
 %% (pujet2022observational)
 
+%% SM: Explain what is a "setoid structure" or move after the
+%% setoid-rewrite section.
 In observational type theories such as TT$^{obs}$\cite{pujet2022observational},
 every type has a built-in setoid structure which is preserved by all terms by
 construction. Equality is represented by the setoid equality of types
@@ -1717,6 +1759,7 @@ would be able to rewrite \id{a} to \id{b} if the context of \id{a} in the goal
 is compatible with the relation. However, every function definition that
 interacts with the setoid needs to be accompanied by a proof that setoid
 equivalence is respected. This is in contrast to the ideal situation where such
+%% SM: "only required" => "required only"
 coherence proofs are \emph{only} required in the function that eliminates
 quotients, subsequent interaction, and composition of this function should be
 free of the burden of such proof obligations. The generalised rewriting approach
@@ -1732,6 +1775,8 @@ quickly becomes unwieldy in the case of large programs.
 
 \section{Typer's Equality Type}\label{sec:typer-old-eq}
 
+%% SM: "before presenting cubical equality"??  You presented it in
+%% a previous section.
 We present the existing version of Typer's equality type before presenting
 cubical equality. This is done notably to familiarise readers with Typer's
 equality in general and to highlight the advantages of cubical equality in
@@ -1764,6 +1809,8 @@ families. For instance, we could define the type family \id{Even} such that for
 any natural number \id{m}, a term of type \fn{Even m} is a proof that \id{m} is
 even. Naturally, if we know that \id{m} and \id{n} are equal and that \id{m} is
 even, we should also be able to derive the fact that \id{n} is also even. The
+%% SM: Use \emph for "transport" since this is not talking about
+%% moving around in bikes, buses, etc...
 transport operation (also known as {\id{cast}}) allows us precisely to do the
 above. We define the primitive \id{Eq\_cast} such that it takes a proof that
 \id{x} and \id{y} of type \id{A} are equal, a type family \fn{f:A $\rightarrow$
@@ -1793,6 +1840,7 @@ Eq_comm p = Eq_cast (f := @$\lambda$@ a @$\rightarrow$@ Eq a x) (p := p) Eq_refl
 To prove this, we use \id{Eq\_cast} with an elimination motive that is an
 equality with its right-hand side fixed to be \id{x}, whereas its left-hand side
 is free to vary. By passing it the proof \id{p} that \id{x} is equal to \id{y},
+%% SM: A word is missing after "that".
 we are left with a function that \fn{Eq x x} to \fn{Eq y x}, thus we pass it a
 proof of reflexivity that \id{x} is equal to itself to obtain what we require.
 
@@ -2925,6 +2973,9 @@ this property is not restricted to reflexivity, it may be generalised to
 arbitrary equality proofs by using the special property of \id{I\_transp}.
 
 %% NOTE: Not sure what to name this
+%% SM: Put the "x (Eq_cast (p := p) (f := id) x)" on it own line,
+%% since it's the main meaning of the proof (or even elide the implicit
+%% arguments, pretending that they can be inferred).
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 h : (p : ?A @$\equiv$@ ?B) @$\rightarrow$@ (x : ?A)
     @$\Rrightarrow$@ Heq (t := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := p) (i := i)) x (Eq_cast (p := p) (f := id) x)
@@ -3955,6 +4006,10 @@ In intensional type theory, functional extensionality is a property that is
 respected by all functions, however, typically this may not be proven. In this
 section, we demonstrate that the existence of quotient types implies functional
 extensionality.
+%% SM: Earlier you said that quotient types can be defined (rather than added)
+%% in a type theory with dependent pairs, which seems contradictory with
+%% the above statement that quotient types allow us to prove funext
+%% which is "usually" not provable.  Clarify what's going on here.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 funext : (A : Type_ ?) @$\rightarrow$@ (B : A @$\rightarrow$@ Type_ ?)
