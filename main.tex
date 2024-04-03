@@ -1118,7 +1118,7 @@ Courtieu's extension of the CIC benefits from having the above equality hold
 judgementally by virtue of an augmentation of the internal conversion and
 equality rules.
 
-%% SM: Spacing around `:` in this paragraph looks odd.
+%% SM: Spacing around `:` looks odd here and at many other places.
 To eliminate a term \id{u} of type \fn{\kw{Norm}(A, nf)}, we use the
 \kw{ElimNorm} primitive. By using a function \fn{f : A $\rightarrow$ B}, we can
 %% SM: "build" makes it sound like it's a runtime operation, whereas
@@ -3188,6 +3188,8 @@ dici : (di : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ Dec (x @$\equiv$@
 \end{minted}
 
 \chapter{Quotient Examples}\label{ch:quot-examples}
+%% SM: This chapter is conceptually part of the qualitative evaluation of
+%% your work, so you may want to use the term "evaluate/evaluation" here.
 The addition of quotient types to Typer allows us to define certain constructs
 that are typically defined in set theory as quotient sets. In this chapter, we
 discuss some types that are now natively definable by taking the quotient of
@@ -4795,6 +4797,9 @@ reasoning involved the repeated application of the congruence property of
 equality. This is analogous to the usage of the \emph{rewrite} tactics of the
 aforementioned proof assistants with the difference that invocation of
 \id{Eq\_cong} requires us to manually specify the context in which the rewrite
+%% SM: I take issue with "indeed": there isn't an apriori expectation that
+%% it is the case.
+%% And, it's not at all clear that they're more readable.
 should occur. The more verbose proofs are indeed more readable, however, it makes
 their development a laborious endeavour. During the construction of
 \id{Rational}, we had to do a lot of monotonous reasoning related to linear
@@ -4834,9 +4839,11 @@ cost\footnote{The tests were executed on the author's 2018 Macbook Pro with a
 quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of executing the
 functions $\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
 $\fn{Rational\_*}$ on 500000 pairs of rational numbers.
+%% SM: How many times have you measured it?  Do you report the average of
+%% all runs?  Or the minimum?  Can you include maybe the variance?
 
 %% TODO: Column sizes aren't equal between zpair and Rational? How do I fix this?
-\begin{table}[H]
+\begin{table}[H]                %SM: As always, get rid of this `table[H]`.
 \centering
 \begin{tabular}{ccccc}
 \hline
@@ -4851,6 +4858,8 @@ Multiplication & 2.97 & 4.59 & 1.62 & 54.5 \\ \hline
   use of quotient types.}\label{tab:rational-benchmark}
 \end{table}
 
+%% SM: This "indeed" is wrong, since you said we expected/hoped for
+%% the opposite.
 We observe that there is indeed a non-negligible overhead caused by the usage of
 quotient types, which we will now try to justify. Without loss of generality, we
 discuss the addition operation. Once the $\zpairplus$ function that handles the
@@ -4863,6 +4872,8 @@ nevertheless not completely equal, as we shall see by examining the Elexp
 (erased lambda expression)\cite{delaunay2017implementation} of
 $\fn{Rational\_+}$:
 
+%% SM: `emacs-lisp-mode` would highlight "a b" as being placed in a way that
+%% tends to confuse the reader.  I think you *need* a newline before them.
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
 (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
   (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@
@@ -4870,15 +4881,27 @@ $\fn{Rational\_+}$:
                          (@$\zpairplus$@ x y))) a b)))
 \end{minted}
 
+%% SM: I don't see any $\beta$-reductions in the rewrite from the above to just
+%% ZxZ+.
 Through a series of $\eta$-reductions and $\beta$-reductions, we can see that
 the above expression is equivalent to $\zpairplus$. This implies that with an
 appropriate optimisation phase, Elexps containing quotient primitives could be
 simplified to completely neutralise the overhead of quotient types. We leave
+%% SM: It would be nice to list the optimizations/rewrite-rules needed
+%% and maybe discuss them.  E.g. replacing
+%% (λ (y) → (ZxZ+ x y)) => (ZxZ+ x) is generally not considered acceptable
+%% for an optimizer because it moves the time when `ZxZ+ x` is evaluated,
+%% which is important if that time is non-negligible (and the optimizer
+%% often has no idea if that's the case).   In contrast replacing
+%% (λ (x) → (λ (y) → (ZxZ+ x y))) => ZxZ+
+%% doesn't suffer from such problems since both terms are constant-time.
 this optimisation for future work. We also note that addition and
 multiplication unsurprisingly have a similar constant overhead due to how
 similarly they are defined. Since negation is a unary operation, it
 was defined directly using $\fn{Quotient\_rec}$ and thus has a lesser overhead
 than the other binary operations. We also defined subtraction based on
+%% SM: 52.7% is not significantly greater than 51.6%.  Are you talking about
+%% the overhead in seconds?
 addition combined with subtraction, so its greater overhead is well justified.
 
 \subsection*{Multiset}
@@ -4906,6 +4929,8 @@ The \id{Multiset\_append} operation was tested by appending multisets of 100
 integers with themselves 50000 times. For the \id{Multiset\_mem} operation, we
 ran the membership test with 50 integers on a multiset containing 100 integers,
 this was repeated 1000 times.
+%% SM: Do you report the average of all runs?  Or the minimum?  Can you
+%% include maybe the variance?
 
 %% TODO: If the number of `operations' is the same across both experiments, then
 %% why is the overhead for 'member' significantly less? I either screwed up the
@@ -4915,6 +4940,9 @@ We also observe that the generated Elexps for \id{Multiset\_append} and
 \id{Multiset\_mem} are devoid of their related proof terms. \id{Quotient\_rec}
 and \id{Quotient\_rec2} both reduce to the application of the lambda passed to
 it on the subsequent arguments.
+
+%% SM: Discuss if the same optimizations discussed for Rational work here,
+%% or if new ones would be needed.
 
 \begin{figure}[H]
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
