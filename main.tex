@@ -749,7 +749,7 @@ that $x$ is equal to itself. This is known as the reflexive proof of equality.
 What we have just seen is commonly known as homogeneous equality as only terms
 of the same type may be equated under this form of equality. Occasionally, it is
 also useful to be able to relate two terms of types that are not definitionally
-equal. Suppose that we had the terms \fn{u:Vector A (m + n)} and \fn{v:Vector A
+equal. Suppose that we had the terms \fn{u $\colon$ Vector A (m + n)} and \fn{v $\colon$ Vector A
   (n + m)} and that we would like to construct a proposition of their equality.
 We would not be able to do it with the \fn{Eq} constructor as \id{u} and \id{v}
 are not of the \emph{same} type, though we know that the types may be proven to
@@ -878,7 +878,7 @@ encoded at the type level. They are instead treated as \emph{implementation
 details} which one hopes to encapsulate by using abstraction barriers. Quotient
 types ensure that elements of the same equivalence class are treated
 \textbf{equally}. In a sense, quotient types allow us to expose the internal
-details of a type, but at the same time they also enforce a contract that
+details of a type, but at the same time, they also enforce a contract that
 ensures that all interactions with it are lawful with respect to the quotient.
 This is the case because only programs that treat these equivalences
 consistently may be well-typed. Quotient types also serve as a form of
@@ -1055,11 +1055,10 @@ Succ (Pred n) => n
 Pred (Succ n) => n
 \end{minted}
 
-%% SM: Clarify that this is a terminology used in Miranda and not universal.
-Types that are constrained by laws are known as \emph{lawful types}. Laws may
-also be defined with conditions so that rewriting only takes place when the
-appropriate conditions are fulfilled. To illustrate this, we define the type of
-rational numbers on top of the built-in integer type, \id{num}. The laws are
+Types that are constrained by laws are known in Miranda as \emph{lawful types}.
+Laws may also be defined with conditions so that rewriting only takes place when
+the appropriate conditions are fulfilled. To illustrate this, we define the type
+of rational numbers on top of the built-in integer type, \id{num}. The laws are
 conceived in a way such that negative rational numbers will always have a
 negative numerator and a positive denominator. We also want the rational numbers
 to be as `simplified' as possible, i.e.\ we want the numerator and denominator
@@ -1092,20 +1091,153 @@ Indeed, laws in Miranda are no more than smart constructors in disguise.
 Nevertheless, they highlight the fact that we often would like to express the
 fact certain terms of our algebraic data types are equal.
 
+\section{Quotient Haskell}\label{sec:related-qit}
+
+Quotient Haskell\cite{hewer2023quotient} is an extension that introduces
+quotients to the Haskell programming language. It was built on top of Liquid
+Haskell\cite{vazou2016liquid}, an existing extension that implements a type
+checker for refinement types in Haskell. Refinement types are types equipped
+with predicates that must be respected by all elements of the refined type, this
+is also known as predicate subtyping. In Liquid Haskell, this is represented
+using the set comprehension notation. For instance, a refined type that
+represents the type of positive integers is \fn{\{ i $\colon$ Int | i >= 0 \}}.
+Such types may be used to annotate the arguments and return types of functions
+so that we can define the pre-conditions and post-conditions of functions. The
+type checker then makes use of the extra information to verify that function
+bodies and function applications respect the appropriate constraints by feeding
+them to an SMT (satisfiability modulo theories) solver. As such, the predicates
+that one may define have to be compatible with the decidable logic of SMT
+solvers which supports all logical connectives, integer and real linear
+arithmetic, etc. Since the proof obligations introduced by quotients may be
+translated to constraints solvable by SMT solvers, it is thus attractive to
+introduce quotient types to a system such as Liquid Haskell.
+
+Quotient Haskell's flavour of quotients allows us to define new types on top of
+existing types by introducing arbitrary equation constructors between terms of
+the base type. We illustrate this by using the unordered pairs example we saw in
+the previous section. We first define the type of pairs, and
+then we use it to construct unordered pairs with the introduction of the
+\id{swap} equation constructor. \id{swap} says that for two terms \id{x} and
+\id{y} of the base type, swapping their positions in a pair produces an equal
+pair.
+
+\begin{minted}{haskell}
+data Pair a where
+  pair :: a -> a -> Pair a
+
+data UnorderedPair a = Pair a
+  |/ swap :: x:a -> y:a -> pair x y == pair y x
+\end{minted}
+
+%% TODO: Again, verify that the formulation came from Hoffman
+Unlike our encoding of quotient types à la Hoffman\cite{hofmann1995extensional}
+in Cubical Agda, a surjection into the quotient is unnecessary in the present
+setting. Depending on the context, a term \fn{Pair x y} may be treated as a term
+of type \fn{Pair a} or of \fn{UnorderedPair a} due to subtyping, i.e.\ the
+quotient of a base type is a subtype of the base type. Suppose that we would
+like to eliminate a term of type \fn{UnorderedPair a}, unsurprisingly we start
+off by defining a function \fn{f ${\colon}{\colon}$ Pair a ->
+  b}\footnote{\fn{a::A} is the syntax used in Haskell to say that the term
+\id{a} has type \id{A}.}. If \id{f} respects the equations introduced by
+\fn{UnorderedPair a}, then Quotient Haskell would allow us to treat \id{f} as a
+function of type \fn{f ${\colon}{\colon}$ UnorderedPair a -> b}, more
+specifically it would allow \id{f} to be \emph{refined} over unordered pairs. In
+some cases, such proofs may even be automatically discharged by the SMT solver.
+For instance, if we were dealing with pairs of integers and \id{f} was simply
+the integer addition operation, then such a proof would be automatically
+fulfilled. This highlights the advantages of the integration of quotients into a
+system with refinement types as a big class of mundane proofs may simply be
+automated away. In the case where the required proof is not trivial enough to be
+constructed automatically, the user would then be allowed to provide a manual
+proof. We refer interested readers to the original work for more details on
+this.
+
+From the point of view of general programming tasks, these quotients are as
+expressive as the HITs of Cubical Agda. Quotient Haskell does not permit the
+reasoning of equalities between equalities, however, this should not bother the
+average Haskell programmer. Indeed, the class of quotients that are expressible
+in Quotient Haskell are what is known as quotient inductive types
+(QITs)\cite{fiore2022quotients, HoTTbook}. The lack of \emph{higher} paths is
+what distinguishes QITs from HITs. The difference between QITs and quotients
+lies in the fact that QITs are an extension of inductive types that allow the
+simultaneous definition of term constructors and equation constructors. On the
+other hand, to define new equalities using quotients, we would first need to
+have a base type on which we can construct a new quotient type based on some
+(equivalence) relation.
+
+The fact that the original term constructors of the base type may be used to
+construct terms of a quotient type allows Quotient Haskell to support an
+interesting feature that allows us to take the quotient of an already quotiented
+type. This is in contrast to Cubical Agda which does not allow the
+\latinphrase{a posteriori} addition of equation constructors to an inductive
+type. The paper illustrates this by defining a family of data types known as the
+Boom hierarchy\cite{meertens1986algorithmics} which is made of trees, lists,
+bags, and sets. The hierarchy stems from the fact that each type is defined on
+top of the type that is below it in the hierarchy. For instance, lists are
+constructed by quotienting trees, bags are defined by quotienting lists, and so
+on. When we define such a hierarchy of quotients, the subtyping relationship
+that relates them also enables code reuse. For instance, a function that takes a
+list as an argument could also be called with a tree as it could be regarded as
+a supertype of the list type.
+
+%% TODO: This reflection can be brought elsewhere too I think, I don't have to
+%% rush with this passage
+
+%% Unlike the quotient types that we introduce in this work, QITs allow the
+%% definition of arbitrary equation constructors between terms of an inductive type
+%% instead of requiring these equalities to be encoded as equivalence relations.
+%% This can prove to be very helpful when defining certain quotients. In
+%% \autoref{sec:multiset}, we defined a relation on the \id{List} data type such
+%% that all permutations of a list are considered equivalent. The relation was
+%% slightly tedious to define as we had to be careful to ensure that it was indeed
+%% an equivalence relation by adding appropriate constructors where necessary. A
+%% similar definition in Quotient Haskell\cite{hewer2023quotient} is simpler and
+%% more straight to the point, as is illustrated in the following code block:
+
+%% SM: This is confusing: You say QITs are essentially a restriction of HITs,
+%% and this example is within the QIT section, but it looks syntactically
+%% different from a (restricted) HIT (e.g. because there is a non-quotiented
+%% base type).
+%% \begin{minted}{haskell}
+%% data Multiset a
+%%   = List a
+%%   |/ swap :: x:a -> y:a -> l:Multiset a -> cons x (cons y l) == cons y (cons x l)
+%% \end{minted}
+
+%% TODO: Move this reflection elsewhere, to the evaluation chapter probably It
+%% is valuable to mention what tradeoffs we get by going for own version of
+%% quotients, but this seems like a deeper reflection that is not trivially
+%% understandable
+
+%% What is important to note here that since we are adding equation constructors,
+%% we do not need the counterparts of the other constructors that were required in
+%% the Typer definition of the relation as they are vacuously valid here by virtue
+%% of the congruence properties of the equality type. This seems to suggest that
+%% %% SM: More convenient than HITs or than QTs?
+%% QITs are more convenient to work with in practice. QITs are also strictly more
+%% expressive than the combination of ordinary inductive types with quotient
+%% types\cite{fiore2022quotients}. However in practice, the additional expressivity
+%% offered by QITs is often unrequired for general programming. The example
+%% provided by the aforementioned paper of a QIT that we may not trivially define
+%% using quotient types in the form of unordered infinitely branching trees is
+%% indeed not a data type that one would expect to make a frequent appearance in
+%% daily programming tasks. Hence, we opted to introduce plain quotient types to
+%% Typer instead of QITs primarily because of its simpler implementation. Aside
+%% from that, we get the added benefit of preserving the modularity of the current
+%% implementation of inductive types.
+
 \section{Normalised Types}\label{sec:normalised-types-courtieu}
 
 Courtieu's normalised types\cite{courtieu-normalizedtypes} may be seen as an
 effort to introduce a system that allows us to express a normalisation scheme
 for terms of a certain type to dependent type theory. More specifically,
-%% SM: "the above" can be understood to refer to Miranda's laws.
-Courtieu conceived the above as an extension to the Calculus of Inductive
-Constructions (CIC)\cite{werner-cic}, a dependent type theory that serves as the
-backbone of many modern proof assistants in some shape or form. It turns out
-that the extended calculus may be translated to the CIC itself, implying that
-desirable properties of the CIC are preserved by this extension. The overall
-challenge was to ensure that normalised types exhibit the appropriate
-computational and logical behaviours all while maintaining the consistency of
-the system.
+it was conceived as an extension to the Calculus of Inductive Constructions
+(CIC)\cite{werner-cic}, a dependent type theory that serves as the backbone of
+many modern proof assistants in some shape or form. It turns out that the
+extended calculus may be translated to the CIC itself, implying that desirable
+properties of the CIC are preserved by this extension. The overall challenge was
+to ensure that normalised types exhibit the appropriate computational and
+logical behaviours all while maintaining the consistency of the system.
 
 To construct a normalised type on top of a base type \id{A}, we first construct
 a normalisation function of type \fn{A $\rightarrow$ A}. In a way, this is
@@ -1124,18 +1256,14 @@ Courtieu's extension of the CIC benefits from having the above equality hold
 judgementally by virtue of an augmentation of the internal conversion and
 equality rules.
 
-%% SM: Spacing around `:` looks odd here and at many other places.
 To eliminate a term \id{u} of type \fn{\kw{Norm}(A, nf)}, we use the
-\kw{ElimNorm} primitive. By using a function \fn{f : A $\rightarrow$ B}, we can
-%% SM: "build" makes it sound like it's a runtime operation, whereas
-%% it's usually understand as "writing the code".
-build the term \fn{\kw{ElimNorm}(A, nf, f, u) : B}. The eliminator has the
-expected computation rule \fn{\kw{ElimNorm}(A, nf, f, \kw{Class}(A, nf, t))
-  $\rightsquigarrow{}$ f (nf t)}.
+\kw{ElimNorm} primitive. By using a function \fn{f $\colon$ A $\rightarrow$ B},
+we can write the term \fn{\kw{ElimNorm}(A, nf, f, u) $\colon$ B}. The eliminator
+has the expected computation rule \fn{\kw{ElimNorm}(A, nf, f, \kw{Class}(A, nf,
+  t)) $\rightsquigarrow{}$ f (nf t)}.
 
 The idempotence of the normalisation function is not required, and thus the
-%% SM: "only apply it" => "apply it only"
-system takes care to only apply it once to the underlying term of the base type.
+system takes care to apply it only once to the underlying term of the base type.
 This leads to the observation that the normalisation function may be further
 generalised such that it should not be restricted to producing terms of the same
 type. For instance, if we would like to construct the type of integers mod 2, it
@@ -1172,19 +1300,20 @@ his system.
 \caption{Equivalence classes of $\mathbb{Z}$ under the relation $x \equiv y \mod \ 4$}\label{fig:eq-class-zmod4}
 \end{figure}
 
-%% SM: AFAIK it's not quite the same as Courtieu's because the equalities
-%% you get are not definitional.
-Quotients based on normalisation may actually be represented in Typer without
-extending the language. Indeed, this can be done in any language that supports
-coproducts, as is suggested in\cite[Chap~6.10]{HoTTbook}. This is unsurprising
-given that Courtieu's implementation may also be translated to the Calculus of
-Inductive Constructions\cite{werner-cic}, a close relative of Typer. However, we
-%% SM: IIRC you can make it work for non-idempotent normalization functions
-%% (or even for normalization of type `A -> B`) if you additionally
-%% require an inverse function (when the normalization is idempotent,
-%% the inverse function is the identity).  Eg. Cohen 2013's approach.
-note that such a construction only works when the normalisation function is
-idempodent.
+The general idea of quotients based on normalisation may be represented in Typer
+without extending the language, with the caveat that the previously mentioned
+judgemental equality does not hold. Indeed, this can be done in any language
+that supports dependent pairs, as is suggested in\cite[Chap~6.10]{HoTTbook}.
+This is unsurprising given that Courtieu's implementation may also be translated
+to the Calculus of Inductive Constructions\cite{werner-cic}, a close relative of
+Typer. However, the above construction only works when the normalisation
+function is idempotent. Further work has then been done by
+Cohen\cite{cohen2013pragmatic} to generalise this to normalisation functions
+that do not have the same domain and codomain, i.e.\ of type \fn{A $\rightarrow$
+  B}. It is also required for such a function to have a right inverse of type
+\fn{B $\rightarrow$ A}. In Cohen's work, the first function is known as \id{pi},
+i.e.\ the projection into the quotient, whereas the second function is known as
+\id{repr}, i.e.\ the representative function.
 
 %% NOTE: I think that maybe its not interesting to show the entire construction,
 %% it is sufficient to simply mention the possibility of doing so and direct
@@ -1267,20 +1396,18 @@ of particular interest to us because of two of its prominent features, cubical
 equality and higher inductive types (HITs).
 
 \subsection{Equality}
-%% SM: Mention that we're talking about "lines" and "paths" in the sense
-%% used in mathematical topology.  It may help the reader.
 The thing that makes the type theory cubical is its notion of equality that is
 represented by functions out of an interval type, i.e.\ of type \fn{I
   $\rightarrow$ A}. More specifically, such equality types are known as
-\emph{paths} in the literature. If an equality between two terms is seen as a
-line, then we may construct an equality between two lines to produce a square.
-This process may be iterated to produce cubes, hypercubes, etc, justifying the
-name of the type theory. Cubical Agda introduced the interval type as a
-primitive with two endpoints \fn{i0 : I} and \fn{i1 : I}. Unlike normal types,
-%% SM: Pattern matching is one particular way to observe differences,
-%% so clarify that it's not only pattern matching that's disallowed.
-pattern matching on an interval variable is disallowed. The type of homogeneous
-equality is represented by $\equiv$ with the following type:
+\emph{paths} in the literature, an interpretation inspired by homotopy theory.
+If an equality between two terms is seen as a path, then we may construct an
+equality between two paths to produce a square. This process may be iterated to
+produce cubes, hypercubes, etc, justifying the name of the type theory. Cubical
+Agda introduced the interval type as a primitive with two endpoints \fn{i0
+  $\colon$ I} and \fn{i1 $\colon$ I}. Unlike normal types, we are not allowed to
+observe the difference between \id{i0} and \id{i1}. This implies that among
+other things, pattern matching on an interval variable is disallowed. The type
+of homogeneous equality is represented by $\equiv$ with the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 _@$\equiv$@_ : {A : Set @$\ell$@} @$\rightarrow$@ A @$\rightarrow$@ A @$\rightarrow$@ Set @$\ell$@
@@ -1289,27 +1416,24 @@ _@$\equiv$@_ : {A : Set @$\ell$@} @$\rightarrow$@ A @$\rightarrow$@ A @$\rightar
 Readers that are not familiar with \Agda{} are reminded that \fn{\_$\equiv$\_}
 means that $\equiv$ is an infix operator\footnote{The underscores indicate where
 the arguments should go, in this case, there should be an argument before and
-after the $\equiv$ operator. Subsequently, we shall use the same convention when introducing operators.}. We mention as well that parameters that are
-%% SM: In my world "brackets" are square, so either say "curly brackets"
-%% or "braces".
-within brackets are implicit, i.e.\ to be inferred. So if we have two terms
-\id{x} and \id{y} of type \id{A}, the type representing a path between the two
-terms is \fn{x $\equiv$ y}. In order to construct such an equality, we need to
-construct a function \id{f:I $\rightarrow$ A} such that \fn{f i0} is equal to
-\id{x} and \fn{f i1} is equal to \id{y}. For example, we construct the reflexive
-proof of equality.
+after the $\equiv$ operator. Subsequently, we shall use the same convention when
+introducing operators.}. We mention as well that parameters that are within
+braces are implicit, i.e.\ to be inferred. So if we have two terms \id{x} and
+\id{y} of type \id{A}, the type representing a path between the two terms is
+\fn{x $\equiv$ y}. In order to construct such an equality, we need to construct
+a function \id{f:I $\rightarrow$ A} such that \fn{f i0} is equal to \id{x} and
+\fn{f i1} is equal to \id{y}. For example, we construct the reflexive proof of
+equality.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 refl : {A : Set @$\ell$@} {x : A} @$\rightarrow$@ x @$\equiv$@ x
-refl {x = x} = @$\lambda$@ i @$\rightarrow$@ x
+refl {x = a} = @$\lambda$@ i @$\rightarrow$@ a
 \end{minted}
 
-%% SM: The fact that both are "x" can make it confusing.  Maybe change
-%% your code to `refl {x = a} = λ i → a` to avoid the problem.
-\fn{\{x = x\}} is how we tell \Agda{} that we would like to bind the implicit
-argument \id{x} (left) to the variable \id{x} (right) such that it may be used
-on the right-hand side. We constructed a constant function that returns \id{x}
-and ignores that interval argument \id{i}. This example also illustrates why
+\fn{\{x = a\}} is how we tell \Agda{} that we would like to bind the implicit
+argument \id{x} to the variable \id{a} such that it may be used on the
+right-hand side. We constructed a constant function that returns \id{a} and
+ignores that interval argument \id{i}. This example also illustrates why
 explicit pattern matching on \id{i} is not allowed; if we could arbitrarily
 assign return values to each endpoint of the interval, we could then prove
 equalities between arbitrary terms. To emphasise that the equality proof is
@@ -1335,18 +1459,14 @@ Like before, we introduced a new interval variable \id{i} since we are
 constructing an equality proof which is simply a function. We also make use of
 the fact that the proof \id{p} of \fn{x $\equiv$ y} is also a function, hence we
 may freely use function application on it. The primitive operator \id{\~{}}
-%% SM: "negates" makes sense if you think of I as the boolean type, but
-%% "negating an endpoint" doesn't make sense in itself.  So I'd suggest
-%% you say it swaps endpoints and then mention that the symbol chosen
-%% is inspired from the boolean negation.
-negates an interval endpoint. We can thus verify that \fn{comm p i0 = y} and
-\fn{comm p i1 = x} as required.
+swaps an interval endpoint, the symbol of the operator is inspired by boolean
+negation. We can thus verify that \fn{comm p i0 = y} and \fn{comm p i1 = x} as
+required.
 
 Having equality proofs that are based on functions out of the interval type also
-%% SM: "says that says that"
 allows us to derive the theorem of functional extensionality. This theorem says
-that says that functions that are pointwise equal are equal. This is a desirable
-property that is not typically provable in Martin-Löf type
+that functions that are pointwise equal are equal. This is a desirable property
+that is not typically provable in Martin-Löf type
 theory\cite{martin1975intuitionistic}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
@@ -1490,151 +1610,53 @@ Pattern matching on an unordered pair gives us two cases to cover. The \id{[\_]}
 constructor is handled easily as we simply pass the pair \id{p} to the function
 \id{f}. The branch for the equality constructor on the other hand is more
 interesting. The placeholder needs to be equal to \fn{f (x1 , y1)} when \fn{i =
-  i0} and it needs to be \fn{f (x2 , y2)} when \fn{i = i1}, in other hands we
+  i0} and it needs to be \fn{f (x2 , y2)} when \fn{i = i1}, in other words we
 need to construct an equality between \fn{f (x1 , y1)} and \fn{f (x2 , y2)} and
-%% SM: "We provide" suggest it comes somewhere further than the current
-%% sentence/paragraph.  How'bout "Here is a sketch of the proof:".
-apply \id{i} to it. We provide a brief sketch of the proof, it may be
-constructed by doing case analysis on \id{r}, a term of type \fn{UPairR (x1 ,
-  y1) (x2 , y2)}. In the case of the left injection into the disjunction, we
-prove the required equality using the congruence property of equality; in the
-%% SM: I don't think you've talked about "the substitution property of
-%% equality" yet.
-other case, we just use the substitution property of equality along with \id{h},
-a proof that \id{f} is commutative.
+apply \id{i} to it. Here is a sketch of the proof: it may be constructed by
+doing case analysis on \id{r}, a term of type \fn{UPairR (x1 , y1) (x2 , y2)}.
+In the case of the left injection into the disjunction, we prove the required
+equality using the congruence property of equality; in the other case, we just
+cast \fn{h x1 y1} to the required type.
 
-\section{Quotient Haskell}\label{sec:related-qit}
+\section{Setoid Rewriting}
 
-Quotient Haskell\cite{hewer2023quotient} is an extension that introduces
-quotients to the Haskell programming language. It was built on top of Liquid
-Haskell\cite{vazou2016liquid}, an existing extension that implements a type
-checker for refinement types in Haskell. Refinement types are types equipped
-with predicates that must be respected by all elements of the refined type, this
-is also known as predicate subtyping. In Liquid Haskell, this is represented
-using the set comprehension notation. For instance, a refined type that
-represents the type of positive integers is \fn{\{ i : Int | i >= 0 \}}. Such
-types may be used to annotate the arguments and return types of functions so
-that we can define the pre-conditions and post-conditions of functions. The type
-checker then makes use of the extra information to verify that function bodies
-and function applications respect the appropriate constraints by feeding them to
-%% SM: I'd use "an SMT (satisfiability modulo theories) solver" because the
-%% full name makes the sentence harder to read.
-a satisfiability modulo theories (SMT) solver. As such, the predicates that one
-may define have to be compatible with the decidable logic of SMT solvers which
-supports all logical connectives, integer and real linear arithmetic, etc. All
-this to say that a system such as Liquid Haskell is an attractive system to
-%% SM: "to as"?
-introduce quotient types to as proof obligations introduced by quotients may be
-translated to constraints solvable by SMT solvers.
+Quotient types are not provided as a primitive in the \Coq{} proof assistant. To
+explain how quotient types are emulated in \Coq{}, we briefly introduce the
+rewriting mechanism of \Coq{}. Every construction is congruent with respect to
+the equality type, hence rewrites using the equality type may be carried out in
+any context. For instance, if we have a certain proof goal that requires us to
+produce a term of type \fn{m + n $\le$ n + m} and we have proof that \fn{m + n
+  $\equiv$ n + m}, we may use the \kw{rewrite} tactic in \Coq{} to rewrite the
+goal such that it becomes \fn{n + m $\le$ n + m}. The simplified goal may thus
+be easily proven using the reflexivity property of $\le$.
 
-Quotient Haskell's flavour of quotients allows us to define new types on top of
-existing types by introducing arbitrary equation constructors between terms of
-the base type. We illustrate this by using the unordered pairs example we saw in
-the previous section. We first define the type of pairs, and
-then we use it to construct unordered pairs with the introduction of the
-\id{swap} equation constructor. \id{swap} says that for two terms \id{x} and
-\id{y} of the base type, swapping their positions in a pair produces an equal
-pair.
-
-%% SM: FWIW, in 2035, this kind of definition of Pair leaves the students
-%% really puzzled.  So maybe use a different name for the term constructor,
-%% and maybe use the `data Pair a where Pair : a -> a -> Pair a` syntax?
-\begin{minted}{haskell}
-data Pair a = Pair a a
-
-data UnorderedPair a = Pair a
-  |/ swap :: x:a -> y:a -> pair x y == pair y x
-\end{minted}
-
-%% TODO: Again, verify that the formulation came from Hoffman
-Unlike our encoding of quotient types à la Hoffman\cite{hofmann1995extensional}
-in Cubical Agda, a surjection into the quotient is unnecessary in the present
-setting. Depending on the context, a term \fn{Pair x y} may be treated as a term
-of type of \fn{Pair a} or of \fn{UnorderedPair a} due to subtyping, i.e.\ the
-quotient of a base type is a subtype of the base type. Suppose that we would
-like to eliminate a term of type \fn{UnorderedPair a}, unsurprisingly we start
-off by defining a function \fn{f :: Pair a -> b}\footnote{\fn{a::A} is the
-syntax used in Haskell to say that the term \id{a} has type \id{A}.}. If \id{f}
-respects the equations introduced by \fn{UnorderedPair a}, then Quotient Haskell
-would allow us to treat \id{f} as a function of type \fn{f :: UnorderedPair a ->
-  b}, more specifically it would allow \id{f} to be \emph{refined} over
-unordered pairs. In some cases, such proofs may even be automatically discharged
-by the SMT solver. For instance, if we were dealing with pairs of integers and
-\id{f} was simply the integer addition operation, then such a proof would be
-automatically fulfilled. This highlights the advantages of the integration of
-quotients into a system with refinement types as a big class of mundane proofs
-may simply be automated away. In the case where the required proof is not
-trivial enough to be constructed automatically, the user would then be allowed
-to provide a manual proof. We refer interested readers to the original work for
-more details on this.
-
-From the point of view of general programming tasks, these quotients are as
-expressive as the HITs of Cubical Agda. Quotient Haskell does not permit the
-reasoning of equalities between equalities, however, though this should not
-bother the average Haskell programmer. Indeed, the class of quotients that are
-%% SM: Clarify the concrete difference between QIT and quotients.
-expressible in Quotient Haskell are what is known as quotient inductive types
-(QITs)\cite{fiore2022quotients, HoTTbook}. The lack of \emph{higher} paths is
-what distinguishes QITs from HITs.
-
-The fact that the original term constructors of the base type may be used to
-construct terms of a quotient type allows Quotient Haskell to support an
-interesting feature that allows us to take the quotient of an already quotiented
-type. The paper illustrates this by defining a family of data types known as the
-Boom hierarchy\cite{meertens1986algorithmics} which is made of trees, lists,
-bags, and sets. The hierarchy stems from the fact that each type is defined on
-top of the type that is below it in the hierarchy. For instance, lists are
-constructed by quotienting trees, bags are defined by quotienting lists, and so
-on. When we define such a hierarchy of quotients, the subtyping relationship
-that relates them also enables code reuse. For instance, a function that takes a
-list as an argument could also be called with a tree as it could be regarded as
-a supertype of the list type.
-
-%% TODO: This reflection can be brought elsewhere too I think, I don't have to
-%% rush with this passage
-
-%% Unlike the quotient types that we introduce in this work, QITs allow the
-%% definition of arbitrary equation constructors between terms of an inductive type
-%% instead of requiring these equalities to be encoded as equivalence relations.
-%% This can prove to be very helpful when defining certain quotients. In
-%% \autoref{sec:multiset}, we defined a relation on the \id{List} data type such
-%% that all permutations of a list are considered equivalent. The relation was
-%% slightly tedious to define as we had to be careful to ensure that it was indeed
-%% an equivalence relation by adding appropriate constructors where necessary. A
-%% similar definition in Quotient Haskell\cite{hewer2023quotient} is simpler and
-%% more straight to the point, as is illustrated in the following code block:
-
-%% SM: This is confusing: You say QITs are essentially a restriction of HITs,
-%% and this example is within the QIT section, but it looks syntactically
-%% different from a (restricted) HIT (e.g. because there is a non-quotiented
-%% base type).
-%% \begin{minted}{haskell}
-%% data Multiset a
-%%   = List a
-%%   |/ swap :: x:a -> y:a -> l:Multiset a -> cons x (cons y l) == cons y (cons x l)
-%% \end{minted}
-
-%% TODO: Move this reflection elsewhere, to the evaluation chapter probably It
-%% is valuable to mention what tradeoffs we get by going for own version of
-%% quotients, but this seems like a deeper reflection that is not trivially
-%% understandable
-
-%% What is important to note here that since we are adding equation constructors,
-%% we do not need the counterparts of the other constructors that were required in
-%% the Typer definition of the relation as they are vacuously valid here by virtue
-%% of the congruence properties of the equality type. This seems to suggest that
-%% %% SM: More convenient than HITs or than QTs?
-%% QITs are more convenient to work with in practice. QITs are also strictly more
-%% expressive than the combination of ordinary inductive types with quotient
-%% types\cite{fiore2022quotients}. However in practice, the additional expressivity
-%% offered by QITs is often unrequired for general programming. The example
-%% provided by the aforementioned paper of a QIT that we may not trivially define
-%% using quotient types in the form of unordered infinitely branching trees is
-%% indeed not a data type that one would expect to make a frequent appearance in
-%% daily programming tasks. Hence, we opted to introduce plain quotient types to
-%% Typer instead of QITs primarily because of its simpler implementation. Aside
-%% from that, we get the added benefit of preserving the modularity of the current
-%% implementation of inductive types.
+Plain rewriting allows rewriting with \emph{equal} terms, generalised
+rewriting\cite{sozeau2009new, coq-gen-rewriting} on the other hand enables
+rewriting using terms that are \emph{related} by some binary relation, often
+represented as a function of type \fn{A $\rightarrow$ A $\rightarrow$
+  \kw{Prop}}. Unlike equality, this form of rewriting does not work in all
+contexts, instead, it only works in contexts that are compatible with the
+relation. A base type \id{A} equipped with an equivalence relation that is meant
+to behave as an equality characterises a structure known as a
+setoid\cite{hofmann1995simple}. Instead of constructing a new type to represent
+the quotient of the base type, we would directly work with the base type.
+Suppose that we had a proof of \fn{a R b} where \id{R} is a binary relation, we
+would be able to rewrite \id{a} to \id{b} if the context of \id{a} in the goal
+is compatible with the relation. However, every function definition that
+interacts with the setoid needs to be accompanied by a proof that setoid
+equivalence is respected. This is in contrast to the ideal situation where such
+coherence proofs are required \emph{only} in the function that eliminates
+quotients, subsequent interaction, and composition of this function should be
+free of the burden of such proof obligations. The generalised rewriting approach
+has historically been the go-to way of modelling quotient types in \Coq{},
+however, such an approach is known to be rather laborious. This phenomenon is
+often designated as \emph{setoid hell} by the community\footnote{Examples of
+community discussions on this topic may be found at
+\url{https://stackoverflow.com/questions/65493694/why-do-calculus-of-construction-based-languages-use-setoids-so-much/}
+and
+\url{https://proofassistants.stackexchange.com/questions/908/what-exactly-is-setoid-hell/}}.
+Although \Coq{} offers numerous tactics to facilitate the usage of setoids, it
+quickly becomes unwieldy in the case of large programs.
 
 \section{Quotients in Observational Type Theory}
 
@@ -1642,8 +1664,6 @@ a supertype of the list type.
 %% the first time, so I might be prone to misunderstanding the article
 %% (pujet2022observational)
 
-%% SM: Explain what is a "setoid structure" or move after the
-%% setoid-rewrite section.
 In observational type theories such as TT$^{obs}$\cite{pujet2022observational},
 every type has a built-in setoid structure which is preserved by all terms by
 construction. Equality is represented by the setoid equality of types
@@ -1738,56 +1758,14 @@ type \fn{R x y}, it is effectively a proof of \fn{$\pi$(t) $\sim_{A/R}$
 inversion of the equality proof \id{e}, in other words, this is the application
 of the congruence property of equality.
 
-\section{Setoid Rewriting}
-
-Quotient types are not provided as a primitive in the \Coq{} proof assistant. To
-explain how quotient types are emulated in \Coq{}, we briefly introduce the
-rewriting mechanism of \Coq{}. Every construction is congruent with respect to
-the equality type, hence rewrites using the equality type may be carried out in
-any context. For instance, if we have a certain proof goal that requires us to
-produce a term of type \fn{m + n $\le$ n + m} and we have proof that \fn{m + n
-  $\equiv$ n + m}, we may use the \kw{rewrite} tactic in \Coq{} to rewrite the
-goal such that it becomes \fn{n + m $\le$ n + m}. The simplified goal may thus
-be easily proven using the reflexivity property of $\le$.
-
-Plain rewriting allows rewriting with \emph{equal} terms, generalised
-rewriting\cite{sozeau2009new, coq-gen-rewriting} on the other hand enables
-rewriting using terms that are \emph{related} by some binary relation, often
-represented as a function of type \fn{A $\rightarrow$ A $\rightarrow$
-  \kw{Prop}}. Unlike equality, this form of rewriting does not work in all
-contexts, instead, it only works in contexts that are compatible with the
-relation. A base type \id{A} equipped with an equivalence relation that is meant
-to behave as an equality characterises a structure known as a
-setoid\cite{hofmann1995simple}. Instead of constructing a new type to represent
-the quotient of the base type, we would directly work with the base type.
-Suppose that we had a proof of \fn{a R b} where \id{R} is a binary relation, we
-would be able to rewrite \id{a} to \id{b} if the context of \id{a} in the goal
-is compatible with the relation. However, every function definition that
-interacts with the setoid needs to be accompanied by a proof that setoid
-equivalence is respected. This is in contrast to the ideal situation where such
-%% SM: "only required" => "required only"
-coherence proofs are \emph{only} required in the function that eliminates
-quotients, subsequent interaction, and composition of this function should be
-free of the burden of such proof obligations. The generalised rewriting approach
-has historically been the go-to way of modelling quotient types in \Coq{},
-however, such an approach is known to be rather laborious. This phenomenon is
-often designated as \emph{setoid hell} by the community\footnote{Examples of
-community discussions on this topic may be found at
-\url{https://stackoverflow.com/questions/65493694/why-do-calculus-of-construction-based-languages-use-setoids-so-much/}
-and
-\url{https://proofassistants.stackexchange.com/questions/908/what-exactly-is-setoid-hell/}}.
-Although \Coq{} offers numerous tactics to facilitate the usage of setoids, it
-quickly becomes unwieldy in the case of large programs.
 
 \section{Typer's Equality Type}\label{sec:typer-old-eq}
 
-%% SM: "before presenting cubical equality"??  You presented it in
-%% a previous section.
-We present the existing version of Typer's equality type before presenting
-cubical equality. This is done notably to familiarise readers with Typer's
-equality in general and to highlight the advantages of cubical equality in
-subsequent chapters. This knowledge is nevertheless not necessary to understand
-the rest of this work.
+We present the existing version of Typer's equality type before presenting our
+implementatio of cubical equality in Typer. This is done notably to familiarise
+readers with Typer's equality in general and to highlight the advantages of
+cubical equality in subsequent chapters. This knowledge is nevertheless not
+necessary to understand the rest of this work.
 
 Typer's primitive equality type is similar to that defined in intensional
 Martin-Löf type theory\cite{martin1975intuitionistic} such that the equality is
@@ -1815,10 +1793,8 @@ families. For instance, we could define the type family \id{Even} such that for
 any natural number \id{m}, a term of type \fn{Even m} is a proof that \id{m} is
 even. Naturally, if we know that \id{m} and \id{n} are equal and that \id{m} is
 even, we should also be able to derive the fact that \id{n} is also even. The
-%% SM: Use \emph for "transport" since this is not talking about
-%% moving around in bikes, buses, etc...
-transport operation (also known as {\id{cast}}) allows us precisely to do the
-above. We define the primitive \id{Eq\_cast} such that it takes a proof that
+\emph{transport} operation (also known as {\id{cast}}) allows us precisely to do
+the above. We define the primitive \id{Eq\_cast} such that it takes a proof that
 \id{x} and \id{y} of type \id{A} are equal, a type family \fn{f:A $\rightarrow$
   Type} and gives us a function that maps \fn{f x} to \fn{f y}.
 
@@ -1846,9 +1822,9 @@ Eq_comm p = Eq_cast (f := @$\lambda$@ a @$\rightarrow$@ Eq a x) (p := p) Eq_refl
 To prove this, we use \id{Eq\_cast} with an elimination motive that is an
 equality with its right-hand side fixed to be \id{x}, whereas its left-hand side
 is free to vary. By passing it the proof \id{p} that \id{x} is equal to \id{y},
-%% SM: A word is missing after "that".
-we are left with a function that \fn{Eq x x} to \fn{Eq y x}, thus we pass it a
-proof of reflexivity that \id{x} is equal to itself to obtain what we require.
+we are left with a function that maps \fn{Eq x x} to \fn{Eq y x}, thus we pass
+it a proof of reflexivity that \id{x} is equal to itself to obtain what we
+require.
 
 \chapter{Cubical Equality and Quotient Types}\label{ch:cubical-equality}
 %% SM: It's probably a good place to talk about (as a kind of self-reflection)
@@ -1870,7 +1846,7 @@ the aforementioned interval type.
 
 In this section, we base our definitions on the assumption that we have an
 existing equality type as was described in \autoref{sec:intro-eq}, i.e.\ that we
-have a type former \fn{\_$\equiv$\_ : A $\rightarrow$ A $\rightarrow$ Type}
+have a type former \fn{\_$\equiv$\_ $\colon$ A $\rightarrow$ A $\rightarrow$ Type}
 along with its constructor and eliminator. This helps us to introduce the
 interval type and its relationship to the equality type. We will ultimately
 define a new equality type that will then form the backbone of the rest of this
@@ -2292,7 +2268,7 @@ Indeed, \id{Heq\_eq} and \id{Heq\_uneq} correspond to the forward and backward
 functions of the equivalence presented in Theorem~\ref{theo:i->a-equiv}. Thus,
 it comes as no surprise that the composition of $\id{Heq\_uneq}$ and
 $\id{Heq\_eq}$ (modulo the implicit arguments) is equal to the identity
-function, which gives us the $\eta$-equivalence for some $\fn{p:Heq x y}$.
+function, which gives us the $\eta$-equivalence for some \fn{p $\colon$ Heq x y}.
 
 \begin{align*}
   & \Funapp{\id{Heq\_eq}}{(\earg{f}{\lambda i \Rrightarrow
@@ -2846,13 +2822,13 @@ qcase q
 \end{minted}
 
 \id{q} is the scrutinee of the case analysis. A type annotation may be given to it
-by specifying the base type and relation of the quotient, e.g. \fn{(e: A / R)}.
+by specifying the base type and relation of the quotient, e.g. \fn{(e $\colon$ A / R)}.
 The variable \id{a} is defined in the scope of \id{e1} and the variables \id{x},
 \id{y}, and \id{r} are defined in the scope of \id{e2}. The bound variables are
 the parameters of the two constructors of \id{Quotient}. In the first branch, we
 say what we would like to map a quotient expression to. In the second branch, we
 prove that the above mapping respects the quotient by constructing a term
-\fn{e2: [x/a]e1 $\equiv$ [y/a]e2}.
+\fn{e2 $\colon$ [x/a]e1 $\equiv$ [y/a]e2}.
 
 To illustrate how this works, we construct a simple example based on the
 quotient of the \id{A $\rightarrow$ B} type along with a relation
@@ -2878,7 +2854,7 @@ of type \id{B $\rightarrow$ C} to produce functions of type \id{A $\rightarrow$
 %% \end{minted}
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-PointwiseEq : (A : ?) @$\Rightarrow$@ (B : ?) @$\Rightarrow$@ (A @$\rightarrow$@ B) @$\rightarrow$@ (A @$\rightarrow$@ B) @$\rightarrow$@ Type_ ?;
+PointwiseEq : (A : ?) @$\Rightarrow$@ (B : ?) @$\Rightarrow$@ (A @$\rightarrow$@ B) @$\rightarrow$@ (A @$\rightarrow$@ B) @$\rightarrow$@ Type;
 PointwiseEq f g = (x : A) @$\rightarrow$@ Eq (f x) (g x);
 
 e1 : Quotient (?A @$\rightarrow$@ ?B) PointwiseEq @$\rightarrow$@ (?B @$\rightarrow$@ ?C) @$\rightarrow$@ ?A @$\rightarrow$@ ?C;
@@ -2973,13 +2949,10 @@ allowing us to recover the reduction rule of Typer's existing implementation of
 this property is not restricted to reflexivity, it may be generalised to
 arbitrary equality proofs by using the special property of \id{I\_transp}.
 
-%% NOTE: Not sure what to name this
-%% SM: Put the "x (Eq_cast (p := p) (f := id) x)" on it own line,
-%% since it's the main meaning of the proof (or even elide the implicit
-%% arguments, pretending that they can be inferred).
+%% FIXME: Not sure what to name this
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 h : (p : ?A @$\equiv$@ ?B) @$\rightarrow$@ (x : ?A)
-    @$\Rrightarrow$@ Heq (t := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := p) (i := i)) x (Eq_cast (p := p) (f := id) x)
+    @$\Rrightarrow$@ Heq x (Eq_cast (p := p) (f := id) x)
 h p x = Heq_eq (t := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := p) (i := i))
                (f := @$\lambda$@ i @$\Rrightarrow$@
                        I_transp (A := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i j))
@@ -3189,12 +3162,12 @@ dici : (di : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ Dec (x @$\equiv$@
 \end{minted}
 
 \chapter{Quotient Examples}\label{ch:quot-examples}
-%% SM: This chapter is conceptually part of the qualitative evaluation of
-%% your work, so you may want to use the term "evaluate/evaluation" here.
 The addition of quotient types to Typer allows us to define certain constructs
 that are typically defined in set theory as quotient sets. In this chapter, we
-discuss some types that are now natively definable by taking the quotient of
-existing types in the system.
+evaluate the practicality of our quotient types by describing some types that
+are now natively definable by taking the quotient of existing types in the
+system. We also prove some theorems related to quotient types that we believe
+facilitate their usage.
 
 \section{Rational numbers}
 To define the rational numbers as a quotient type, we have two obvious options for the base type.
@@ -3649,8 +3622,8 @@ support for GADTs, however, we draw inspiration from\cite{sulzmann2007systemfeq}
 encode such a GADT as an inductive type with explicit equality proofs.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-ListPerm : (A : Type_ ?) @$\rightarrow$@ List A @$\rightarrow$@ List A @$\rightarrow$@ Type_ ?
-type ListPerm (l ::: TypeLevel) (A : Type_ l) (l1 : List A) (l2 : List A) : Type_ l
+ListPerm : (A : Type) @$\rightarrow$@ List A @$\rightarrow$@ List A @$\rightarrow$@ Type
+type ListPerm (l ::: TypeLevel) (A : Type) (l1 : List A) (l2 : List A) : Type
   | nilPerm (p1 :: Eq l1 nil) (p2 :: Eq l2 nil)
   | consPerm (x : A) (l1' : List A) (l2' : List A) (ListPerm A l1' l2')
              (p1 :: Eq l1 (cons x l1')) (p2 :: Eq l2 (cons x l2'))
@@ -3665,7 +3638,7 @@ type ListPerm (l ::: TypeLevel) (A : Type_ l) (l1 : List A) (l2 : List A) : Type
 With that, we may now define the $\fn{Multiset}$ type former.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Multiset : Type_ ? @$\rightarrow$@ Type_ ?
+Multiset : Type @$\rightarrow$@ Type
 Multiset A = Quotient (List A) (ListPerm A)
 \end{minted}
 
@@ -3759,10 +3732,10 @@ a certain term of type $\fn{A}$.
 We can encode propositional truncation as a quotient type. The required properties are:
 
 \begin{itemize}
-	\item $\id{A} \ \kw{true} \rightarrow \norm{A} \ \kw{true}$ and $\norm{A}$
+	\item $A \ \kw{true} \rightarrow \norm{A} \ \kw{true}$ and $\norm{A}$
       is a subsingleton (exists unique)
 %% 	\item $\id{A}  \ $subsingleton$ \rightarrow (\norm{A} \ \kw{true} \rightarrow \id{A} \ \kw{true})$
-	\item For some P that is a subsingleton and some $f : \id{A} \rightarrow \kw{P}$, there exists a function $g : \norm{A} \rightarrow P$ s.t. $ \forall a : A \ . \ g(a^*) = f(a)$, where $a^* \in \norm{A}$.
+	\item For some P that is a subsingleton and some $f : A \rightarrow P$, there exists a function $g : \norm{A} \rightarrow P$ s.t. $ \forall a : A \ . \ g(a^*) = f(a)$, where $a^* \in \norm{A}$.
 \end{itemize}
 
 The encoding is simple, we simply define the following type former along with its term former:
@@ -3787,8 +3760,7 @@ squash = @$\lambda$@ P @$\Rrightarrow$@ @$\lambda$@ x y @$\rightarrow$@
     elimProp2 (R := rel) (S := rel)
               (P := @$\lambda$@ x y @$\rightarrow$@ Eq x y)
               (@$\lambda$@ x y @$\rightarrow$@ Quotient_trunc (R := rel) (x := x) (y := y))
-              (@$\lambda$@ a a' @$\rightarrow$@ Quotient_eq (R := rel)
-                                     (a := a) (a' := a') unit)
+              (@$\lambda$@ a a' @$\rightarrow$@ Quotient_eq (R := rel) (a := a) (a' := a') unit)
               x y
 \end{minted}
 
@@ -3831,9 +3803,10 @@ The \id{Qnorm} type former is constructed as a quotient with a relation defined
 by the equality of normalised terms. The construction of a term of type
 \id{Qnorm A nf} is simply a surjection into the quotient. The elimination
 principle simply applies the function \id{f} after normalising the term of the
-base type. The user is not required to provide additional coherence proofs as we
-immediately appeal to the congruence property of equality. We can also construct
-\id{Qnorm\_eq}, a proof that terms that share the same normal form are
+base type. Note that we use \fn{_$\circ$_} operator to represent function
+composition. The user is not required to provide additional coherence proofs as
+we immediately appeal to the congruence property of equality. We can also
+construct \id{Qnorm\_eq}, a proof that terms that share the same normal form are
 necessarily equal after their surjection into the quotient. We mention however
 that this may only be proven propositionally, as opposed to Courtieu's system
 where such an equality would hold judgementally.
@@ -3849,16 +3822,16 @@ boilerplate in user code.
 We start off by describing \id{Quotient\_rec2}, which serves to eliminate two arbitrary quotient expressions.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-rec2 : (A B C: Type_ ?) @$\Rrightarrow$@
-       (R : A @$\rightarrow$@ A @$\rightarrow$@ Type_ ?) @$\Rrightarrow$@
-       (S : B @$\rightarrow$@ B @$\rightarrow$@ Type_ ?) @$\Rrightarrow$@
+rec2 : (A B C: Type) @$\Rrightarrow$@
+       (R : A @$\rightarrow$@ A @$\rightarrow$@ Type) @$\Rrightarrow$@
+       (S : B @$\rightarrow$@ B @$\rightarrow$@ Type) @$\Rrightarrow$@
        (C_isSet : isSet C) @$\rightarrow$@
        (f : A @$\rightarrow$@ B @$\rightarrow$@ C) @$\rightarrow$@
        ((a : A) @$\rightarrow$@ (b : A) @$\rightarrow$@ (c : B) @$\rightarrow$@ R a b @$\rightarrow$@ Eq (f a c) (f b c)) @$\rightarrow$@
        ((a : A) @$\rightarrow$@ (b : B) @$\rightarrow$@ (c : B) @$\rightarrow$@ S b c @$\rightarrow$@ Eq (f a b) (f a c)) @$\rightarrow$@
        Quotient A R @$\rightarrow$@ Quotient B S @$\rightarrow$@ C
 rec2 =
-  @$\lambda$@ _ _ _ _ _ A B C R S @$\Rrightarrow$@
+  @$\lambda$@ A B C R S @$\Rrightarrow$@
     @$\lambda$@ C_isSet f feql feqr @$\rightarrow$@
       Quotient_rec (R := R)
         (@$\lambda$@ a @$\rightarrow$@ @$\lambda$@ b @$\rightarrow$@
@@ -3964,12 +3937,12 @@ toPathOver = @$\lambda$@ _  A @$\Rrightarrow$@ @$\lambda$@ x y @$\Rightarrow$@ @
 We construct a heterogeneous equality between $\id{x}$ and $\id{transport\_x}$ and we concatenate it with the equality proof between $\id{transport\_x}$ and $\id{y}$ to complete the proof.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-elimProp : (A : Type_ ?) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
+elimProp : (A : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
            @$\Rrightarrow$@ (P : Quotient A R @$\rightarrow$@ Type)
            @$\Rrightarrow$@ (prop : (x : Quotient A R) @$\rightarrow$@ isProp (P x))
            @$\rightarrow$@ (f : (x : A) @$\rightarrow$@ P (Quotient_in x))
            @$\rightarrow$@ (x : Quotient A R) @$\rightarrow$@ P x
-elimProp = @$\lambda$@ _ _ _ A R P @$\Rrightarrow$@ @$\lambda$@ prop f @$\rightarrow$@
+elimProp = @$\lambda$@ A R P @$\Rrightarrow$@ @$\lambda$@ prop f @$\rightarrow$@
   Quotient_elim
     (R := R) (P := P) f
     (p := @$\lambda$@ a a' r @$\rightarrow$@
@@ -4008,24 +3981,21 @@ elimProp2 = @$\lambda$@ _ _ _ _ _ A B R S P @$\Rrightarrow$@ @$\lambda$@ prop f 
 In intensional type theory, functional extensionality is a property that is
 respected by all functions, however, typically this may not be proven. In this
 section, we demonstrate that the existence of quotient types implies functional
-extensionality.
-%% SM: Earlier you said that quotient types can be defined (rather than added)
-%% in a type theory with dependent pairs, which seems contradictory with
-%% the above statement that quotient types allow us to prove funext
-%% which is "usually" not provable.  Clarify what's going on here.
+extensionality. Note that this proof requires quotient types, and not normalised
+types which are a strict subset of quotient types.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-funext : (A : Type_ ?) @$\rightarrow$@ (B : A @$\rightarrow$@ Type_ ?)
-         @$\rightarrow$@ (f1 : (a : A) @$\rightarrow$@ B a) @$\rightarrow$@ (f2 : (a : A) @$\rightarrow$@ B a)
-         @$\rightarrow$@ (h : (a : A) @$\rightarrow$@ f1 a @$\equiv$@ f2 a) @$\rightarrow$@ f1 @$\equiv$@ f2
+funext : (A : Type) @$\rightarrow$@ (B : A @$\rightarrow$@ Type)
+         @$\rightarrow$@ (f1 f2 : (a : A) @$\rightarrow$@ B a) @$\rightarrow$@ (h : (a : A) @$\rightarrow$@ f1 a @$\equiv$@ f2 a)
+         @$\rightarrow$@ f1 @$\equiv$@ f2
 funext A B f1 f2 h =
   let
     fn_type = (a : A) @$\rightarrow$@ B a
 
-    equiv_rel : (f1 : fn_type) @$\rightarrow$@ (f1 : fn_type) @$\rightarrow$@ Type_ ?
+    equiv_rel : fn_type @$\rightarrow$@ fn_type @$\rightarrow$@ Type
     equiv_rel f1 f2 = ((a : A) @$\rightarrow$@ f1 a @$\equiv$@ f2 a)
 
-    extfun_app : (f : Quotient fn_type equiv_rel) @$\rightarrow$@ fn_type
+    extfun_app : Quotient fn_type equiv_rel @$\rightarrow$@ fn_type
     extfun_app f a = Quotient_rec (R := equiv_rel)
                                   (f := @$\lambda$@ f @$\rightarrow$@ f a)
                                   (p := @$\lambda$@ f1 f2 r @$\rightarrow$@ r a) f
@@ -4778,9 +4748,9 @@ implementation of our quotient types thus gives us the benefit of preserving the
 modularity of the existing implementation of inductive types in Typer.
 
 The introduction of \id{Quotient\_eq} as an axiom also leads to the absence of a
-desirable computational property. Suppose that the following terms \fn{a : A},
-\fn{a' : A}, and \fn{r : R a a'} as well as a function \fn{f : A $\rightarrow$
-  B} and a proof that it respects the relation \id{R}, i.e.\ \fn{p : (a a' : A)
+desirable computational property. Suppose that the following terms \fn{a $\colon$ A},
+\fn{a' $\colon$ A}, and \fn{r $\colon$ R a a'} as well as a function \fn{f : A $\rightarrow$
+  B} and a proof that it respects the relation \id{R}, i.e.\ \fn{p $\colon$ (a a' $\colon$ A)
   $\rightarrow$ R a a' $\rightarrow$ f a $\equiv$ f a'}. Unfortunately, the
 following equality does not hold definitionally \fn{Eq\_cong (Quotient\_rec f (p
   := p)) (Quotient\_eq r) $\equiv$ p a a' r}. This would indeed be a
@@ -5226,7 +5196,7 @@ $\eta$-equivalence does not hold definitionally for the \id{Sigma} type, however
 it may be proven propositionally:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Sigma_@$\eta$@ : (l : TypeLevel) @$\Rrightarrow$@ (A : Type_ l) @$\Rrightarrow$@ (P : (a : A) @$\rightarrow$@ Type_ l)
+Sigma_@$\eta$@ : (A : Type) @$\Rrightarrow$@ (P : (a : A) @$\rightarrow$@ Type)
           @$\Rrightarrow$@ (p : Sigma A P) @$\rightarrow$@ Eq p (sigma (B := P) p.fst p.snd)
 Sigma_@$\eta$@ p = case p
     | sigma x y =>
@@ -5243,16 +5213,16 @@ Sigma_@$\eta$@ p = case p
 \end{minted}
 
 We also define a lemma, \id{$\Sigma${}$\equiv${}Prop}, which states that to
-prove that two terms of type \fn{Sigma A B} are equal, if \fn{$\Pi_{x:A}$ isProp
+prove that two terms of type \fn{Sigma A B} are equal, if \fn{$\Pi_{x \colon A}$ isProp
   (B x)} is true, then it suffices to show that the first projection of the two
 dependent pairs are equal. The proof of this lemma is as follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-@$\Sigma$@@$\equiv$@Prop : (A : Type_ ?l1) @$\Rrightarrow$@ (B : (a : A) @$\rightarrow$@ Type_ ?l2)
+@$\Sigma$@@$\equiv$@Prop : (A : Type) @$\Rrightarrow$@ (B : (a : A) @$\rightarrow$@ Type)
          @$\Rrightarrow$@ ((x : A) @$\rightarrow$@ HoTT_isProp (B x))
          @$\rightarrow$@ (u : Sigma A B) @$\rightarrow$@ (v : Sigma A B)
          @$\rightarrow$@ (p : Eq u.fst v.fst) @$\rightarrow$@ Eq u v
-@$\Sigma$@@$\equiv$@Prop = @$\lambda$@ l1 l2 A B @$\Rrightarrow$@ @$\lambda$@ propB u v p @$\rightarrow$@
+@$\Sigma$@@$\equiv$@Prop = @$\lambda$@ A B @$\Rrightarrow$@ @$\lambda$@ propB u v p @$\rightarrow$@
   let
     h : Heq (t := lambda i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
             u.snd (Eq_cast (p := p) (f := B) u.snd)
@@ -5284,7 +5254,7 @@ heterogeneous equality proof between \id{a0} and \id{a2}. The proof is as
 follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-whiskerRight : (A : I @$\Rrightarrow$@ Type_ ?) @$\Rrightarrow$@ (a0 : A (_ := i0)) @$\rightarrow$@ (a1 : A (_ := i1))
+whiskerRight : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (a0 : A (_ := i0)) @$\rightarrow$@ (a1 : A (_ := i1))
                @$\rightarrow$@ (a2 : A (_ := i1)) @$\rightarrow$@ Heq a0 a1 @$\rightarrow$@ Eq a1 a2 @$\rightarrow$@ Heq a0 a2
 whiskerRight = @$\lambda$@ l A @$\Rrightarrow$@ @$\lambda$@ a0 a1 a2 p1 p2 @$\rightarrow$@
   Eq_cast (p := p2) (f := @$\lambda$@ x @$\rightarrow$@ Heq (t := A) a0 x) p1
@@ -5365,8 +5335,8 @@ be proven propositionally.
 
 Another thing that we are lacking is a proof that the dependent map induced by
 \id{Quotient\_rec} and \id{Quotient\_eq} is coherent. Suppose that we had terms
-\fn{x y:A}, \fn{r:R x y} and a function \fn{f:A $\rightarrow$ B} as well as a
-proof \id{p} that \id{f} respects the quotient, i.e.\ \fn{p: (a:A) $\rightarrow$
+\fn{x y $\colon$ A}, \fn{r $\colon$ R x y} and a function \fn{f $\colon$ A $\rightarrow$ B} as well as a
+proof \id{p} that \id{f} respects the quotient, i.e.\ \fn{p $\colon$ (a $\colon$ A) $\rightarrow$
   (a':A) $\rightarrow$ R a a' $\rightarrow$ f a $\equiv$ f a'}. Then we could
 expect the below coherence property to hold:
 
@@ -5374,7 +5344,7 @@ expect the below coherence property to hold:
   & \fn{Eq\_cong (Quotient\_rec f (p := p)) (Quotient\_eq r)} \equiv \fn{p x y} \\
 \end{align*}
 
-This property does not hold definitionally in Typer, however we could prove it
+This property does not hold definitionally in Typer, however, we could prove it
 by appealing to the fact that the output type \id{B} is a \textbf{Set}. In our
 proof of \fn{e $\circ{}$ e' $\equiv$ id}, we shall make use of both of the above
 properties manually by invoking the \id{$\Sigma$$\equiv$Prop} lemma defined in
