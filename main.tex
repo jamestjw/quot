@@ -543,19 +543,21 @@ several constructs to streamline proof development in Typer.
 
 The \emph{propositions as types} paradigm states that proofs are analogous to
 programs. Writing programs in the form of code is equivalent to writing
-mathematical proofs. For instance, a function of the type \fn{A $\rightarrow$ B}
-is analogous to an implication \fn{A $\supset$ B}. If we think of the types
-\fn{A} and \fn{B} as propositions, then such a function transforms all proofs of
-\fn{A} to proofs of \fn{B}\footnote{We only consider total functions.}. Such a
-function corresponds directly to our intuition of \emph{A implies B}, its
-existence is thus a proof of \fn{A $\supset$ B}. A conjunction \fn{A $\wedge$ B}
-is represented by a pair \fn{A $\times$ B}. To prove that \fn{A} and
-\fn{B} are both true, we need a proof of \fn{A} and \fn{B} respectively, which
-is precisely what we need a construct the pair \fn{A $\times$ B}. In the same
-vein, a disjunction \fn{A $\vee$ B} is interpreted as a sum type \fn{A + B}. A
-sum type has two constructors, one of them requires a proof of \fn{A} while the
-other requires a proof of \fn{B}, this corresponds to our interpretation of
-\fn{A $\vee$ B} that either \fn{A} or \fn{B} is true.
+mathematical proofs. Terms of a certain type are viewed as witnesses of the
+validity of the proposition represented by the type. For instance, a function of
+the type \fn{A $\rightarrow$ B} is analogous to an implication \fn{A $\supset$
+  B}. If we think of the types \fn{A} and \fn{B} as propositions, then such a
+function transforms all proofs of \fn{A} to proofs of \fn{B}\footnote{We only
+consider total functions.}. Such a function corresponds directly to our
+intuition of \emph{A implies B}, its existence is thus a proof of \fn{A
+  $\supset$ B}. A conjunction \fn{A $\wedge$ B} is represented by a pair \fn{A
+  $\times$ B}. To prove that \fn{A} and \fn{B} are both true, we need a proof of
+\fn{A} and \fn{B} respectively, which is precisely what we need a construct the
+pair \fn{A $\times$ B}. In the same vein, a disjunction \fn{A $\vee$ B} is
+interpreted as a sum type \fn{A + B}. A sum type has two constructors, one of
+them requires a proof of \fn{A} while the other requires a proof of \fn{B}, this
+corresponds to our interpretation of \fn{A $\vee$ B} that either \fn{A} or
+\fn{B} is true.
 
 However, in order to do anything meaningful, we would need a way to express the
 notion of equality, i.e.\ a crucial ingredient in expressing mathematical
@@ -620,13 +622,6 @@ types\cite{sulzmann2007systemfeq}.
 
 \section{Equality}\label{sec:intro-eq}
 
-%% SM: This gets technical very quickly.  I think some of it may not
-%% belong in the intro.  E.g. I think we can skip the definition of Vector
-%% and just state that we somehow have a type `Vector α n`.  The definition
-%% of Vector can/will probably appear later, but not in the intro.
-
-%% TODO: ^ Revisit this soon
-
 For two terms $x$ and $y$ of the same type $A$, we would like to be able to
 state the proposition that the two terms are equal. For now, we merely consider
 equality between terms of the same type. This gives us a type former that takes
@@ -641,8 +636,8 @@ Just like $\id{arrayGet}$, $\id{Eq}$ is a function. However, instead of
 returning values, it returns types. Since this type of function constructs
 types, it is also known as a type former. $\id{Eq}$ takes as arguments a type
 $\id{A}$ and two terms $\id{x}$ and $\id{y}$ of type $\id{A}$. Whenever we have
-two parameters in a row that have the same type, we use the shorthand notation
-\fn{(x y $\colon$ A)} instead of the more verbose \fn{(x $\colon$ A)
+two or more consecutive parameters of the same type, we use the shorthand
+notation \fn{(x y $\colon$ A)} instead of the more verbose \fn{(x $\colon$ A)
   $\rightarrow$ (y $\colon$ A)}. The usage of $\Rrightarrow$ indicates that the
 parameter $\id{A}$ is implicit and erasable, this is explained in greater detail
 in \autoref{sec:eq-justification}. Recall that types may be seen as
@@ -732,8 +727,9 @@ the cast operation might also be necessary to ensure the appropriate alignment
 of dimensions when working with a function that calculates matrix products. The
 equality type satisfies Leibniz's principle of the indiscernibility of
 identicals, i.e.\ two identical things may be substituted for one another.
-\fn{Eq\_cast} is thus of the fact that if two terms are equal, then if a
-predicate is true of the first term, it is necessarily also true for the other.
+\fn{Eq\_cast} is thus a witness of the fact that if two terms are equal, then if
+a predicate is true of the first term, it is necessarily also true for the
+other.
 
 Now that we have seen how equality proofs may be used in programs, the next
 question that ought to be answered is how are such terms introduced. The one and
@@ -776,7 +772,6 @@ Typer and its role in the elimination of quotients.
 %% sections instead.
 \subsection*{Cubical Equality}
 
-%% TODO: Mention and define at the very start here so I can refer to it later
 Recent advances in type theory inspired by topology propose a different approach
 to represent equality proofs by modeling them as functions whose argument is of
 the interval type, i.e.\ functions of the type \fn{I $\rightarrow$ A} given that
@@ -804,17 +799,17 @@ to be the ``the same''. It is thus crucial that equality proofs are not
 irrelevant in a HoTT setting, as their equalities could be constructed based on
 equivalences and thus have a computational role. As a general-purpose
 programming language, Typer has no ambitions of supporting univalence. Thus, it
-is desirable for equality proofs in Typer to remain irrelevant so that they may
-be erased before runtime. This is essential so that operations involving the
-equality type may be treated as no-ops during runtime. If all equality proofs
-may be evaluated to reflexivity proofs , then type casts using the \fn{Eq\_cast}
-primitive simply behave like the identity function at runtime as we would merely
-need to cast a term to its own type. This is in stark contrast to equalities
-that are equivalences, a cast at runtime would involve applying the underlying
-function of the equivalence, i.e.\ casting involves computation. In our work, we
-carefully adapt the cubical equality type to Typer to reap the benefits of
-having a more powerful equality type, all while preserving our equality type's
-compatibility with proof irrelevance.
+is desirable for equality proofs in Typer to remain proof irrelevant so that
+they may be erased before runtime. This is essential so that operations
+involving the equality type may be treated as no-ops during runtime. If all
+equality proofs may be evaluated to reflexivity proofs, then type casts using
+the \fn{Eq\_cast} primitive simply behave like the identity function at runtime
+as we would merely need to cast a term to its own type. This is in stark
+contrast to equalities that are equivalences, a cast at runtime would involve
+applying the underlying function of the equivalence, i.e.\ casting involves
+computation. In our work, we carefully adapt the cubical equality type to Typer
+to reap the benefits of having a more powerful equality type, all while
+preserving our equality type's compatibility with proof irrelevance.
 
 \section{Quotients}
 
@@ -932,7 +927,7 @@ We make several contributions:
 \begin{itemize}
   \item{First, we introduce a notion of heterogeneous equality based on the
     Interval type by drawing inspiration from cubical type theory
-    (\hyperref[ch:cubical-equality]{Chapter~\ref*{ch:cubical-equality}}).
+    (\hyperref[ch:cubical-equality]{Section~\ref*{ch:cubical-equality}}).
     Heterogeneous equality makes it possible to identify terms of different
     types\footnote{To identify A and B is to claim that they are equal.}. }
 
@@ -942,7 +937,7 @@ We make several contributions:
     (\hyperref[subsec:eq-examples]{Section~\ref*{subsec:eq-examples}}).}
 
   \item{We then introduced quotient types along with their typing and reduction
-    rules (\autoref{ch:quot}). Its elimination principle takes advantage of
+    rules (\autoref{ch:quot}). Their elimination principle takes advantage of
     heterogeneous equality by using it to express
     pathovers\cite{licata2015cubical}. We also convince ourselves that our
     quotients behave appropriately by proving their effectiveness
@@ -1117,7 +1112,6 @@ data UnorderedPair a = Pair a
   |/ swap :: x:a -> y:a -> pair x y == pair y x
 \end{minted}
 
-%% TODO: Again, verify that the formulation came from Hoffman
 Unlike our encoding of quotient types à la Hoffman\cite{hofmann1995extensional}
 in Cubical Agda, a surjection into the quotient is unnecessary in the present
 setting. Depending on the context, a term \fn{Pair x y} may be treated as a term
@@ -1167,52 +1161,6 @@ on. When we define such a hierarchy of quotients, the subtyping relationship
 that relates them also enables code reuse. For instance, a function that takes a
 list as an argument could also be called with a tree as it could be regarded as
 a supertype of the list type.
-
-%% TODO: This reflection can be brought elsewhere too I think, I don't have to
-%% rush with this passage
-
-%% Unlike the quotient types that we introduce in this work, QITs allow the
-%% definition of arbitrary equation constructors between terms of an inductive type
-%% instead of requiring these equalities to be encoded as equivalence relations.
-%% This can prove to be very helpful when defining certain quotients. In
-%% \autoref{sec:multiset}, we defined a relation on the \id{List} data type such
-%% that all permutations of a list are considered equivalent. The relation was
-%% slightly tedious to define as we had to be careful to ensure that it was indeed
-%% an equivalence relation by adding appropriate constructors where necessary. A
-%% similar definition in Quotient Haskell\cite{hewer2023quotient} is simpler and
-%% more straight to the point, as is illustrated in the following code block:
-
-%% SM: This is confusing: You say QITs are essentially a restriction of HITs,
-%% and this example is within the QIT section, but it looks syntactically
-%% different from a (restricted) HIT (e.g. because there is a non-quotiented
-%% base type).
-%% \begin{minted}{haskell}
-%% data Multiset a
-%%   = List a
-%%   |/ swap :: x:a -> y:a -> l:Multiset a -> cons x (cons y l) == cons y (cons x l)
-%% \end{minted}
-
-%% TODO: Move this reflection elsewhere, to the evaluation chapter probably It
-%% is valuable to mention what tradeoffs we get by going for own version of
-%% quotients, but this seems like a deeper reflection that is not trivially
-%% understandable
-
-%% What is important to note here that since we are adding equation constructors,
-%% we do not need the counterparts of the other constructors that were required in
-%% the Typer definition of the relation as they are vacuously valid here by virtue
-%% of the congruence properties of the equality type. This seems to suggest that
-%% %% SM: More convenient than HITs or than QTs?
-%% QITs are more convenient to work with in practice. QITs are also strictly more
-%% expressive than the combination of ordinary inductive types with quotient
-%% types\cite{fiore2022quotients}. However in practice, the additional expressivity
-%% offered by QITs is often unrequired for general programming. The example
-%% provided by the aforementioned paper of a QIT that we may not trivially define
-%% using quotient types in the form of unordered infinitely branching trees is
-%% indeed not a data type that one would expect to make a frequent appearance in
-%% daily programming tasks. Hence, we opted to introduce plain quotient types to
-%% Typer instead of QITs primarily because of its simpler implementation. Aside
-%% from that, we get the added benefit of preserving the modularity of the current
-%% implementation of inductive types.
 
 \section{Normalised Types}\label{sec:normalised-types-courtieu}
 
@@ -1746,14 +1694,27 @@ type \fn{R x y}, it is effectively a proof of \fn{$\pi$(t) $\sim_{A/R}$
 inversion of the equality proof \id{e}, in other words, this is the application
 of the congruence property of equality.
 
+\chapter{Cubical Equality and Quotient Types}\label{ch:cubical-equality}
+%% SM: It's probably a good place to talk about (as a kind of self-reflection)
+%% the fact that your thesis on "quotient types in Typer" talks almost
+%% more about equalities than about quotients.
 
-\section{Typer's Equality Type}\label{sec:typer-old-eq}
+\section{Cubical Equality}
 
-We present the existing version of Typer's equality type before presenting our
-implementatio of cubical equality in Typer. This is done notably to familiarise
-readers with Typer's equality in general and to highlight the advantages of
-cubical equality in subsequent chapters. This knowledge is nevertheless not
-necessary to understand the rest of this work.
+We first present the existing version of Typer's equality type before presenting
+our implementation of cubical equality in Typer. This is done notably to
+familiarise readers with Typer's equality in general and to highlight the
+advantages of cubical equality in subsequent sections. Then, we present the
+typical definition of the \emph{interval type} defined as a higher inductive
+type as can be found in various sources such as the HoTT
+book\cite[Chap~6.3]{HoTTbook}, a recent work that describes the fundamental
+concepts of HoTT and innovations in mathematics made possible by univalent
+foundations. We subsequently present our alternative formulation of the interval
+type and show that it is equivalent to the traditional definition. Finally, we
+define \emph{cubical equality}, a different take on the equality type, based on
+the aforementioned interval type.
+
+\subsection{Typer's Equality Type}\label{sec:typer-old-eq}
 
 Typer's primitive equality type is similar to that defined in intensional
 Martin-Löf type theory\cite{martin1975intuitionistic} such that the equality is
@@ -1814,31 +1775,35 @@ we are left with a function that maps \fn{Eq x x} to \fn{Eq y x}, thus we pass
 it a proof of reflexivity that \id{x} is equal to itself to obtain what we
 require.
 
-\chapter{Cubical Equality and Quotient Types}\label{ch:cubical-equality}
-%% SM: It's probably a good place to talk about (as a kind of self-reflection)
-%% the fact that your thesis on "quotient types in Typer" talks almost
-%% more about equalities than about quotients.
-
-\section{Cubical Equality}
-
-We first present the typical definition of the \emph{interval type} defined as a
-higher inductive type as can be found in various sources such as the HoTT
-book\cite[Chap~6.3]{HoTTbook}, a recent work that describes the fundamental
-concepts of HoTT and innovations in mathematics made possible by univalent
-foundations. We subsequently present our alternative formulation of the interval
-type and show that it is equivalent to the traditional definition. Finally, we
-define \emph{cubical equality}, a different take on the equality type, based on
-the aforementioned interval type.
-
 \subsection{Interval type}\label{sec:interval-introduction}
 
 In this section, we base our definitions on the assumption that we have an
-existing equality type as was described in \autoref{sec:intro-eq}, i.e.\ that we
-have a type former \fn{\_$\equiv$\_ $\colon$ A $\rightarrow$ A $\rightarrow$ Type}
-along with its constructor and eliminator. This helps us to introduce the
-interval type and its relationship to the equality type. We will ultimately
-define a new equality type that will then form the backbone of the rest of this
-work.
+existing equality type similar to what was described in the previous subsection,
+i.e.\ that we have a type former \fn{\_$\equiv$\_ $\colon$ A $\rightarrow$ A
+  $\rightarrow$ Type} along with its constructor and eliminator. We assume that
+we have access to the following syntax in the subsequent discussion.
+
+\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
+\setlength{\grammarindent}{4em} % increase separation between LHS/RHS
+
+%% The `renewcommands` make the angle brackets go away
+\renewcommand{\syntleft}{}
+\renewcommand{\syntright}{}
+\begin{grammar}
+<$T$> ::= \ldots
+\alt{} \fn{$T_{x}$ $\equiv$ $T_{y}$}
+\alt{} \fn{\kw{refl}$_{T_x}$}
+\alt{} \fn{\kw{cong}$_{T_f}$(${T_p}$)}
+\alt{} \fn{\kw{cast}($T_{p}$, $T_{f}$, $T_{fx}$)}
+\end{grammar}
+
+A new addition here is \kw{cong} refers to the congruence property of equality,
+if we have a proof \id{p} of \fn{x $\equiv$ y} and some function \id{f}, then
+$\kw{cong}_f(p)$ constructs a proof of \fn{f x $\equiv$ f y}.
+
+This helps us to introduce the interval type and its relationship to the
+equality type. We will ultimately define a new equality type that will then form
+the backbone of the rest of this work.
 
 \begin{center}
   \begin{prooftree}
@@ -1898,23 +1863,21 @@ It has the below computation rules:
   & \kw{cong}_{elim_{\bI}^{A}(M, N, P)}(\id{seg}) \rightsquigarrow{} P
 \end{align*}
 
-\kw{cong} refers to the congruence property of equality, if we have a proof
-\id{p} of \fn{x $\equiv$ y} and some function \id{f}, then $\kw{cong}_f(p)$
-constructs a proof of \fn{f x $\equiv$ f y}. We can expect the first two rules
-to hold definitionally. Definitional equality of two terms is determined by
-expanding out definitions. So when we say that $elim_{\bI}^{_.A}(M, N , P,
-\ileft)$ is definitionally equal to \id{M}, we are saying that the former
-reduces to the latter when we check for equality. If we imagine that the first
-two computation rules were defined via pattern-matching, it would make sense for
-these equations to hold definitionally. The third rule is a more curious case,
-by the congruence of equality, the application of the interval eliminator with
-the equality proof $\id{P}$ to $\id{seg}$ should yield an equality proof between
-$\id{M}$ and $\id{N}$. The rule suggests that this should compute to $\id{P}$
-itself. From a computational point of view, equalities between equality proofs
-are only an important consideration in a proof-relevant setting, e.g.\ in the
-context of HoTT\@. In the world of Typer where we demand that equality proofs be
-erasable and play no role during computation, such equalities are less
-meaningful. However, they are not completely irrelevant as we occasionally need
+We can expect the first two rules to hold definitionally. Definitional equality
+of two terms is determined by expanding out definitions. So when we say that
+$elim_{\bI}^{_.A}(M, N , P, \ileft)$ is definitionally equal to \id{M}, we are
+saying that the former reduces to the latter when we check for equality. If we
+imagine that the first two computation rules were defined via pattern-matching,
+it would make sense for these equations to hold definitionally. The third rule
+is a more curious case, by the congruence of equality, the application of the
+interval eliminator with the equality proof $\id{P}$ to $\id{seg}$ should yield
+an equality proof between $\id{M}$ and $\id{N}$. The rule suggests that this
+should compute to $\id{P}$ itself. From a computational point of view,
+equalities between equality proofs are only an important consideration in a
+proof-relevant setting, e.g.\ in the context of HoTT\@. In the world of Typer
+where we demand that equality proofs be erasable and play no role during
+computation, such equalities are less meaningful. However, they are not
+completely irrelevant as we occasionally need
 %% SM: You haven't mentioned this notion of "coherence" yet.
 to construct such proofs for coherence purposes. In most cases, the third
 equation does not hold definitionally as the \kw{cong} construct is defined
@@ -1955,9 +1918,9 @@ The following type is inhabited:
 \end{theo}
 
 We provide a proof of the above in Appendix~\ref{app:proof-i->a-equiv}. By
-establishing the above equivalence, we no longer require the $\_\equiv\_$ type
-former that we assume we had in \autoref{sec:interval-introduction} as we may
-represent the equality type using functions out of the interval.
+establishing the above equivalence, we no longer require the \fn{_$\equiv$_}
+type former that we assume we had in \autoref{sec:interval-introduction} as we
+may represent the equality type using functions out of the interval.
 
 \subsection{Adaptation to Typer}\label{sec:eq-justification}
 We have established in the previous section that equality between two terms is
@@ -1971,7 +1934,7 @@ that is marked as erasable has no computational role during runtime. Within the
 function body, such an argument may only be used in an \emph{erasable} manner,
 for instance, it may be used in the computation of an expression that is passed
 as an erasable argument to yet another function. In other words, we can first
-define the interval type as a normal algebraic data type. Next, we can model the
+define the interval type as a normal algebraic data type. Next, we model the
 equality type as a function with an erasable argument out of the interval type.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
@@ -2003,11 +1966,11 @@ argument is erasable. With that, we can postulate the following equivalence.
 
 The above shall be the basis of our new definition of equality types.
 
-\subsection{Manipulation of the Interval type}
+\subsection{Manipulation of the Interval type}\label{sec:interval-manipulation}
 
-We introduce a few operations on the interval type whose usefulness will become
-clear after we introduce our version of the equality type that is based on the
-interval type.
+We introduce a few primitive operations on the interval type whose usefulness
+will become clear after we introduce our version of the equality type that is
+based on the interval type.
 
 \subsubsection*{Negation}
 
@@ -2105,42 +2068,70 @@ $\Funapp{\fn{I\_meet}}{i}{(\Funapp{\fn{I\_not}}{i})} \rightsquigarrow{} i_0$
 holds definitionally, however, the two terms may be proven to be propositionally
 equal.
 
-\subsubsection*{Join}
-%% SM: AFAIK, with De Morgan (and not&meet) you can define any function
-%% on intervals.  The only question is which equivalences hold definitionally.
-TODO:\ So far I haven't found a need for this operator. Do some investigation to
-see if this is a worthy addition
+\subsubsection*{Join}\label{subsubsec:interval-join}
 
+The join operator returns the maximum of two terms of the Interval type. We
+define it in terms of the meet and not operators by using De Morgan's law.
 
-TODO:\ I'm leaning towards adding it anyway for completeness' sake
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+I_join : I @$\rightarrow$@ I @$\rightarrow$@ I
+I_join i j = I_not (I_meet (I_not i) (I_not j))
+\end{minted}
+
+The above definition allows the \id{I\_join} operator to inherit the required
+reduction rules from the other primitives.
+
+\begin{mdframed}[nobreak=true]
+    \begin{center}
+        \begin{prooftree}
+            \infer0[\textsc{I-Join$_1$}]{\Funapp{\fn{I\_join}}{i_0}{i}
+                \rightsquigarrow{} i}
+        \end{prooftree}
+        \qquad
+        \begin{prooftree}
+            \infer0[\textsc{I-Join$_2$}]{\Funapp{\fn{I\_join}}{i_1}{i}
+                \rightsquigarrow{} i_1}
+        \end{prooftree}
+
+        \hfill \break
+
+        \begin{prooftree}
+            \infer0[\textsc{I-Join$_3$}]{\Funapp{\fn{I\_join}}{i}{i_0}
+                \rightsquigarrow{} i}
+        \end{prooftree}
+        \qquad
+        \begin{prooftree}
+            \infer0[\textsc{I-Join$_4$}]{\Funapp{\fn{I\_join}}{i}{i_1}
+                \rightsquigarrow{} i_1}
+        \end{prooftree}
+
+        \hfill \break
+
+        \begin{prooftree}
+            \infer0[\textsc{I-Join$_5$}]{\Funapp{\fn{I\_join}}{i}{i}
+                \rightsquigarrow{} i}
+        \end{prooftree}
+    \end{center}
+\end{mdframed}
+
+These reduction rules behave in an opposite manner to those of \id{I\_meet} as
+\id{I\_join} always returns the greater of its two arguments.
+
 
 \subsection{Elimination of the Interval type}
 
-%% SM: I think this needs some discussion about what kind of behavior
-%% we want from an elimination rule.  As it currently stands, this
-%% section presents a funny rule I_transp with very little explanation about
-%% why it was defined this way.  What's so good about it?
-%% I can see the answers in your text, but someone who doesn't know what
-%% problems might need to be solved here will completely miss them
-%% and feel completely puzzled by this definition, just like you
-%% found Cubical Agda's transport puzzlingly complicated at first.
-
-%% SM: Why the negation?
-
-%% Note: Hmm good point, probably not for any particular reason since i0 and i1
-%% are symmetrical for all intents and purposes
-
-We present a special elimination principle of our interval type. It is designed
-to be a primitive upon which we would like to redefine the cast operation shown
-in \autoref{sec:typer-old-eq}. Consider some term \id{x}, an equality proof
-\id{p}, and an expression \fn{Eq\_cast (p := p) (f := id) x} which we denote as
-\id{y}. It makes sense to say that \id{x} and \id{y} are related, although they
-are not (necessarily) of the same type, they should still in some sense be
-`equal'. The elimination principle that we implement aims to kill two birds with
-one stone, not only does it implement the transport operation, it will
-eventually also allow us to prove a heterogeneous equality between \id{x} and
-\id{y}. It is largely inspired by the (generalised) transport operation used in
-Cubical Agda\cite{vezzosi2021cubical}. It has the following typing rule:
+We present a special elimination principle of our interval type, \id{I\_transp}.
+It is designed to be a primitive upon which we would like to redefine the cast
+operation shown in \autoref{sec:typer-old-eq}. Consider some term \id{x}, an
+equality proof \id{p}, and an expression \fn{Eq\_cast (p := p) (f := id) x}
+which we denote as \id{y}. It makes sense to say that \id{x} and \id{y} are
+related, although they are not (necessarily) of the same type, they should still
+in some sense be `equal'. The elimination principle that we implement aims to
+kill two birds with one stone, not only does it implement the transport
+operation, it will eventually also allow us to prove a heterogeneous equality
+between \id{x} and \id{y}. It is largely inspired by the (generalised) transport
+operation used in Cubical Agda\cite{vezzosi2021cubical}. It has the following
+typing rule:
 
 \begin{prooftree*}
   \hypo{\oftype{\ctx}{\id{A}}{\bI \Rrightarrow \type{Type}}}
@@ -2168,19 +2159,6 @@ function. This is the case when $\id{r} = \id{i}_0$, the type of
 $\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_0})}$ is
 $\Funapp{\id{A}}{(\earg{\id{i}_1})}$, i.e.\ this is coherent with its behaviour
 as the identity function on \id{a}.
-
-%% SM: Don't make such comments about details of Agda's rule
-%% unless you actually first describe Agda's rule.
-
-%% TODO: I think I don't actually want to describe their rule? It's not easy to
-%% make sense of and it wouldn't help people understand what's happening here
-%% anyway
-
-%% Since our version of $\id{I\_transp}$ is slightly different from that of
-%% Cubical Agda, we do not need the additional side condition that states that A
-%% needs to be a constant function when $\id{r} = \id{i}_1$ in order for the
-%% above expression to typecheck. This is primarily because the ultimate return
-%% type of the function is dependent on $\id{r}$ itself.
 
 When $\id{r} = \id{1}_1$, then the type of
 $\Funapp{\id{I\_transp}}{\id{A}}{\id{a}}{(\earg{\id{r}}{\id{i}_1})}$ is
@@ -2394,8 +2372,7 @@ based on it, functional extensionality can be derived as a theorem as we
 illustrate below.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Eq_funExt : (f : (? |$\rightarrow$| ?)) |$\Rightarrow$| (g : (? |$\rightarrow$| ?))
-            |$\Rightarrow$| (p : (x : ?) |$\rightarrow$| f x |$\equiv$| g x) |$\rightarrow$| f |$\equiv$| g
+Eq_funExt : (f g : (?A |$\rightarrow$| ?B)) |$\Rightarrow$| (p : (x : ?A) |$\rightarrow$| f x |$\equiv$| g x) |$\rightarrow$| f |$\equiv$| g
 Eq_funExt p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| |$\lambda$| x |$\rightarrow$| Eq_uneq (p := p x) (i := i))
 \end{minted}
 
@@ -2479,7 +2456,7 @@ simplified in a system with a cubical equality.
 %% Eq_cong = lambda f -> lambda p ->
 %%             Eq_eq (f := lambda i ≡> f (Eq_uneq (p := p) (i := i)))
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Eq_cong : (x y : ?A) |$\Rightarrow$| (g : (?A |$\rightarrow$| ?)) |$\rightarrow$| (p : x |$\equiv$| y) |$\rightarrow$| f x |$\equiv$| f y
+Eq_cong : (x y : ?A) |$\Rightarrow$| (g : (?A |$\rightarrow$| ?B)) |$\rightarrow$| (p : x |$\equiv$| y) |$\rightarrow$| g x |$\equiv$| g y
 Eq_cong g p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| g (Eq_uneq (p := p) (i := i)))
 \end{minted}
 
@@ -2505,14 +2482,16 @@ polymorphic identity function}.
 %% B) (p : x |$\equiv$| y) |$\rightarrow$| f x |$\equiv$| f y congS f p i = f (p i)
 %% \end{minted}
 
-\subsection{Limitations}
-We don't have primitives such as $hcomp$, what does this imply? Is there a
-certain class of proofs we are unable to construct? Or do we just suffer from
-some amount of inconvenience?
+%% TODO: Figure this out
+%%
+%% \subsection{Limitations}
+%% We don't have primitives such as $hcomp$, what does this imply? Is there a
+%% certain class of proofs we are unable to construct? Or do we just suffer from
+%% some amount of inconvenience?
 
-From what I understand, this allows us to compose higher dimensional cubes, i.e.
-we don't really need or care about this here I believe. So either don't mention it,
-or briefly touch on it at the very end.
+%% From what I understand, this allows us to compose higher dimensional cubes, i.e.
+%% we don't really need or care about this here I believe. So either don't mention it,
+%% or briefly touch on it at the very end.
 
 \section{Quotient Types}\label{ch:quot}
 
@@ -2530,9 +2509,9 @@ code.
 
 \subsection{Syntax}\label{sec:quot-syntax}
 
-%% TODO: Do this for other sections too! Starting with eq to show some syntax
-We extend the abstract language that we have been working with so far with our
-new constructs:
+%% TODO: Do this for other sections too! Starting with eq to show some syntax?
+We give an abstract presentation of the syntax of the new constructs that we
+introduce in this section:
 
 \setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
 \setlength{\grammarindent}{4em} % increase separation between LHS/RHS
@@ -2543,16 +2522,16 @@ new constructs:
 %% and for its constructor (modulo capitalization) if there's only one
 %% constructor.  So `Quotient_in` could be `quotient`.
 
-%% Make the angle brackets go away
+%% The `renewcommands` make the angle brackets go away
 \renewcommand{\syntleft}{}
 \renewcommand{\syntright}{}
 \begin{grammar}
-<\id{T}> ::= \ldots
-\alt{} \fn{Quotient T$_{A}$ T$_{R}$}
-\alt{} \fn{Quotient_in T$_{R}$ T$_{a}$}
-\alt{} \fn{Quotient_eq T$_{r}$}
-\alt{} \fn{Quotient_elim T$_{f}$ T$_{p}$ T$_{q}$}
-\alt{} \fn{Quotient_trunc T$_{p}$ T$_{q}$}
+<$T$> ::= \ldots
+\alt{} \fn{Quotient $T_{A}$ $T_{R}$}
+\alt{} \fn{Quotient_in $T_{R}$ $T_{a}$}
+\alt{} \fn{Quotient_eq $T_{r}$}
+\alt{} \fn{Quotient_elim $T_{f}$ $T_{p}$ $T_{q}$}
+\alt{} \fn{Quotient_trunc $T_{p}$ $T_{q}$}
 \end{grammar}
 
 We added a new \id{Quotient} type former, we can construct a quotient type using
@@ -3601,43 +3580,46 @@ a data type (albeit not a very efficient one) is by taking a quotient of the
 list data type with an equivalence relation such that all permutations of a
 given list are equivalent.
 
-To that end, we wish to define a relation $\fn{ListPerm $l_1$ $l_2$}$ such that
-$\fn{$l_1$}$ and $\fn{$l_2$}$ are permutations of each other. The relation would
-thus need a constructor of the following form:
+To that end, we wish to define a relation $\fn{ListPerm l1 l2}$ such that
+\id{l1} and \id{l2} are permutations of each other. The relation would thus need
+a constructor of the following form:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-swapPerm : (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ (l : List A)
+swapPerm : (x y : A) @$\rightarrow$@ (l : List A)
            @$\rightarrow$@ ListPerm ?A (cons y (cons x l)) (cons x (cons y l))
 \end{minted}
 
 The relation is symmetric as it is, however, for it to be an equivalence
 relation, we also require the relation to be reflexive and transitive. We thus
 need to complement it with additional constructors, this is analogous to
-constructing the reflexive and transitive closure of a relation.
+constructing the reflexive and transitive closure of this relation. This may be
+compared to a similar definition of \id{Multiset} as a QIT where one would need
+to add \textbf{only} \id{swapPerm} as an equation constructor as the equality
+type itself is already an equivalence relation. This suggests that QITs are more
+convenient to work with in practice compared to quotient types.
 
-For the relation to be reflexive, we would require the following constructors
+For our relation to be reflexive, we would require the following constructors
 such that $\fn{ListPerm}$ is closed under the base constructors of the List
 datatype.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 nilPerm : ListPerm ?A nil nil
 
-consPerm : (x : ?A) @$\rightarrow$@ (l1 : List ?A) @$\rightarrow$@ (l2 : List ?A)
-           @$\rightarrow$@ (ListPerm ?A l1 l2) @$\rightarrow$@ (ListPerm ?A (cons x l1) (cons x l2))
+consPerm : (x : ?A) @$\rightarrow$@ (l1 l2 : List ?A) @$\rightarrow$@ ListPerm ?A l1 l2
+           @$\rightarrow$@ ListPerm ?A (cons x l1) (cons x l2)
 \end{minted}
 
 Finally, the following addition makes the relation transitive:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-transPerm : (l1 : List ?A) @$\rightarrow$@ (l2 : List ?A) @$\rightarrow$@ (l3 : List ?A)
-            @$\rightarrow$@ (ListPerm ?A l1 l2) @$\rightarrow$@ (ListPerm ?A l2 l3)
-            @$\rightarrow$@ (ListPerm ?A l1 l3)
+transPerm : (l1 l2 l3 : List ?A) @$\rightarrow$@ ListPerm ?A l1 l2 @$\rightarrow$@ ListPerm ?A l2 l3
+            @$\rightarrow$@ ListPerm ?A l1 l3
 \end{minted}
 
-How the $\fn{ListPerm}$ relation has been presented so far suggests
-that it would most appropriately be defined as a GADT. Typer does not have built-in
-support for GADTs, however, we draw inspiration from\cite{sulzmann2007systemfeq} to
-encode such a GADT as an inductive type with explicit equality proofs.
+How the $\fn{ListPerm}$ relation has been presented so far suggests that it
+would most appropriately be defined as a GADT\@. Typer does not have built-in
+support for GADTs, however, we draw inspiration from\cite{sulzmann2007systemfeq}
+to encode such a GADT as an inductive type with explicit equality proofs.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 ListPerm : (A : Type) @$\rightarrow$@ List A @$\rightarrow$@ List A @$\rightarrow$@ Type
@@ -5127,9 +5109,6 @@ that \fn{g} is a quasi-inverse of \fn{f} as defined in~\cite[Chap.
 %% IOW, start with g(f(h)), then show how it reduces to (something equivalent
 %% to) h, then same thing for f(g(e)).
 
-%% TODO: Supplement this with more explanations to make it more easily
-%% digestable.
-
 \begin{align*}
   & f : (\bI \rightarrow A) \rightarrow \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y} \\
   & f(h) := \braket{h(\ileft), \braket{h(\iright), \kw{cong}_{h}(seg)}} \\ \\
@@ -5236,8 +5215,8 @@ Nat+_comm m n =
 
 
 \section{Properties of dependent pairs}\label{app:deppairs-properties}
-The type of dependent pairs in Typer is represented by the \id{Sigma} inductive
-type.
+In this work, we use the $\Sigma$ notation to denote dependent pairs. This may
+be represented in Typer by the \id{Sigma} inductive type.
 
 %% TODO: Use Σ syntax instead?
 
@@ -5434,7 +5413,8 @@ This concludes the proof of the desired equivalence.
 
 \section*{Interval Connections}\label{sec:interval-connections}
 
-The operations that we defined on the Interval correspond to
+The operations that we defined on the interval type in
+\autoref{sec:interval-manipulation} correspond to
 connections\cite{cohen2016cubical} that are typically drawn as squares. Such
 connections allow us to construct higher-dimensional squares from paths by
 adding degeneracies, i.e.\ reflexive proofs. The \textbf{meet} operation is
@@ -5447,8 +5427,8 @@ the interval meet operation allows us to construct a square that corresponds to
 the following expression:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-sq : Heq (t := @$\lambda$@ i @$\Rrightarrow$@ x @$\equiv$@ Eq_uneq (p := p) (i := i))
-         (Eq_refl (_ := x)) p
+sq : Heq (t := @$\lambda$@ i @$\Rrightarrow$@ a @$\equiv$@ Eq_uneq (p := p) (i := i))
+         (Eq_refl (_ := a)) p
 sq = Heq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i j)))
 \end{minted}
 
@@ -5488,7 +5468,7 @@ meant earlier by degeneracies as such paths are trivial.
 % Text Node
 \draw (425.31,211.47) node [anchor=north west][inner sep=0.75pt]   [align=left] {a};
 % Text Node
-\draw (208.25,132.58) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {Eq\_refl x};
+\draw (208.25,132.58) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {Eq\_refl a};
 % Text Node
 \draw (347.5,49.33) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {p};
 % Text Node
@@ -5496,14 +5476,14 @@ meant earlier by degeneracies as such paths are trivial.
 % Text Node
 \draw (302.92,133) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {$\displaystyle \lambda $ i \ j $\displaystyle \Rrightarrow $ p ($\displaystyle i\ \land \ j$) \\\\};
 % Text Node
-\draw (325.25,228.92) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {Eq\_refl x};
+\draw (325.25,228.92) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {Eq\_refl a};
 
 \end{tikzpicture}
 
 \end{center}
 
 To illustrate why the given square corresponds to the expression given above,
-i.e.\ a proof that \fn{Eq\_refl (\_ := x)} is equal to \id{p}, we shall examine
+i.e.\ a proof that \fn{Eq\_refl (\_ := a)} is equal to \id{p}, we shall examine
 each side of the square. To simplify the presentation, we shall consider \id{sq}
 without the \id{Eq\_eq} constructor and the \id{Eq\_uneq} deconstructor by
 treating functions out of the interval themselves as equality proofs. This
@@ -5522,8 +5502,8 @@ path on $\fn{a}$ by using the reduction rules of $\fn{I\_meet}$ defined in
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 @$\lambda$@ j @$\Rrightarrow$@ p (I_meet @$i_0$@ j)
 @$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p @$i_0$@
-@$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ x
-@$\rightsquigarrow$@ Eq_refl (_ := x)
+@$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ a
+@$\rightsquigarrow$@ Eq_refl (_ := a)
 \end{minted}
 
 For the bottom side, we fix $\fn{j}$ to be $i_0$ to obtain the below expression,
@@ -5532,7 +5512,7 @@ which is once again a constant path on $\fn{a}$.
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 @$\lambda$@ i @$\Rrightarrow$@ p (I_meet i @$i_0$@)
 @$\rightsquigarrow$@ @$\lambda$@ i @$\Rrightarrow$@ p @$i_0$@
-@$\rightsquigarrow$@ Eq_refl (_ := x)
+@$\rightsquigarrow$@ Eq_refl (_ := a)
 \end{minted}
 
 The right side requires us to fix $\fn{i}$ to be $i_1$, giving us the below
@@ -5563,11 +5543,58 @@ eqUnique a b p = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@
 
 \subsection*{Join}
 
-TODO:\ TBD if I want to do this. Joins could be used to build the same square
-that we saw above, the only difference is that the added degeneracy would be
-a refl path on $b$ instead of $a$. The thing is, I've never really needed
-this.
+The join operator allows us to construct a square similar to the one seen in the
+previous section. Here, we get a proof of equality between \id{p} and \fn{Eq_refl
+  (_ := b)}.
 
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+sq : Heq (t := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := p) (i := i) @$\equiv$@ b)
+         p (Eq_refl (_ := b))
+sq = Heq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_join i j)))
+\end{minted}
+
+We allow the reader to convince himself that the following square corresponds to
+the above expression using the same method of reasoning that was employed in the
+previous section.
+
+\begin{center}
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+%Straight Lines [id:da9309220801708125]
+\draw    (280.24,210.16) -- (280.24,82.66) ;
+\draw [shift={(280.24,80.66)}, rotate = 90] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da27005901742474503]
+\draw    (430.35,210.41) -- (430.35,82.74) ;
+\draw [shift={(430.35,80.74)}, rotate = 90] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da12122758686551816]
+\draw    (290.56,70.17) -- (418.62,70.17) ;
+\draw [shift={(420.62,70.17)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+%Straight Lines [id:da6877885955483964]
+\draw    (290.56,220.6) -- (417.94,220.6) ;
+\draw [shift={(419.94,220.6)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+
+% Text Node
+\draw (275.39,61.32) node [anchor=north west][inner sep=0.75pt]   [align=left] {b};
+% Text Node
+\draw (275.26,211.48) node [anchor=north west][inner sep=0.75pt]   [align=left] {a};
+% Text Node
+\draw (425.31,61.29) node [anchor=north west][inner sep=0.75pt]   [align=left] {b};
+% Text Node
+\draw (425.31,211.47) node [anchor=north west][inner sep=0.75pt]   [align=left] {b};
+% Text Node
+\draw (253.25,132.58) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {p};
+% Text Node
+\draw (324.5,50.33) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {Eq\_refl b};
+% Text Node
+\draw (441.75,132.42) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {Eq\_refl b};
+% Text Node
+\draw (302.92,133) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {$\displaystyle \lambda $ i \ j $\displaystyle \Rrightarrow $ p ($\displaystyle i\ \lor \ j$) \\\\};
+% Text Node
+\draw (349.25,225.92) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {p};
+
+\end{tikzpicture}
+\end{center}
 
 \chapter{Les différentes parties et leur ordre d'apparition}
 
