@@ -4823,10 +4823,7 @@ $\fn{rational\_benchmark.typer}$ file.}. We examine the runtime
 cost\footnote{The tests were executed on the author's 2018 Macbook Pro with a
 quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of executing the
 functions $\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
-%% TODO: Run 10000 iterations
-$\fn{Rational\_*}$ on 5000 pairs of rational numbers with 1000 iterations.
-%% SM: How many times have you measured it?  Do you report the average of
-%% all runs?  Or the minimum?  Can you include maybe the variance?
+$\fn{Rational\_*}$ on 15000 pairs of rational numbers with 500 iterations.
 
 %% TODO: Column sizes aren't equal between zpair and Rational? How do I fix this?
 \begin{table}[]
@@ -4836,10 +4833,10 @@ $\fn{Rational\_*}$ on 5000 pairs of rational numbers with 1000 iterations.
 \multirow{3}{*}{Operation} & \multicolumn{4}{c}{Execution Time (seconds)}                         & \multirow{3}{*}{Overhead (seconds)} \\ \cmidrule(lr){2-5}
                            & \multicolumn{2}{c}{Average} & \multicolumn{2}{c}{Standard Deviation} &                                     \\ \cmidrule(lr){2-5}
                & $\zpair$ & Rational & $\zpair$ & Rational &         \\ \midrule
-Negation       & 0.0211   & 0.0341   & 0.004231 & 0.04058  & 0.0129  \\
-Addition       & 0.0401   & 0.0527   & 0.05129  & 0.02756  & 0.0126  \\
-Subtraction    & 0.0441   & 0.0705   & 0.02989  & 0.032528 & 0.0264  \\
-Multiplication & 0.0346   & 0.05607  & 0.05017  & 0.0282   & 0.02147 \\ \bottomrule
+Negation       & 0.112   & 0.229   & 0.0348 & 0.133  & 0.117  \\
+Addition       & 0.386   & 0.538   & 0.260  & 0.298  & 0.152  \\
+Subtraction    & 0.460   & 0.660   & 0.262  & 0.279  & 0.2  \\
+Multiplication & 0.352   & 0.496   & 0.270  & 0.329  & 0.144 \\ \bottomrule
 \end{tabular}
 \caption{The runtime cost of operations on rational numbers with and without the
   use of quotient types.}\label{tab:rational-benchmark}
@@ -4859,10 +4856,9 @@ $\fn{Rational\_+}$:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
 (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
-  (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@
-                     (@$\lambda$@ (y) @$\rightarrow$@
-                         (@$\zpairplus$@ x y)))
-  a b)))
+  (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@
+                    (@$\zpairplus$@ x y)))
+                 a b)))
 \end{minted}
 
 %% SM: I don't see any $\beta$-reductions in the rewrite from the above to just
@@ -4870,6 +4866,8 @@ $\fn{Rational\_+}$:
 Through a series of $\eta$-reductions and $\beta$-reductions, we can see that
 the above expression is equivalent to $\zpairplus$.
 
+\begin{mdframed}
+%% \begin{mdframed}[nobreak=true]
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
 (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
   (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ (@$\zpairplus$@ x y)))
@@ -4901,11 +4899,13 @@ Quotient_rec (@$\lambda$@ (a) @$\rightarrow$@
 
 @$\zpairplus$@
 \end{minted}
+\end{mdframed}
 
-
-This implies that with an appropriate optimisation phase, Elexps containing
-quotient primitives could be simplified to completely neutralise the overhead of
-quotient types. We leave
+A desirable optimisation is the reduction of \fn{Quotient\_rec f} to \id{f}.
+With that, we show a possible series of reductions and optimisations that
+simplify \fn{Rational\_+} to $\zpairplus$. This implies that with an appropriate
+optimisation phase, Elexps containing quotient primitives could be simplified to
+completely neutralise the overhead of quotient types. We leave
 %% SM: It would be nice to list the optimizations/rewrite-rules needed
 %% and maybe discuss them.  E.g. replacing
 %% (λ (y) → (ZxZ+ x y)) => (ZxZ+ x) is generally not considered acceptable
@@ -4914,14 +4914,16 @@ quotient types. We leave
 %% often has no idea if that's the case).   In contrast replacing
 %% (λ (x) → (λ (y) → (ZxZ+ x y))) => ZxZ+
 %% doesn't suffer from such problems since both terms are constant-time.
-this optimisation for future work. We also note that addition and
-multiplication unsurprisingly have a similar constant overhead due to how
-similarly they are defined. Since negation is a unary operation, it
-was defined directly using $\fn{Quotient\_rec}$ and thus has a lesser overhead
-than the other binary operations. We also defined subtraction based on
+this optimisation for future work. We also note that addition and multiplication
+unsurprisingly have a similar overhead due to how similarly they are defined.
+Since negation is a unary operation, it was defined directly using
+$\fn{Quotient\_rec}$ and thus has a lesser overhead than the other binary
+operations. We also defined subtraction based on
 %% SM: 52.7% is not significantly greater than 51.6%.  Are you talking about
 %% the overhead in seconds?
 addition combined with subtraction, so its greater overhead is well justified.
+%% FIXME: Wait, intuitively speaking, the overhead of subtraction should be the
+%% sum of the overhead of addition and negation?! Why isn't this the case?
 
 \subsection*{Multiset}
 
