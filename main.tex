@@ -4867,13 +4867,10 @@ $\fn{Rational\_+}$:
                  a b)))
 \end{minted}
 
-%% SM: I don't see any $\beta$-reductions in the rewrite from the above to just
-%% ZxZ+.
-Through a series of $\eta$-reductions and $\beta$-reductions, we can see that
-the above expression is equivalent to $\zpairplus$.
+Through a series of $\eta$-reductions and inlinings, we can see that the above
+expression is equivalent to $\zpairplus$.
 
 \begin{mdframed}
-%% \begin{mdframed}[nobreak=true]
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
 (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
   (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ (@$\zpairplus$@ x y)))
@@ -4883,17 +4880,17 @@ the above expression is equivalent to $\zpairplus$.
 
 Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ (@$\zpairplus$@ x y)))
 
-    @$\rightsquigarrow$@ @$\beta$@-reduction of Quotient_rec2
+    @$\rightsquigarrow$@ Inlining of Quotient_rec2
 
 Quotient_rec (@$\lambda$@ (a) @$\rightarrow$@
     Quotient_rec ((@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ (@$\zpairplus$@ x y))) a))
 
-    @$\rightsquigarrow$@ @$\beta$@-reduction of Quotient_rec
+    @$\rightsquigarrow$@ Inlining of Quotient_rec
 
 (@$\lambda$@ (a) @$\rightarrow$@
     Quotient_rec ((@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ (@$\zpairplus$@ x y))) a))
 
-    @$\rightsquigarrow$@ @$\beta$@-reduction of Quotient_rec
+    @$\rightsquigarrow$@ Inlining of Quotient_rec
 
 (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ (@$\zpairplus$@ x y))) a)
 
@@ -4907,7 +4904,16 @@ Quotient_rec (@$\lambda$@ (a) @$\rightarrow$@
 \end{minted}
 \end{mdframed}
 
-A desirable optimisation is the reduction of \fn{Quotient\_rec f} to \id{f}.
+A desirable optimisation is the inlining of \id{Quotient\_rec} and
+\id{Quotient\_rec2} as follows:
+
+\begin{itemize}
+  \item{\fn{Quotient\_rec2 f} $\rightsquigarrow$ \fn{Quotient\_rec ($\lambda$ a $\rightarrow$ Quotient\_rec (f a))}}
+
+  \item{\fn{Quotient\_rec f} $\rightsquigarrow$ \id{f}}
+\end{itemize}
+
+
 With that, we show a possible series of reductions and optimisations that
 simplify \fn{Rational\_+} to $\zpairplus$. This implies that with an appropriate
 optimisation phase, Elexps containing quotient primitives could be simplified to
@@ -4927,7 +4933,7 @@ $\fn{Quotient\_rec}$ and thus has a lesser overhead than the other binary
 operations. We also defined subtraction based on
 %% SM: 52.7% is not significantly greater than 51.6%.  Are you talking about
 %% the overhead in seconds?
-addition combined with subtraction, so its greater overhead is well justified.
+addition combined with negation, so its greater overhead is well justified.
 %% FIXME: Wait, intuitively speaking, the overhead of subtraction should be the
 %% sum of the overhead of addition and negation?! Why isn't this the case?
 
