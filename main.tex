@@ -2118,7 +2118,7 @@ These reduction rules behave in an opposite manner to those of \id{I\_meet} as
 \id{I\_join} always returns the greater of its two arguments.
 
 
-\subsection{Elimination of the Interval type}
+\subsection{Elimination of the Interval type}\label{sec:i-transp}
 
 We present a special elimination principle of our interval type, \id{I\_transp}.
 It is designed to be a primitive upon which we would like to redefine the cast
@@ -2183,8 +2183,8 @@ signature:
 I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ A (_ := i0) @$\rightarrow$@ (r : I) @$\Rrightarrow$@ A (_ := r)
 \end{minted}
 
-Its implementation is simple in that it simply returns the argument $\id{a}$
-untouched when \id{r} is a canonical value of $\bI$.
+Its implementation is simple in that its runtime behaviour involves returning
+the argument $\id{a}$ untouched.
 
 \subsection{Equality type}\label{sec:identity}
 
@@ -3875,80 +3875,89 @@ the target type is a $\kw{Prop}$ as was introduced in
 $\id{f}$ has no bearing on our proof obligations, as they can be discharged in a
 very systematic way by leveraging the fact that output type is a $\kw{Prop}$.
 First, we need to prove a lemma, $\id{toPathOver}$. Suppose that we have a type
-former $\id{A} : \id{I} \Rrightarrow \kw{Type}$ and two terms $\id{x}$ and
+former $\id{A} \colon \id{I} \Rrightarrow \kw{Type}$, two terms $\id{x}$ and
 $\id{y}$ of types $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and
-$\Funapp{\id{A}}{(\earg{\_}{\iright})}$ respectively, we get the following
-diagram.
-
-%% FIXME: Fix alignment
+$\Funapp{\id{A}}{(\earg{\_}{\iright})}$ respectively, and a term \id{cast\_x}
+that we obtain by casting \id{x} to $\Funapp{\id{A}}{(\earg{\_}{\iright})}$, we
+get the following diagram.
 
 \begin{center}
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
 %uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
 
 %Shape: Ellipse [id:dp6858943436655307]
-\draw  [fill={rgb, 255:red, 231; green, 234; blue, 244 }  ,fill opacity=1 ] (230,230.5) .. controls (230,202.61) and (269.18,180) .. (317.5,180) .. controls (365.82,180) and (405,202.61) .. (405,230.5) .. controls (405,258.39) and (365.82,281) .. (317.5,281) .. controls (269.18,281) and (230,258.39) .. (230,230.5) -- cycle ;
+\draw  [fill={rgb, 255:red, 231; green, 234; blue, 244 }  ,fill opacity=1 ] (230,220.5) .. controls (230,187.09) and (279.25,160) .. (340,160) .. controls (400.75,160) and (450,187.09) .. (450,220.5) .. controls (450,253.91) and (400.75,281) .. (340,281) .. controls (279.25,281) and (230,253.91) .. (230,220.5) -- cycle ;
 %Shape: Ellipse [id:dp4978096684614166]
-\draw  [fill={rgb, 255:red, 255; green, 219; blue, 219 }  ,fill opacity=1 ] (230,103) .. controls (230,79.25) and (268.73,60) .. (316.5,60) .. controls (364.27,60) and (403,79.25) .. (403,103) .. controls (403,126.75) and (364.27,146) .. (316.5,146) .. controls (268.73,146) and (230,126.75) .. (230,103) -- cycle ;
+\draw  [fill={rgb, 255:red, 255; green, 219; blue, 219 }  ,fill opacity=1 ] (230,85) .. controls (230,49.1) and (279.25,20) .. (340,20) .. controls (400.75,20) and (450,49.1) .. (450,85) .. controls (450,120.9) and (400.75,150) .. (340,150) .. controls (279.25,150) and (230,120.9) .. (230,85) -- cycle ;
 %Shape: Circle [id:dp2462377080592002]
-\draw  [fill={rgb, 255:red, 242; green, 5; blue, 5 }  ,fill opacity=1 ] (326,105.5) .. controls (326,103.01) and (328.01,101) .. (330.5,101) .. controls (332.99,101) and (335,103.01) .. (335,105.5) .. controls (335,107.99) and (332.99,110) .. (330.5,110) .. controls (328.01,110) and (326,107.99) .. (326,105.5) -- cycle ;
+\draw  [fill={rgb, 255:red, 242; green, 5; blue, 5 }  ,fill opacity=1 ] (335.5,85) .. controls (335.5,82.51) and (337.51,80.5) .. (340,80.5) .. controls (342.49,80.5) and (344.5,82.51) .. (344.5,85) .. controls (344.5,87.49) and (342.49,89.5) .. (340,89.5) .. controls (337.51,89.5) and (335.5,87.49) .. (335.5,85) -- cycle ;
 %Shape: Circle [id:dp1552015327211651]
-\draw  [fill={rgb, 255:red, 26; green, 38; blue, 234 }  ,fill opacity=1 ] (360,244.5) .. controls (360,242.01) and (362.01,240) .. (364.5,240) .. controls (366.99,240) and (369,242.01) .. (369,244.5) .. controls (369,246.99) and (366.99,249) .. (364.5,249) .. controls (362.01,249) and (360,246.99) .. (360,244.5) -- cycle ;
+\draw  [fill={rgb, 255:red, 26; green, 38; blue, 234 }  ,fill opacity=1 ] (390,224.5) .. controls (390,222.01) and (392.01,220) .. (394.5,220) .. controls (396.99,220) and (399,222.01) .. (399,224.5) .. controls (399,226.99) and (396.99,229) .. (394.5,229) .. controls (392.01,229) and (390,226.99) .. (390,224.5) -- cycle ;
 %Shape: Circle [id:dp924511868212545]
-\draw  [fill={rgb, 255:red, 26; green, 38; blue, 234 }  ,fill opacity=1 ] (271,244.5) .. controls (271,242.01) and (273.01,240) .. (275.5,240) .. controls (277.99,240) and (280,242.01) .. (280,244.5) .. controls (280,246.99) and (277.99,249) .. (275.5,249) .. controls (273.01,249) and (271,246.99) .. (271,244.5) -- cycle ;
+\draw  [fill={rgb, 255:red, 26; green, 38; blue, 234 }  ,fill opacity=1 ] (281,224.5) .. controls (281,222.01) and (283.01,220) .. (285.5,220) .. controls (287.99,220) and (290,222.01) .. (290,224.5) .. controls (290,226.99) and (287.99,229) .. (285.5,229) .. controls (283.01,229) and (281,226.99) .. (281,224.5) -- cycle ;
 %Straight Lines [id:da43777492366231496]
-\draw  [dash pattern={on 4.5pt off 4.5pt}]  (280,244.5) -- (360,244.5) ;
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (285.5,224.5) -- (394.5,224.5) ;
 %Straight Lines [id:da5251303335065973]
-\draw  [dash pattern={on 4.5pt off 4.5pt}]  (330.5,105.5) -- (364.5,244.5) ;
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (340,85) -- (394.5,224.5) ;
 %Straight Lines [id:da2553652396779533]
-\draw  [dash pattern={on 4.5pt off 4.5pt}]  (330.5,105.5) -- (275.5,244.5) ;
+\draw  [dash pattern={on 4.5pt off 4.5pt}]  (340,85) -- (285.5,224.5) ;
 
 % Text Node
-\draw (321,82) node [anchor=north west][inner sep=0.75pt]   [align=left] {x};
+\draw (331,62) node [anchor=north west][inner sep=0.75pt]   [align=left] {x};
 % Text Node
-\draw (371,232) node [anchor=north west][inner sep=0.75pt]   [align=left] {y};
+\draw (396.5,227.5) node [anchor=north west][inner sep=0.75pt]   [align=left] {y};
 % Text Node
-\draw (244,222) node [anchor=north west][inner sep=0.75pt]  [font=\scriptsize] [align=left] {transport\_x};
+\draw (254,232) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {cast\_x};
 % Text Node
-\draw (318,221) node [anchor=north west][inner sep=0.75pt]   [align=left] {p};
+\draw (331,202) node [anchor=north west][inner sep=0.75pt]   [align=left] {p};
 % Text Node
-\draw (160,92) node [anchor=north west][inner sep=0.75pt]   [align=left] {$\Funapp{\id{A}}{(\earg{\_}{\ileft})}$};
+\draw (148,72) node [anchor=north west][inner sep=0.75pt]   [align=left] {A (\_ := i$_0$) };
 % Text Node
-\draw (160,222) node [anchor=north west][inner sep=0.75pt]   [align=left] {$\Funapp{\id{A}}{(\earg{\_}{\iright})}$};
+\draw (148,222) node [anchor=north west][inner sep=0.75pt]   [align=left] {A (\_ := i$_1$) };
 % Text Node
-\draw (351,150.92) node [anchor=north west][inner sep=0.75pt]  [rotate=-0.06] [align=left] {toPathOver};
+\draw (361,102) node [anchor=north west][inner sep=0.75pt]  [rotate=-0.06] [align=left] {toPathOver};
+% Text Node
+\draw (259,102) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {castIsEq};
 
 \end{tikzpicture}
+
 \end{center}
 
-The circles represent the two types and points in the circle are elements of the corresponding types. With our definition of equality, we can trivially construct an equality between $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and $\Funapp{\id{A}}{(\earg{\_}{\iright})}$. Now, given that the two circles are `equal', intuitively speaking, every point in one circle should have a counterpart in the other circle, and this can be obtained transporting a point along the equality between the two types. The result of transporting $\id{x}$ to the type $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ is a point that we shall call $\id{transport\_x}$. Additionally, suppose also that we have an equality between $\id{transport\_x}$ and $\id{y}$, this is indicated by the path $\id{p}$ between the two points in the diagram. Given that $\id{x}$ is transported to $\id{transport\_x}$, and that $\id{transport\_x}$ is equal to $\id{y}$, we also want to be able to say something about the relationship between $\id{x}$ and $\id{y}$. Since they are not of the same type, all we can do is construct a heterogeneous equality between them, and this is precisely what the function $\id{toPathOver}$ seeks to do.
+The circles represent the two types and points in the circle are elements of the
+corresponding types. With our definition of equality, we can construct an
+equality between $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and
+$\Funapp{\id{A}}{(\earg{\_}{\iright})}$ using \id{Eq\_eq}. Now, given that the
+two circles are `equal', intuitively speaking, every point in one circle should
+have a counterpart in the other circle, and this can be obtained transporting a
+point along the equality between the two types. Additionally, suppose also that
+we have an equality between $\id{cast\_x}$ and $\id{y}$, this is indicated
+by the path $\id{p}$ between the two points in the diagram. Given that $\id{x}$
+is casted to $\id{cast\_x}$, and that $\id{cast\_x}$ is equal to
+$\id{y}$, we also want to be able to say something about the relationship
+between $\id{x}$ and $\id{y}$. Since they are not of the same type, all we can
+do is construct a heterogeneous equality between them, and this is precisely
+what the function $\id{toPathOver}$ seeks to do.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 toPathOver : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0)) @$\Rightarrow$@ (y : A (_ := i1))
              @$\Rightarrow$@ Eq (Eq_cast (p := Eq_eq (f := A)) (f := id) x) y
-             @$\rightarrow$@ Heq x y;
-toPathOver = @$\lambda$@ _  A @$\Rrightarrow$@ @$\lambda$@ x y @$\Rightarrow$@ @$\lambda$@ p @$\rightarrow$@
-  let
-    l : Heq x (Eq_cast (p := Eq_eq (f := A)) (f := id) x);
-    l = Heq_eq (t := A)
-               (f := @$\lambda$@ i @$\Rrightarrow$@
-                     I_transp (A := (@$\lambda$@ j @$\Rrightarrow$@ A (_ := I_meet i j)))
-                              (r := I_not i) x);
-  in
-    Eq_cast
-        (x := (Eq_cast (p := Eq_eq (f := A)) (f := id) x))
-        (y := y)
-        (p := p) (f := @$\lambda$@ y' @$\rightarrow$@ Heq x y') l;
+             @$\rightarrow$@ Heq (t := A) x y;
+toPathOver = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x y @$\Rightarrow$@ @$\lambda$@ p @$\rightarrow$@
+  whiskerRight (A := A) x (Eq_cast (p := Eq_eq (f := A)) (f := id) x) y
+               (castIsEq (A := A) x) p
 \end{minted}
 
-We construct a heterogeneous equality between $\id{x}$ and $\id{transport\_x}$ and we concatenate it with the equality proof between $\id{transport\_x}$ and $\id{y}$ to complete the proof.
+First, we construct a heterogeneous equality between $\id{x}$ and $\id{cast\_x}$
+using the \id{castIsEq} lemma that we prove in \autoref{app:cast-is-eq}. Then,
+we use the \id{whiskerRight} lemma described in \autoref{app:whiskering} to
+concatenate the above proof with \id{p} to produce a proof of heterogeneous
+equality between \id{x} and \id{y}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-elimProp : (A : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
-           @$\Rrightarrow$@ (P : Quotient A R @$\rightarrow$@ Type)
-           @$\Rrightarrow$@ (prop : (x : Quotient A R) @$\rightarrow$@ isProp (P x))
-           @$\rightarrow$@ (f : (x : A) @$\rightarrow$@ P (Quotient_in x))
-           @$\rightarrow$@ (x : Quotient A R) @$\rightarrow$@ P x
+elimProp : (P : Quotient ?A ?R @$\rightarrow$@ Type)
+           @$\Rrightarrow$@ (prop : (x : Quotient ?A ?R) @$\rightarrow$@ isProp (P x))
+           @$\rightarrow$@ (f : (x : ?A) @$\rightarrow$@ P (Quotient_in x))
+           @$\rightarrow$@ (x : Quotient ?A ?R) @$\rightarrow$@ P x
 elimProp = @$\lambda$@ A R P @$\Rrightarrow$@ @$\lambda$@ prop f @$\rightarrow$@
   Quotient_elim
     (R := R) (P := P) f
@@ -3969,14 +3978,12 @@ elimProp = @$\lambda$@ A R P @$\Rrightarrow$@ @$\lambda$@ prop f @$\rightarrow$@
 $\fn{toPathOver}$ does the heavy lifting in this proof by allowing us to leverage $\Funapp{\fn{isProp}}{(\Funapp{\id{P}}{\id{x}})}$ to easily produce a proof of $\Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}})}{(\Funapp{\id{f}}{\id{a}'})}$. We can also iterate this to define $\fn{elimProp}_2$, $\fn{elimProp}_3$ etc. In general, we can define $\fn{elimProp}_n$ in terms of $\fn{elimProp}_{n-1}$ and $\fn{elimProp}$. To illustrate this, we define $\fn{elimProp}_2$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-elimProp2 : (A B : Type)
-            @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type) @$\Rrightarrow$@ (S : B @$\rightarrow$@ B @$\rightarrow$@ Type)
-            @$\Rrightarrow$@ (P : Quotient A R @$\rightarrow$@ Quotient B S @$\rightarrow$@ Type)
-            @$\Rrightarrow$@ (prop : (x : Quotient A R) @$\rightarrow$@ (y : Quotient B S)
+elimProp2 : (P : Quotient ?A ?R @$\rightarrow$@ Quotient ?B ?S @$\rightarrow$@ Type)
+            @$\Rrightarrow$@ (prop : (x : Quotient ?A ?R) @$\rightarrow$@ (y : Quotient ?B ?S)
                        @$\rightarrow$@ isProp (P x y))
-            @$\rightarrow$@ (f : (x : A) @$\rightarrow$@ (y : B) @$\rightarrow$@ P (Quotient_in x) (Quotient_in y))
-            @$\rightarrow$@ (x : Quotient A R) @$\rightarrow$@ (y : Quotient B S) @$\rightarrow$@ P x y
-elimProp2 = @$\lambda$@ _ _ _ _ _ A B R S P @$\Rrightarrow$@ @$\lambda$@ prop f @$\rightarrow$@
+            @$\rightarrow$@ (f : (x : ?A) @$\rightarrow$@ (y : ?B) @$\rightarrow$@ P (Quotient_in x) (Quotient_in y))
+            @$\rightarrow$@ (x : Quotient ?A ?R) @$\rightarrow$@ (y : Quotient ?B ?S) @$\rightarrow$@ P x y
+elimProp2 = @$\lambda$@ A B R S P @$\Rrightarrow$@ @$\lambda$@ prop f @$\rightarrow$@
   elimProp (P := @$\lambda$@ x @$\rightarrow$@ (y : Quotient B S) @$\rightarrow$@ P x y)
            (@$\lambda$@ x @$\rightarrow$@ isProp@$\Pi$@ (B := P x) (prop x))
            (@$\lambda$@ a @$\rightarrow$@ elimProp (P := P (Quotient_in a))
@@ -4825,7 +4832,6 @@ quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of executing the
 functions $\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
 $\fn{Rational\_*}$ on 15000 pairs of rational numbers with 500 iterations.
 
-%% TODO: Column sizes aren't equal between zpair and Rational? How do I fix this?
 \begin{table}[]
 \centering
 \begin{tabular}{@{}cccccc@{}}
@@ -5216,6 +5222,66 @@ Nat+_comm m n =
 \end{minted}
 
 
+\section{Whiskering}\label{app:whiskering}
+
+We use the term whiskering to refer to the concatenation of a heterogenous
+equality with a homogeneous equality.
+
+If we have a heterogeneous equality proof between \id{a0} and \id{a1} and a
+homogeneous equality proof between \id{a1} and \id{a2}, then we can construct a
+heterogeneous equality proof between \id{a0} and \id{a2} as follows:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+whiskerRight : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (a0 : A (_ := i0)) @$\rightarrow$@ (a1 a2 : A (_ := i1))
+               @$\rightarrow$@ Heq a0 a1 @$\rightarrow$@ Eq a1 a2 @$\rightarrow$@ Heq a0 a2
+whiskerRight = @$\lambda$@ l A @$\Rrightarrow$@ @$\lambda$@ a0 a1 a2 p1 p2 @$\rightarrow$@
+  Eq_cast (p := p2) (f := @$\lambda$@ x @$\rightarrow$@ Heq (t := A) a0 x) p1
+\end{minted}
+
+
+This is analogous to our proof of \id{Eq\_trans} in
+\autoref{sec:eqtransitivity}. \id{whiskerLeft} may be defined in a similar
+fashion.
+
+\section{Equality Between \id{x} and \kw{cast}$_x$}\label{app:cast-is-eq}
+
+For some term \id{x} of type \fn{A (_ := i0)}, we want to prove a heterogeneous
+equality between \id{x} and the result of casting it to \fn{A (_ := i1)}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+castIsEq : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0))
+           @$\rightarrow$@ Heq (t := A) x (Eq_cast (p := Eq_eq (f := A)) (f := id) x)
+castIsEq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x @$\rightarrow$@
+  let
+    p : Eq (I_transp (A := A) x (r := i1))
+           (Eq_cast (p := Eq_eq (f := A)) (f := id) x);
+    p = Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@
+                    I_transp
+                        (A := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := Eq_@$\eta$@ (A := A) i) (i := j))
+                        x (r := i1));
+
+   h : Heq (t := A) x (I_transp (A := A) x (r := i1))
+   h = Heq_eq (t := A)
+              (f := @$\lambda$@ i @$\Rrightarrow$@ I_transp (A := A) x (r := i));
+  in
+    Eq_cast (p := p) (f := @$\lambda$@ e @$\rightarrow$@ Heq (t := A) x e) h
+\end{minted}
+
+We prove this using the special property of \id{I\_transp} described in
+\autoref{sec:i-transp}. Since the $\eta$-equivalence \fn{A (_ := i)) $\equiv$
+  (Eq_uneq (p := Eq_eq (f := A)) (i := i))} does not hold definitionally, we
+prove it propositionally and use it to complete our proof.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+Eq_@$\eta$@ : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (i : I)
+       @$\rightarrow$@ Eq (A (_ := i)) (Eq_uneq (p := Eq_eq (f := A)) (i := i))
+Eq_@$\eta$@ = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ i @$\rightarrow$@
+  case i return Eq (A (_ := i))
+                   (Eq_uneq (p := Eq_eq (f := A)) (i := i))
+  | i0 @$\Rightarrow$@ Eq_refl
+  | i1 @$\Rightarrow$@ Eq_refl
+\end{minted}
+
 \section{Properties of dependent pairs}\label{app:deppairs-properties}
 In this work, we use the $\Sigma$ notation to denote dependent pairs. This may
 be represented in Typer by the \id{Sigma} inductive type.
@@ -5282,18 +5348,8 @@ dependent pairs are equal. The proof of this lemma is as follows:
     Eq_trans (Sigma_@$\eta$@ u) (Eq_trans r (Eq_comm (Sigma_@$\eta$@ v)))
 \end{minted}
 
-The above proof makes use of the \id{whiskerRight} lemma which states that if we
-have a heterogeneous equality proof between \id{a0} and \id{a1} and a
-homogeneous equality proof between \id{a1} and \id{a2}, then we can construct a
-heterogeneous equality proof between \id{a0} and \id{a2}. The proof is as
-follows:
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-whiskerRight : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (a0 : A (_ := i0)) @$\rightarrow$@ (a1 : A (_ := i1))
-               @$\rightarrow$@ (a2 : A (_ := i1)) @$\rightarrow$@ Heq a0 a1 @$\rightarrow$@ Eq a1 a2 @$\rightarrow$@ Heq a0 a2
-whiskerRight = @$\lambda$@ l A @$\Rrightarrow$@ @$\lambda$@ a0 a1 a2 p1 p2 @$\rightarrow$@
-  Eq_cast (p := p2) (f := @$\lambda$@ x @$\rightarrow$@ Heq (t := A) a0 x) p1
-\end{minted}
+The above proof makes use of the \id{whiskerRight} lemma proved in
+\autoref{app:whiskering}.
 
 \section{UMP of Quotients}\label{app:ump-quot}
 
@@ -5351,14 +5407,13 @@ e'e=id = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ isSetB f @$\rightarrow$@
     p : (x : Quotient A R) @$\rightarrow$@ (f : Quotient A R @$\rightarrow$@ B)
         @$\rightarrow$@ Eq (e' (R := R) (e f) x) (f x)
     p x f =
-      quot_lib.elimProp
-          (R := R)
-          (P := @$\lambda$@ x @$\rightarrow$@ Eq (e' (R := R) (e f) x) (f x))
-          (@$\lambda$@ x @$\rightarrow$@ isSetB (e' (R := R) (e f) x) (f x))
-          (@$\lambda$@ x @$\rightarrow$@ Eq_refl (x := f (Quotient_in (R := R) x)))
-          x
+      elimProp (R := R)
+               (P := @$\lambda$@ x @$\rightarrow$@ Eq (e' (R := R) (e f) x) (f x))
+               (@$\lambda$@ x @$\rightarrow$@ isSetB (e' (R := R) (e f) x) (f x))
+               (@$\lambda$@ x @$\rightarrow$@ Eq_refl (x := f (Quotient_in (R := R) x)))
+               x
   in
-    HoTT_lib.Eq_funext (f := e' (R := R) (e f)) (g := f) (@$\lambda$@ x @$\rightarrow$@ p x f)
+    Eq_funext (f := e' (R := R) (e f)) (g := f) (@$\lambda$@ x @$\rightarrow$@ p x f)
 \end{minted}
 
 Although it was mentioned earlier that \id{e'} is a trivial right inverse of
@@ -5534,7 +5589,8 @@ By fixing $\fn{j}$ to be $i_1$, we get the expression that corresponds to the to
 @$\rightsquigarrow$@ p
 \end{minted}
 
-With that, we may complete the definition of \id{eqUnique}.
+With that, we may complete the definition of \id{eqUnique} mentioned in
+\autoref{subsec:j-rule}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 eqUnique a b p = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@
