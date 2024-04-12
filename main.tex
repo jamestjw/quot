@@ -1851,21 +1851,21 @@ as follows:
    \hypo{\oftype{\ctx}{M}{A}}
    \hypo{\oftype{\ctx}{N}{A}}
    \hypo{\oftype{\ctx}{P}{\eqtype{M}{N}}}
-   \infer3{\oftype{\ctx, \oftype{i}{\bI}}{elim_{\bI}^{A} (M, N, P, i)}{A}}
+   \infer3{\oftype{\ctx, \oftype{i}{\bI}}{\kw{elim}_{\bI}^{A} (M, N, P, i)}{A}}
 \end{prooftree*}
 
 %% SM: Try and give some intuition for what I is like.
 It has the below computation rules:
 
 \begin{align*}
-  & elim_{\bI}^{A}(M, N, P, \ileft) \rightsquigarrow{} M \\
-  & elim_{\bI}^{A}(M, N, P, \iright) \rightsquigarrow{} N \\
-  & \kw{cong}_{elim_{\bI}^{A}(M, N, P)}(\id{seg}) \rightsquigarrow{} P
+  & \kw{elim}_{\bI}^{A}(M, N, P, \ileft) \rightsquigarrow{} M \\
+  & \kw{elim}_{\bI}^{A}(M, N, P, \iright) \rightsquigarrow{} N \\
+  & \kw{cong}_{\kw{elim}_{\bI}^{A}(M, N, P)}(\id{seg}) \rightsquigarrow{} P
 \end{align*}
 
 We can expect the first two rules to hold definitionally. Definitional equality
 of two terms is determined by expanding out definitions. So when we say that
-$elim_{\bI}^{_.A}(M, N , P, \ileft)$ is definitionally equal to \id{M}, we are
+$\kw{elim}_{\bI}^{_.A}(M, N , P, \ileft)$ is definitionally equal to \id{M}, we are
 saying that the former reduces to the latter when we check for equality. If we
 imagine that the first two computation rules were defined via pattern-matching,
 it would make sense for these equations to hold definitionally. The third rule
@@ -1885,7 +1885,7 @@ independently and it would be highly unusual to separately define how it should
 compute on new constructs such as the interval type. In cases where we are
 %% SM: Why should we?  What happens if we don't?
 unable to make the third rule hold definitionally, we should then postulate a
-propositional equality between $\kw{cong}_{elim_{\bI}^{A}(M, N,
+propositional equality between $\kw{cong}_{\kw{elim}_{\bI}^{A}(M, N,
   P)}(\id{seg})$ and P.
 
 \subsection{Motivation}
@@ -2425,12 +2425,12 @@ constructed by functionality extensionality does not lead to a stuck term as
 shown in the following code snippet:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-plus0 : (x : Nat) -> zero + x @$\equiv$@ x + zero
+plus0 : (x : Nat) @$\rightarrow$@ zero + x @$\equiv$@ x + zero
 plus0 x = Nat+_comm zero x
 
-eqf = Eq_funext (f := @$\lambda$@ x -> zero + x) (g := @$\lambda$@ x -> x + zero) plus0
+eqf = Eq_funext (f := @$\lambda$@ x @$\rightarrow$@ zero + x) (g := @$\lambda$@ x @$\rightarrow$@ x + zero) plus0
 
-canon0 : Eq_cast (p := eqf) (f := @$\lambda$@ _ -> Nat) zero @$\equiv$@ zero
+canon0 : Eq_cast (p := eqf) (f := @$\lambda$@ _ @$\rightarrow$@ Nat) zero @$\equiv$@ zero
 canon0 = Eq_refl
 \end{minted}
 
@@ -2568,7 +2568,7 @@ the full coherence proof term \id{p}, yielding the following term:
 \fn{Quotient\_elim ($\lambda$ <a , b> $\rightarrow$ Quotient\_in R$_Z$ <b , a>)
   p q}.
 
-\subsection{Typing rules}
+\subsection{Typing rules}\label{sec:quot-typing-rules}
 
 %% SM: Arguably the "syntax" above is not really new syntax, it's just new
 %% primitives, and the typing rules below are renderings of actual types.
@@ -2669,7 +2669,7 @@ represented by the following inductive type.
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 type Dec (A : Type)
   | yes A
-  | no (A -> False)
+  | no (A @$\rightarrow$@ False)
 \end{minted}
 
 For this example, we reuse the definition of integers given in
@@ -2727,7 +2727,7 @@ useful to have.
 Another similar $\eta$-rule that is more easily enforced is the following:
 
 \begin{align*}
-  & \Funapp{\fn{Quotient\_elim}}{\id{Quotient\_in}}{(\lambda \ \id{a} \ \id{a'} \ \id{r} \rightarrow \Funapp{\id{Quotient\_eq}}{\id{r}})}{\id{q}} \rightsquigarrow{} \id{q} \\
+  & \fn{Quotient\_elim} \ \id{Quotient\_in} \ (\lambda \ \id{a} \ \id{a'} \ \id{r} \rightarrow \Funapp{\id{Quotient\_eq}}{\id{r}}) \ \id{q} \rightsquigarrow{} \id{q} \\
 \end{align*}
 
 This rule says that if the elimination of a quotiented term \id{q} simply
@@ -2870,10 +2870,10 @@ constructing an equality proof, we simply specify what the given map for the
 %% \end{minted}
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-e2 : Quotient (?A -> ?B) PointwiseEq -> (?B -> ?C) -> ?A -> ?C
-e2 q g a = qcase (q : (A -> B) / PointwiseEq)
-        | Quotient_in f => g (f a)
-        | Quotient_eq f f' r i => g (Eq_uneq (p := r a) (i := i))
+e2 : Quotient (?A @$\rightarrow$@ ?B) PointwiseEq @$\rightarrow$@ (?B @$\rightarrow$@ ?C) @$\rightarrow$@ ?A @$\rightarrow$@ ?C
+e2 q g a = qcase (q : (A @$\rightarrow$@ B) / PointwiseEq)
+        | Quotient_in f @$\Rightarrow$@ g (f a)
+        | Quotient_eq f f' r i @$\Rightarrow$@ g (Eq_uneq (p := r a) (i := i))
 \end{minted}
 
 More elaborate examples of usages of this macro are given in subsequent
@@ -3032,10 +3032,10 @@ $\oftype{\id{x}}{\id{A}}$ a term of type \fn{C x x (refl x)}. We now state the
 type of the J-rule:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-J : (A : Type) @$\Rrightarrow$@ (C : (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ x @$\equiv$@ y @$\rightarrow$@ Type)
-    @$\Rrightarrow$@ ((x : A) @$\rightarrow$@ C x x Eq_refl)
-    @$\rightarrow$@ (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ (p : x @$\equiv$@ y)
-    @$\rightarrow$@ C x y p;
+J : (C : (x y : ?A) @$\rightarrow$@ x @$\equiv$@ y @$\rightarrow$@ Type)
+    @$\Rrightarrow$@ ((x : ?A) @$\rightarrow$@ C x x Eq_refl)
+    @$\rightarrow$@ (x y : ?A) @$\rightarrow$@ (p : x @$\equiv$@ y)
+    @$\rightarrow$@ C x y p
 \end{minted}
 
 This rule essentially says that to know what to do with an equality between an
@@ -3079,8 +3079,7 @@ if the two elimination principles are equivalent. It turns out that one way of
 doing it hinges upon whether we can inhabit the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-eqUnique : (A : Type) @$\Rrightarrow$@ (a b : A) (p : Eq a b)
-           @$\rightarrow$@ Eq (t := @$\Sigma_{a':A}. a \equiv a'$@) <a, Eq_refl>  <b, p>
+eqUnique : (a b : ?A) @$\rightarrow$@ (p : Eq a b) @$\rightarrow$@ Eq (t := @$\Sigma_{a':A}. a \equiv a'$@) <a, Eq_refl>  <b, p>
 \end{minted}
 
 This can be seen as a justification of the J-rule, by fixing one endpoint of an
@@ -3112,27 +3111,19 @@ section, we show that UIP is a property that is true for a certain class of
 types in Typer.
 
 To set the stage, we provide a few definitions. A type is said to be
-\emph{decidable} if we can decide whether the type is inhabited or not. In the
-case where it is inhabited, we must also have a witness of such an inhabitant.
-In Typer, decidability can be represented by the following inductive type.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-type Dec (A : Type)
-  | yes A
-  | no (A -> False)
-\end{minted}
-
-A type is said to be \emph{collapsed} if any two inhabitants of the type may be
-proved to be equal, this corresponds directly to the notion of a mere
-proposition. The two definitions that we just stated may also be used in the
-context of equality types. If we say that a type has decidable equality, this
-implies that for any two terms of this type, we can decide whether or not they
-are equal. On top of that, if the type has collapsed equality types, then for
-any pair of terms of this type, any two proofs that they are equal are also
-equal. The notion of collapsible equality types corresponds to the notion of a
-\textbf{Set} or 0-type in HoTT\cite[Chap~3.1]{HoTTbook}. We shall see in a
-subsequent section that this property plays a substantial role in the
-elimination of quotients in \autoref{sec:rec2}.
+\emph{decidable} if we can decide whether the type is inhabited or not, this was
+presented in more detail in \autoref{sec:quot-typing-rules}. A type is said to
+be \emph{collapsed} if any two inhabitants of the type may be proved to be
+equal, this corresponds directly to the notion of a mere proposition. The two
+definitions that we just stated may also be used in the context of equality
+types. If we say that a type has decidable equality, this implies that for any
+two terms of this type, we can decide whether or not they are equal. On top of
+that, if the type has collapsed equality types, then for any pair of terms of
+this type, any two proofs that they are equal are also equal. The notion of
+collapsible equality types corresponds to the notion of a \textbf{Set} or 0-type
+in HoTT\cite[Chap~3.1]{HoTTbook}. We shall see in a subsequent section that this
+property plays a substantial role in the elimination of quotients in
+\autoref{sec:rec2}.
 
 \begin{theo}[Hedberg's theorem\cite{hedberg1998coherence}]
 If a type \fn{A} has decidable equality, then \fn{A} has collapsed equality
@@ -3144,7 +3135,7 @@ present the type of the function without going into the details of its
 implementation\footnote{The actual implementation may be found in the attached \fn{samples/hedberg.typer} file}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-dici : (di : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ Dec (x @$\equiv$@ y)) @$\rightarrow$@ (a b : ?A) @$\rightarrow$@ (u v : a @$\equiv$@ b)
+dici : (di : (x y : ?A) @$\rightarrow$@ Dec (x @$\equiv$@ y)) @$\rightarrow$@ (a b : ?A) @$\rightarrow$@ (u v : a @$\equiv$@ b)
        @$\rightarrow$@ u @$\equiv$@ v
 \end{minted}
 
@@ -3683,14 +3674,14 @@ element in a given list. We then define a predicate $\fn{isMember}$ such that
 $\fn{isMember a l}$ means that $\fn{a}$ is a member of the list $\fn{l}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Any : (A : Type) -> (P : (a : A) -> Type) -> List A -> Type
-type Any (A : Type) (P : ((a : A) -> Type)) (l : List A) : Type
+Any : (A : Type) @$\rightarrow$@ (P : (a : A) @$\rightarrow$@ Type) @$\rightarrow$@ List A @$\rightarrow$@ Type
+type Any (A : Type) (P : ((a : A) @$\rightarrow$@ Type)) (l : List A) : Type
   | here (x : A) (xs : List A) (p ::: P x) (eq ::: Eq l (cons x xs))
   | there (x : A) (xs : List A) (@$\neg$@p ::: Not (P x)) (Any A P xs)
           (eq ::: Eq l (cons x xs))
 
-isMember : (A : Type) => A -> List A -> Type
-isMember = @$\lambda$@ A => @$\lambda$@ x l -> Any A (@$\lambda$@ x' -> Eq x x') l
+isMember : (A : Type) @$\Rightarrow$@ A @$\rightarrow$@ List A @$\rightarrow$@ Type
+isMember = @$\lambda$@ A @$\Rightarrow$@ @$\lambda$@ x l @$\rightarrow$@ Any A (@$\lambda$@ x' @$\rightarrow$@ Eq x x') l
 \end{minted}
 
 %% The omitted proofs are uninteresting so far as quotient types are concerned
@@ -3943,8 +3934,7 @@ toPathOver : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0)) @$
              @$\Rightarrow$@ Eq (Eq_cast (p := Eq_eq (f := A)) (f := id) x) y
              @$\rightarrow$@ Heq (t := A) x y;
 toPathOver = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x y @$\Rightarrow$@ @$\lambda$@ p @$\rightarrow$@
-  whiskerRight (A := A) x (Eq_cast (p := Eq_eq (f := A)) (f := id) x) y
-               (castIsEq (A := A) x) p
+  whiskerRight (A := A) (castIsEq (A := A) x) p
 \end{minted}
 
 First, we construct a heterogeneous equality between $\id{x}$ and $\id{cast\_x}$
@@ -4193,12 +4183,12 @@ For a quotient to be effective, its underlying relation has to be an equivalence
 
 In the built-in library, we define the following type as a witness that a certain relation is indeed an equivalence relation.
 
-\begin{minted}{agda}
-type isEquivRel (A : Type) (R : A -> A -> Type) : Type
-  | equivRel (isRefl : (a : A) -> R a a)
-             (isSym : (a : A) -> (b : A) -> R a b -> R b a)
-             (isTrans : (a : A) -> (b : A) -> (c : A)
-                         -> R a b -> R b c -> R a c)
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+type isEquivRel (A : Type) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type) : Type
+  | equivRel (isRefl : (a : A) @$\rightarrow$@ R a a)
+             (isSym : (a : A) @$\rightarrow$@ (b : A) @$\rightarrow$@ R a b @$\rightarrow$@ R b a)
+             (isTrans : (a : A) @$\rightarrow$@ (b : A) @$\rightarrow$@ (c : A)
+                         @$\rightarrow$@ R a b @$\rightarrow$@ R b c @$\rightarrow$@ R a c)
 \end{minted}
 
 \section{Proof}
@@ -4226,20 +4216,20 @@ effective : (A : Type) |$\Rrightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$|
             |$\rightarrow$| ErasedR R a b
 effective = |$\lambda$| A |$\Rrightarrow$| |$\lambda$| R equiv a b eq |$\rightarrow$|
   let
-    helper : Quotient A (ErasedR R) -> Type
+    helper : Quotient A (ErasedR R) |$\rightarrow$| Type
     helper x =
       Quotient_rec
         (R := ErasedR R)
         (|$\lambda$| |$\rightarrow$| ErasedR R a c)
         (p := |$\lambda$| c d cd |$\rightarrow$|
           let
-            ac->ad : Erased (R a c) |$\rightarrow$| Erased (R a d)
-            ac->ad ac = equiv.isTrans a c d ac cd
-            ad->ac : Erased (R a d) |$\rightarrow$| Erased (R a c)
-            ad->ac ad = equiv.isTrans a d c ad
+            ac|$\rightarrow$|ad : Erased (R a c) |$\rightarrow$| Erased (R a d)
+            ac|$\rightarrow$|ad ac = equiv.isTrans a c d ac cd
+            ad|$\rightarrow$|ac : Erased (R a d) |$\rightarrow$| Erased (R a c)
+            ad|$\rightarrow$|ac ad = equiv.isTrans a d c ad
                                       (equiv.isSym c d cd)
           in
-            propExt ac->ad ad->ac)
+            propExt ac|$\rightarrow$|ad ad|$\rightarrow$|ac)
         x
     aa=ab : Eq (Erased (R a a)) (Erased (R a b))
     aa=ab = Eq_cong helper eq
@@ -4630,7 +4620,7 @@ surjective, we are essentially saying that $\forall y \in Y. \ \exists x \in X.
 require a concrete witness of $x$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-type SurjectiveQuotientProof (A : Type) (R : A -> A -> Type)
+type SurjectiveQuotientProof (A : Type) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
                              (x : Quotient A R) : Type
    | surjectiveQuotientProof (a : A) (Eq (Quotient_in (R := R) a) x);
 \end{minted}
@@ -5127,7 +5117,7 @@ that \fn{g} is a quasi-inverse of \fn{f} as defined in~\cite[Chap.
   & f : (\bI \rightarrow A) \rightarrow \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y} \\
   & f(h) := \braket{h(\ileft), \braket{h(\iright), \kw{cong}_{h}(seg)}} \\ \\
   & g : \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . (\eqtype{x}{y}) \rightarrow  (\bI \rightarrow A) \\
-  & g \braket{x, \braket{y, p}} := \lambda i . \ elim_{\bI}^{A}(x, y, p, i)
+  & g \braket{x, \braket{y, p}} := \lambda i . \ \kw{elim}_{\bI}^{A}(x, y, p, i)
 \end{align*}
 
 In order to construct $f$, we need to construct a term of type
@@ -5143,43 +5133,82 @@ that $x \equiv y$ is precisely what we need to prove the coherence of the
 elimination. Now, we need to prove that \id{g} is both the left and right
 inverse of \id{f}.
 
+To do the above, we need to introduce a few new definitions. First, we introduce
+the notion of a \emph{path over a path}\cite{licata2015cubical}. Consider terms
+\id{a} and \id{a'} of type \id{A} as well as an equality proof \id{p} between
+them. If we had a type family \fn{P $\colon$ A $\rightarrow$ Type}, it would be
+desirable to consider equalities between terms of type \fn{P a} and \fn{P a'}.
+However, this is not possible as homogeneous equality only allows us to compare
+terms of the same type. Nevertheless, we know that the types \fn{P a} and \fn{P
+  a'} are propositionally equal by virtue of the path \id{p}. Hence, if we want
+to equate \fn{pa $\colon$ P a} and \fn{pa' $\colon$ P a'}, we would have to
+construct a path between them \textbf{over} the path \id{p}. We write the type
+as \fn{pa $\equiv^{x. P \ x}_{p}$ pa'}. This may be defined in several ways, one
+way is to do it in terms of normal equality as $\kw{cast}(\id{p}, \lambda \id{x}
+. \id{P} \ \id{x}, \id{pa}) \equiv \id{pa'}$. By casting \id{pa} to \id{P a'},
+we obtain something comparable with \id{pa'}. There is also a dependent version
+of congruence on equality, \kw{congd}, which applies a dependent function to a
+homogeneous equality to produce a path over it. For \fn{a a' $\colon$ A}, \fn{p
+  : a $\equiv$ a'} and \fn{f : (x : A) $\rightarrow$ C a}, we write
+\fn{\kw{congd}$_{f}$(p) $\colon$ f a $\equiv^{x. C \ x}_{p}$ f a'}. We also
+define the dependent eliminator \kw{elimd}$_{\bI}$ for the interval type as
+follows:
+
+\begin{prooftree*}
+   \hypo{\oftype{\ctx}{C}{\bI \rightarrow Type}}
+   \hypo{\oftype{\ctx}{M}{C \ \ileft}}
+   \hypo{\oftype{\ctx}{N}{C \ \iright}}
+   \hypo{\oftype{\ctx}{P}{M \equiv^{x . C \ x}_{seg} N}}
+   \infer4{\oftype{\ctx, \oftype{i}{\bI}}{\kw{elimd}_{\bI}^{C} (M, N, P, i)}{C \ i}}
+\end{prooftree*}
+
+
+with the following computation rules:
+
+\begin{align*}
+  & \kw{elimd}_{\bI}^{C}(M, N, P, \ileft) \rightsquigarrow{} M \\
+  & \kw{elimd}_{\bI}^{C}(M, N, P, \iright) \rightsquigarrow{} N \\
+  & \kw{congd}_{\kw{elimd}_{\bI}^{C}(M, N, P)}(\id{seg}) \rightsquigarrow{} P
+\end{align*}
+
+
+With that, we finally have all we need to complete the proof.
+
 \begin{align*}
   & \id{$\alpha$-helper} : (\oftype{h}{\bI \rightarrow A}) \rightarrow (\oftype{i}{\bI}) \rightarrow \eqtype{(g \ (f \ h)) \ i}{h \ i} \\
-  & \id{$\alpha$-helper} \ (h , i) = elim_{\bI}^{i.\eqtype{(g (f \ h)) \ i}{h \ i}}(\kw{refl}_{h (\ileft)}, \ \kw{refl}_{h (\iright)}, \ \kw{cong}_{\lambda i . \kw{refl}_{h(i)}}(seg), \ i) \\
+  & \id{$\alpha$-helper} \ (h , i) = \kw{depElim}_{\bI}^{i.\eqtype{(g (f \ h)) \ i}{h \ i}}(\kw{refl}_{h (\ileft)}, \ \kw{refl}_{h (\iright)}, \ \kw{congd}_{\lambda i . \kw{refl}_{h(i)}}(seg), \ i) \\
   & \alpha : (\oftype{h}{\bI \rightarrow A}) \rightarrow \eqtype{g \ (f \ h)}{h} \\
   & \alpha(h) =  \kw{funExt} (\id{$\alpha$-helper} (h)) \\ \\
   & \beta :  (\oftype{e}{\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}}) \rightarrow f \ (g \ (e)) \equiv e \\
   & \beta(e) =  \refl{\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}}{e}
 \end{align*}
 
-%% TODO: Okay fine I will introduce the typing rules for the depelim of I
-%% in another section
 We define \id{$\alpha$-helper} as a lemma to help prove that $g$ is a left
 inverse of $f$. To construct a proof of $\eqtype{(g (f \ h)) \ i}{h \ i}$, we
-unsurprisingly use the (dependent) elimination principle of $\bI$ on the
-argument $i$. When $i = \ileft$, we would need to prove that $\eqtype{(g \ (f
-  \ h)) \ \ileft}{h \ \ileft}$, however if we try to evaluate $(g \ (f \ h))
-\ \ileft$, we realise that this actually evaluates to $h \ \ileft$. This implies
-that the required proof is trivially satisfied by reflexivity; the same thing
-can be done for $\iright$. As before, we prove that $\kw{refl}_{h (\ileft)}$ and
-$\kw{refl}_{h (\iright)}$ are equal using the congruence of equality. The
-partial application of \id{$\alpha$-helper} with $h$ gives us a proof that $g(f
-\ h)$ and $h$ are pointwise equal, thus allowing us to invoke \kw{funExt} to get
-the desired result.
+use the dependent elimination principle of $\bI$ on the argument $i$. When $i =
+\ileft$, we would need to prove that $\eqtype{(g \ (f \ h)) \ \ileft}{h
+  \ \ileft}$, however if we try to evaluate $(g \ (f \ h)) \ \ileft$, we realise
+that this actually evaluates to $h \ \ileft$. This implies that the required
+proof is trivially satisfied by reflexivity; the same thing can be done for
+$\iright$. We prove that $\kw{refl}_{h (\ileft)}$ and $\kw{refl}_{h (\iright)}$
+are equal using the dependent version of the congruence of equality. The partial
+application of \id{$\alpha$-helper} with $h$ gives us a proof that $g(f \ h)$
+and $h$ are pointwise equal, thus allowing us to invoke \kw{funExt} to get the
+desired result.
 
 To prove $\beta$, we first deconstruct $e$ to $\braket{x, \braket{y, p}}$. We
 now show how the expression $f \ (g \ (e))$ gets reduced.
 
 \begin{align*}
   & f \ (g \ \braket{x, \braket{y, p}})  \\
-  & \rightsquigarrow f \ (\lambda i . \ elim_{\bI}^{A}(x, y, p, i)) \\
-  & \rightsquigarrow \braket{x, \braket{y, \kw{cong}_{\lambda i . \ elim_{\bI}^{A}(x, y, p, i)}(seg)}} \\
-  & \rightsquigarrow \braket{x, \braket{y, \kw{cong}_{elim_{\bI}^{A}(x, y, p)}(seg)}} \\
+  & \rightsquigarrow f \ (\lambda i . \ \kw{elim}_{\bI}^{A}(x, y, p, i)) \\
+  & \rightsquigarrow \braket{x, \braket{y, \kw{cong}_{\lambda i . \ \kw{elim}_{\bI}^{A}(x, y, p, i)}(seg)}} \\
+  & \rightsquigarrow \braket{x, \braket{y, \kw{cong}_{\kw{elim}_{\bI}^{A}(x, y, p)}(seg)}} \\
   & \rightsquigarrow \braket{x, \braket{y, p}} \\
 \end{align*}
 
 The third reduction uses the $\eta$-equivalence of functions. As for the final
-reduction, we assume that the functorial action of $elim_{\bI}^{A}(x, y, p)$
+reduction, we assume that the functorial action of $\kw{elim}_{\bI}^{A}(x, y, p)$
 on $seg$ computes to $p$ to simplify the proof. Given that we may reduce $f \ (g
 \ \braket{x, \braket{y, p}})$ to $\braket{x, \braket{y, p}}$, they are thus
 definitionally equal, allowing us to proof $\beta$ by reflexivity.\end{proof}
@@ -5227,10 +5256,9 @@ Nat+_comm m n =
                                (Eq_cong succ (Nat+_comm m n'))
 \end{minted}
 
-
 \section{Whiskering}\label{app:whiskering}
 
-We use the term whiskering to refer to the concatenation of a heterogenous
+We use the term whiskering to refer to the concatenation of a heterogeneous
 equality with a homogeneous equality.
 
 If we have a heterogeneous equality proof between \id{a0} and \id{a1} and a
@@ -5238,9 +5266,9 @@ homogeneous equality proof between \id{a1} and \id{a2}, then we can construct a
 heterogeneous equality proof between \id{a0} and \id{a2} as follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-whiskerRight : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (a0 : A (_ := i0)) @$\rightarrow$@ (a1 a2 : A (_ := i1))
-               @$\rightarrow$@ Heq a0 a1 @$\rightarrow$@ Eq a1 a2 @$\rightarrow$@ Heq a0 a2
-whiskerRight = @$\lambda$@ l A @$\Rrightarrow$@ @$\lambda$@ a0 a1 a2 p1 p2 @$\rightarrow$@
+whiskerRight : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (a0 : A (_ := i0)) @$\Rightarrow$@ (a1 a2 : A (_ := i1))
+               @$\Rightarrow$@ Heq a0 a1 @$\rightarrow$@ Eq a1 a2 @$\rightarrow$@ Heq a0 a2
+whiskerRight = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ a0 a1 a2 @$\Rightarrow$@ @$\lambda$@ p1 p2 @$\rightarrow$@
   Eq_cast (p := p2) (f := @$\lambda$@ x @$\rightarrow$@ Heq (t := A) a0 x) p1
 \end{minted}
 
@@ -5342,8 +5370,7 @@ dependent pairs are equal. The proof of this lemma is as follows:
     pathOver : Heq (t := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
                    u.snd v.snd
     pathOver = whiskerRight (A := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
-                            u.snd (Eq_cast (p := p) (f := B) (u.snd))
-                            v.snd h sndv_eq
+                            h sndv_eq
     r : Eq (sigma (B := B) u.fst u.snd) (sigma (B := B) v.fst v.snd)
     r = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@
                     sigma (B := B) (Eq_uneq (p := p) (i := i))
