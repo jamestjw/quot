@@ -3218,19 +3218,14 @@ we start reasoning about operations on rational numbers.
 We start by axiomatising the associativity and commutativity of the addition and multiplication operations.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_+-comm : (x : Integer) |$\rightarrow$| (y : Integer)
-                 |$\rightarrow$| Eq (Integer_+ x y) (Integer_+ y x)
+Integer_+-comm : (x y : Integer) |$\rightarrow$| Integer_+ x y |$\equiv$| Integer_+ y x
 
-Integer_+-assoc : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z : Integer)
-                  |$\rightarrow$| Eq (Integer_+ x (Integer_+ y z))
-                        (Integer_+ (Integer_+ x y) z)
+Integer_+-assoc : (x y z : Integer) |$\rightarrow$| Integer_+ x (Integer_+ y z) |$\equiv$| Integer_+ (Integer_+ x y) z
 
-Integer_*-comm : (x : Integer) |$\rightarrow$| (y : Integer)
-                 |$\rightarrow$| Eq (Integer_* x y) (Integer_* y x)
+Integer_*-comm : (x y : Integer) |$\rightarrow$| Integer_* x y |$\equiv$| Integer_* y x
 
-Integer_*-assoc : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z : Integer)
-                  |$\rightarrow$| Eq (Integer_* x (Integer_* y z))
-                        (Integer_* (Integer_* x y) z)
+Integer_*-assoc : (x y z : Integer)
+                  |$\rightarrow$| Integer_* x (Integer_* y z) |$\equiv$| Integer_* (Integer_* x y) z
 \end{minted}
 
 We also want to be able to show that multiplication is distributive with respect
@@ -3239,9 +3234,8 @@ distributivity can be easily proven as a theorem, this is also the case for the
 other axioms that we will describe below.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_*DistL+ : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z : Integer)
-                  |$\rightarrow$| Eq (Integer_* (Integer_+ x y) z)
-                        (Integer_+ (Integer_* x z) (Integer_* y z))
+Integer_*DistL+ : (x y z : Integer)
+                  |$\rightarrow$| Integer_* (Integer_+ x y) z |$\equiv$| Integer_+ (Integer_* x z) (Integer_* y z)
 \end{minted}
 
 The above properties can also be stated for the subtraction operation. We also
@@ -3249,15 +3243,15 @@ want to be able to say that we have additive inverses for all integers and that
 0 is the additive identity.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_+Linv : (x : Integer) |$\rightarrow$| Eq (Integer_+ (Integer_- 0 x) x) 0
+Integer_+Linv : (x : Integer) |$\rightarrow$| Integer_+ (Integer_- 0 x) x |$\equiv$| 0
 
-Integer_+Lid : (x : Integer) |$\rightarrow$| Eq (Integer_+ 0 x) x
+Integer_+Lid : (x : Integer) |$\rightarrow$| Integer_+ 0 x |$\equiv$| x
 \end{minted}
 
 Of course, we should also be able to say that 1 is the multiplicative identity.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_*Lid : (x : Integer) |$\rightarrow$| Eq (Integer_* 1 x) x
+Integer_*Lid : (x : Integer) |$\rightarrow$| Integer_* 1 x |$\equiv$| x
 \end{minted}
 
 Now that we have all these axioms, we can say that $\kw{Integer}$ fulfills the
@@ -3268,8 +3262,7 @@ say that if the product of two integers is zero, then at least one of them is
 zero. We formulate this in the following manner:
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_isIntegral : (x : Integer) |$\rightarrow$| (y : Integer)
-                     |$\rightarrow$| Eq (Integer_* x y) 0 |$\rightarrow$| (Eq x 0 |$\rightarrow$| Void)
+Integer_isIntegral : (x y : Integer) |$\rightarrow$| Integer_* x y |$\equiv$| 0 |$\rightarrow$| (x |$\equiv$| 0 |$\rightarrow$| Void)
                      |$\rightarrow$| Eq y 0
 \end{minted}
 
@@ -3282,7 +3275,7 @@ with respect to multiplication. In other words, multiplying by 0 always yields 0
 as a result.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_*Lzero : (x : Integer) |$\rightarrow$| Eq (Integer_* 0 x) 0
+Integer_*Lzero : (x : Integer) |$\rightarrow$| Integer_* 0 x |$\equiv$| 0
 \end{minted}
 
 \subsection*{Integer theorems}\label{subsection:int-theorems}
@@ -3291,22 +3284,21 @@ axioms, as their `right' counterparts may be trivially proven as theorems based
 on the commutativity property of addition and multiplication.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_+Rid : (x : Integer) |$\rightarrow$| Eq (Integer_+ x 0) x
+Integer_+Rid : (x : Integer) |$\rightarrow$| Integer_+ x 0 |$\equiv$| x
 Integer_+Rid x = Eq_trans (Integer_+-comm x 0) (Integer_+Lid x)
 
-Integer_+Rinv : (x : Integer) |$\rightarrow$| Eq (Integer_+ x (Integer_- 0 x)) 0
+Integer_+Rinv : (x : Integer) |$\rightarrow$| Integer_+ x (Integer_- 0 x) |$\equiv$| 0
 Integer_+Rinv x = Eq_trans (Integer_+-comm x (Integer_- 0 x))
                            (Integer_+Linv x)
 
-Integer_*Rid : (x : Integer) |$\rightarrow$| Eq (Integer_* x 1) x
+Integer_*Rid : (x : Integer) |$\rightarrow$| Integer_* x 1 |$\equiv$| x
 Integer_*Rid x = Eq_trans (Integer_*-comm x 1) (Integer_*Lid x)
 
-Integer_*Rzero : (x : Integer) |$\rightarrow$| Eq (Integer_* x 0) 0
+Integer_*Rzero : (x : Integer) |$\rightarrow$| Integer_* x 0 |$\equiv$| 0
 Integer_*Rzero x = Eq_trans (Integer_*-comm x 0) (Integer_*Lzero x)
 
-Integer_*DistR+ : (x : Integer) |$\rightarrow$| (y : Integer) |$\rightarrow$| (z : Integer)
-                  |$\rightarrow$| Eq (Integer_* x (Integer_+ y z))
-                        (Integer_+ (Integer_* x y) (Integer_* x z))
+Integer_*DistR+ : (x y z : Integer)
+                  |$\rightarrow$| Integer_* x (Integer_+ y z) |$\equiv$| Integer_+ (Integer_* x y) (Integer_* x z)
 Integer_*DistR+ x y z =
   Eq_trans (Integer_*-comm x (Integer_+ y z))
            (Eq_trans (Integer_*DistL+ y z x)
@@ -3321,9 +3313,8 @@ Integer_*DistR+ x y z =
 Another useful theorem that we can prove states that the product of two non-zero integers is necessarily non-zero.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_0-product : (x : Integer) |$\rightarrow$| (y : Integer)
-                    |$\rightarrow$| (Eq x 0 |$\rightarrow$| Void) |$\rightarrow$| (Eq y 0 |$\rightarrow$| Void)
-                    |$\rightarrow$| (Eq (Integer_* x y) 0 |$\rightarrow$| Void)
+Integer_0-product : (x y : Integer) |$\rightarrow$| (x |$\equiv$| 0 |$\rightarrow$| Void) |$\rightarrow$| (y |$\equiv$| 0 |$\rightarrow$| Void)
+                    |$\rightarrow$| (Integer_* x y |$\equiv$| 0 |$\rightarrow$| Void)
 Integer_0-product x y x|$\ne$|0 y|$\ne$|0 xy|$\ne$|0 =
     y|$\ne$|0 (Integer_isIntegral x y xy|$\ne$|0 x|$\ne$|0)
 \end{minted}
@@ -3331,9 +3322,8 @@ Integer_0-product x y x|$\ne$|0 y|$\ne$|0 xy|$\ne$|0 =
 We will eventually also make use of the below theorem that states that the negation of an integer may be distributed over multiplication. Its `right' counterpart may also be proven in a similar manner.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_NegateDistL* : (x : Integer) |$\rightarrow$| (y : Integer)
-                        |$\rightarrow$| Eq (Integer_- 0 (Integer_* x y))
-                              (Integer_* (Integer_- 0 x) y)
+Integer_NegateDistL* : (x y : Integer)
+                       |$\rightarrow$| Integer_- 0 (Integer_* x y) |$\equiv$| Integer_* (Integer_- 0 x) y
 Integer_NegateDistL* x y =
   Integer_- 0 (Integer_* x y)
   ==< Eq_cong (|$\lambda$| e |$\rightarrow$| Integer_- e (Integer_* x y))
@@ -3348,16 +3338,18 @@ As stated before, the base type of our quotient type is essentially a pair of in
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 type @$\mathbb{Z}{\times}\mathbb{Z}{\ne}0$@
-  | inR (@$z_1$@ : Integer) (@$z_2$@ : Integer) (p : Not (Eq @$z_2$@ 0))
+  | inR (@$z_1$@ : Integer) (@$z_2$@ : Integer) (p ::: Not (Eq @$z_2$@ 0))
 \end{minted}
 
-$\kw{Not}$ has the typical definition as follows:
+\id{Not} is defined based on the idea that if a proposition is \underline{not}
+true, then a proof of the proposition would lead to a contradiction.
+
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Not : (T : Type) @$\rightarrow$@ Type
 Not T = T @$\rightarrow$@ Void
 \end{minted}
 
-The underlying relation takes on the following form, this may be proven to be
+The underlying relation takes on the following form which may be proven to be
 both an equivalence relation as well as a mere proposition. These properties are
 useful if we wish to prove that the resulting quotient is effective and that
 \id{Rational} is discrete.
@@ -3613,8 +3605,7 @@ support for GADTs, however, we draw inspiration from\cite{sulzmann2007systemfeq}
 to encode such a GADT as an inductive type with explicit equality proofs.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-ListPerm : (A : Type) @$\rightarrow$@ List A @$\rightarrow$@ List A @$\rightarrow$@ Type
-type ListPerm (l ::: TypeLevel) (A : Type) (l1 : List A) (l2 : List A) : Type
+type ListPerm (A : Type) (l1 : List A) (l2 : List A) : Type
   | nilPerm (p1 :: Eq l1 nil) (p2 :: Eq l2 nil)
   | consPerm (x : A) (l1' : List A) (l2' : List A) (ListPerm A l1' l2')
              (p1 :: Eq l1 (cons x l1')) (p2 :: Eq l2 (cons x l2'))
@@ -3674,8 +3665,7 @@ element in a given list. We then define a predicate $\fn{isMember}$ such that
 $\fn{isMember a l}$ means that $\fn{a}$ is a member of the list $\fn{l}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Any : (A : Type) @$\rightarrow$@ (P : (a : A) @$\rightarrow$@ Type) @$\rightarrow$@ List A @$\rightarrow$@ Type
-type Any (A : Type) (P : ((a : A) @$\rightarrow$@ Type)) (l : List A) : Type
+type Any (A : Type) (P : (a : A) @$\rightarrow$@ Type) (l : List A) : Type
   | here (x : A) (xs : List A) (p ::: P x) (eq ::: Eq l (cons x xs))
   | there (x : A) (xs : List A) (@$\neg$@p ::: Not (P x)) (Any A P xs)
           (eq ::: Eq l (cons x xs))
@@ -3696,7 +3686,7 @@ isMemberDec : (A : Type) @$\Rightarrow$@ Discrete A @$\rightarrow$@ (a : A) @$\r
               @$\rightarrow$@ Decidable (isMember a l)
 isMemberDec = ...
 
-Multiset_mem : (A : Type) @$\Rightarrow$@ Discrete A @$\rightarrow$@ A @$\rightarrow$@ Multiset A @$\rightarrow$@ Bool;
+Multiset_mem : (A : Type) @$\Rightarrow$@ Discrete A @$\rightarrow$@ A @$\rightarrow$@ Multiset A @$\rightarrow$@ Bool
 Multiset_mem disc a s =
   let
     Dec2Bool : Decidable ?A @$\rightarrow$@ Bool
@@ -3704,7 +3694,7 @@ Multiset_mem disc a s =
       | yes => true
       | no => false
 
-    compat : (l1 : List A) @$\rightarrow$@ (l2 : List A) @$\rightarrow$@ ListPerm A l1 l2
+    compat : (l1 l2 : List A) @$\rightarrow$@ ListPerm A l1 l2
              @$\rightarrow$@ Eq (Dec2Bool (isMemberDec disc a l1))
                    (Dec2Bool (isMemberDec disc a l2))
     compat l1 l2 r = ...
@@ -4990,6 +4980,11 @@ it on the subsequent arguments.
 
 
 \ldots
+
+- Our quotient types work, but we see that in some cases they are not so easy to
+use. Implementing quotient types in a system that doesn't have very good support
+for proof writing makes them difficult to use. In the case of Typer, we lack
+tactics and the specialisation of types in case branches.
 
 %%--------------%
 %%     index    %
