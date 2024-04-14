@@ -3218,14 +3218,13 @@ we start reasoning about operations on rational numbers.
 We start by axiomatising the associativity and commutativity of the addition and multiplication operations.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_+-comm : (x y : Integer) |$\rightarrow$| Integer_+ x y |$\equiv$| Integer_+ y x
+Integer_+-comm : (x y : Integer) |$\rightarrow$| x + y |$\equiv$| y + x
 
-Integer_+-assoc : (x y z : Integer) |$\rightarrow$| Integer_+ x (Integer_+ y z) |$\equiv$| Integer_+ (Integer_+ x y) z
+Integer_+-assoc : (x y z : Integer) |$\rightarrow$| x + (y + z) |$\equiv$| (x + y) + z
 
-Integer_*-comm : (x y : Integer) |$\rightarrow$| Integer_* x y |$\equiv$| Integer_* y x
+Integer_*-comm : (x y : Integer) |$\rightarrow$| x * y |$\equiv$| y * x
 
-Integer_*-assoc : (x y z : Integer)
-                  |$\rightarrow$| Integer_* x (Integer_* y z) |$\equiv$| Integer_* (Integer_* x y) z
+Integer_*-assoc : (x y z : Integer) |$\rightarrow$| x * (y * z) |$\equiv$| (x * y) * z
 \end{minted}
 
 We also want to be able to show that multiplication is distributive with respect
@@ -3234,8 +3233,7 @@ distributivity can be easily proven as a theorem, this is also the case for the
 other axioms that we will describe below.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_*DistL+ : (x y z : Integer)
-                  |$\rightarrow$| Integer_* (Integer_+ x y) z |$\equiv$| Integer_+ (Integer_* x z) (Integer_* y z)
+Integer_*DistL+ : (x y z : Integer) |$\rightarrow$| (x + y) * z |$\equiv$| (x * z) + (y * z)
 \end{minted}
 
 The above properties can also be stated for the subtraction operation. We also
@@ -3243,15 +3241,15 @@ want to be able to say that we have additive inverses for all integers and that
 0 is the additive identity.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_+Linv : (x : Integer) |$\rightarrow$| Integer_+ (Integer_- 0 x) x |$\equiv$| 0
+Integer_+Linv : (x : Integer) |$\rightarrow$| (0 - x) + x |$\equiv$| 0
 
-Integer_+Lid : (x : Integer) |$\rightarrow$| Integer_+ 0 x |$\equiv$| x
+Integer_+Lid : (x : Integer) |$\rightarrow$| 0 + x |$\equiv$| x
 \end{minted}
 
 Of course, we should also be able to say that 1 is the multiplicative identity.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_*Lid : (x : Integer) |$\rightarrow$| Integer_* 1 x |$\equiv$| x
+Integer_*Lid : (x : Integer) |$\rightarrow$| 1 * x |$\equiv$| x
 \end{minted}
 
 Now that we have all these axioms, we can say that $\kw{Integer}$ fulfills the
@@ -3262,8 +3260,7 @@ say that if the product of two integers is zero, then at least one of them is
 zero. We formulate this in the following manner:
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_isIntegral : (x y : Integer) |$\rightarrow$| Integer_* x y |$\equiv$| 0 |$\rightarrow$| (x |$\equiv$| 0 |$\rightarrow$| Void)
-                     |$\rightarrow$| Eq y 0
+Integer_isIntegral : (x y : Integer) |$\rightarrow$| x * y |$\equiv$| 0 |$\rightarrow$| (x |$\equiv$| 0 |$\rightarrow$| Void) |$\rightarrow$| y |$\equiv$| 0
 \end{minted}
 
 Here, $\kw{Void}$ is the $\mathbb{0}$ type (also known as the empty type or
@@ -3275,7 +3272,7 @@ with respect to multiplication. In other words, multiplying by 0 always yields 0
 as a result.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_*Lzero : (x : Integer) |$\rightarrow$| Integer_* 0 x |$\equiv$| 0
+Integer_*Lzero : (x : Integer) |$\rightarrow$| 0 * x |$\equiv$| 0
 \end{minted}
 
 \subsection*{Integer theorems}\label{subsection:int-theorems}
@@ -3284,30 +3281,25 @@ axioms, as their `right' counterparts may be trivially proven as theorems based
 on the commutativity property of addition and multiplication.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_+Rid : (x : Integer) |$\rightarrow$| Integer_+ x 0 |$\equiv$| x
+Integer_+Rid : (x : Integer) |$\rightarrow$| x + 0 |$\equiv$| x
 Integer_+Rid x = Eq_trans (Integer_+-comm x 0) (Integer_+Lid x)
 
-Integer_+Rinv : (x : Integer) |$\rightarrow$| Integer_+ x (Integer_- 0 x) |$\equiv$| 0
+Integer_+Rinv : (x : Integer) |$\rightarrow$| x + (0 - x) |$\equiv$| 0
 Integer_+Rinv x = Eq_trans (Integer_+-comm x (Integer_- 0 x))
                            (Integer_+Linv x)
 
-Integer_*Rid : (x : Integer) |$\rightarrow$| Integer_* x 1 |$\equiv$| x
+Integer_*Rid : (x : Integer) |$\rightarrow$| x * 1 |$\equiv$| x
 Integer_*Rid x = Eq_trans (Integer_*-comm x 1) (Integer_*Lid x)
 
-Integer_*Rzero : (x : Integer) |$\rightarrow$| Integer_* x 0 |$\equiv$| 0
+Integer_*Rzero : (x : Integer) |$\rightarrow$| x * 0 |$\equiv$| 0
 Integer_*Rzero x = Eq_trans (Integer_*-comm x 0) (Integer_*Lzero x)
 
-Integer_*DistR+ : (x y z : Integer)
-                  |$\rightarrow$| Integer_* x (Integer_+ y z) |$\equiv$| Integer_+ (Integer_* x y) (Integer_* x z)
+Integer_*DistR+ : (x y z : Integer) |$\rightarrow$| x * (y + z) |$\equiv$| (x * y) + (x * z)
 Integer_*DistR+ x y z =
-  Eq_trans (Integer_*-comm x (Integer_+ y z))
+  Eq_trans (Integer_*-comm x (y + z))
            (Eq_trans (Integer_*DistL+ y z x)
-                     (Eq_trans (Eq_cong (|$\lambda$| e |$\rightarrow$|
-                                           Integer_+ e (Integer_* z x))
-                                        (Integer_*-comm y x))
-                               (Eq_cong (|$\lambda$| e |$\rightarrow$|
-                                           Integer_+ (Integer_* x y) e)
-                                        (Integer_*-comm z x))))
+                     (Eq_trans (Eq_cong (|$\lambda$| e |$\rightarrow$| e + (z * x) (Integer_*-comm y x))
+                               (Eq_cong (|$\lambda$| e |$\rightarrow$| (x * y) + e) (Integer_*-comm z x))))
 \end{minted}
 
 Another useful theorem that we can prove states that the product of two non-zero integers is necessarily non-zero.
@@ -3322,19 +3314,20 @@ Integer_0-product x y x|$\ne$|0 y|$\ne$|0 xy|$\ne$|0 =
 We will eventually also make use of the below theorem that states that the negation of an integer may be distributed over multiplication. Its `right' counterpart may also be proven in a similar manner.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_NegateDistL* : (x y : Integer)
-                       |$\rightarrow$| Integer_- 0 (Integer_* x y) |$\equiv$| Integer_* (Integer_- 0 x) y
+Integer_NegateDistL* : (x y : Integer) |$\rightarrow$| 0 - (x * y) |$\equiv$| (0 - x) * y
 Integer_NegateDistL* x y =
-  Integer_- 0 (Integer_* x y)
-  ==< Eq_cong (|$\lambda$| e |$\rightarrow$| Integer_- e (Integer_* x y))
+  0 - (x * y)
+  ==< Eq_cong (|$\lambda$| e |$\rightarrow$| e - (x * y))
               (Eq_comm (Integer_*Lzero y)) >==
-  Integer_- (Integer_* 0 y) (Integer_* x y)
+  (0 * y) - (x * y)
   ==< Eq_comm (Integer_*DistL- 0 x y) >==
-  Integer_* (Integer_- 0 x) y |$\qed$|
+  (0 - x) * y |$\qed$|
 \end{minted}
 
 \subsection*{Implementation of Rationals}
-As stated before, the base type of our quotient type is essentially a pair of integers along with a proof that the second integer is non-zero. We decided to implement this as an inductive type with a single constructor.
+As stated before, the base type of our quotient type is essentially a pair of
+integers along with an erasable proof that the second integer is non-zero. We
+decided to implement this as an inductive type with a single constructor.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 type @$\mathbb{Z}{\times}\mathbb{Z}{\ne}0$@
@@ -3356,7 +3349,8 @@ useful if we wish to prove that the resulting quotient is effective and that
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 equalQ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ Type
-equalQ p1 p2 = Eq (p1.z1 * p2.z2) (p1.z2 * p2.z1)
+equalQ p1 p2 = case (p1 , p2)
+    | (inR fst1 snd1, inR fst2 snd2) => fst1 * snd2 @$\equiv$@ snd1 * fst2
 \end{minted}
 
 Finally, we can state the definition of the Rationals.
@@ -3372,33 +3366,53 @@ function.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 negate_fst : @$\zpair \rightarrow \zpair$@
-negate_fst x = inR (-1 * x.z1) x.z2 x.p
+negate_fst x = case x
+    | inR z1 z2 (_ := p) @$\Rightarrow$@ inR (-1 * z1) z2 (_ := p)
 \end{minted}
 
 We also need to prove that $\id{negate\_fst}$ respects the underlying relation
-$equal\mathbb{Q}$. In other words, we need to prove the following:
+\id{equalQ}. In other words, we need to prove the following:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-negate_compat : (a : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@) @$\rightarrow$@
-                @$\equalq$@ a b @$\rightarrow$@ @$\equalq$@ (negate_fst a) (negate_fst b)
+negate_compat : (a b : @$\zpair$@) @$\rightarrow$@ equalQ a b @$\rightarrow$@ equalQ (negate_fst a) (negate_fst b)
 negate_compat a b r =
-    (-1 * a.z1) * b.z2
-    ==< Eq_comm (Integer_*-assoc -1 a.z1 b.z2) >==
-    -1 * (a.z1 * b.z2)
-    ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ -1 * e) r >==
-    -1 * (a.z2 * b.z1)
-    ==< Integer_*-assoc -1 a.z2 b.z1 >==
-    (-1 * a.z2) * b.z1
-    ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ e * b.z1)
-                (Integer_*-comm -1 a.z2) >==
-    (a.z2 * -1) * b.z1
-    ==< Eq_comm (Integer_*-assoc a.z2 -1 b.z1) >==
-    a.z2 * (-1 * b.z1) @$\qed$@
+  case a return (equalQ (negate_fst a) (negate_fst b))
+    | inR fst1 snd1 (_ := p1) @$\Rightarrow$@
+      let
+        branch=a : Eq (inR fst1 snd1 (_ := p1)) a
+        branch=a = ##DeBruijn 0
+      in
+        case b return equalQ (negate_fst (inR fst1 snd1 (_ := p1))) (negate_fst b)
+          | inR fst2 snd2 (_ := p2) @$\Rightarrow$@
+            let
+              branch=b : Eq (inR fst2 snd2 (_ := p2)) b
+              branch=b = ##DeBruijn 0
+              r' : equalQ (inR fst1 snd1 (_ := p1)) (inR fst2 snd2 (_ := p2))
+              r' = Eq_cast (f := @$\lambda$@ b' @$\rightarrow$@ equalQ (inR fst1 snd1 (_ := p1)) b')
+                           (p := Eq_comm branch=b)
+                           (Eq_cast (f := @$\lambda$@ a' @$\rightarrow$@ equalQ a' b)
+                                    (p := Eq_comm branch=a) r)
+            in
+            ((-1 * fst1) * snd2
+               ==< Eq_comm (Integer_*-assoc -1 fst1 snd2) >==
+             -1 * (fst1 * snd2)
+               ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ -1 * e) r' >==
+             -1 * (snd1 * fst2)
+               ==< Integer_*-assoc -1 snd1 fst2 >==
+             (-1 * snd1) * fst2
+               ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ e * fst2)
+                           (Integer_*-comm -1 snd1) >==
+             (snd1 * -1) * fst2
+               ==< Eq_comm (Integer_*-assoc snd1 -1 fst2) >==
+             snd1 * (-1 * fst2) @$\qed$@)
 \end{minted}
 
 We introduced equational reasoning to facilitate the development and reading of
 such proofs, more details are given in Section~\ref{section:eqreasoning} of the
-appendix.
+appendix. We remark as well that the type of \id{r} is not specialised in the
+case branches, thus requiring us to use explicit type casts to align the types.
+In each case branch, Typer inserts an equality proof between the scrutinee and
+the pattern of the branch that we may access at Debruijn index 0.
 
 Finally, the negation operation of rational numbers may be constructed like so:
 
@@ -3418,9 +3432,10 @@ off by defining a function that operates on expressions of the base type.
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
 @$\zpairplus$@ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ @$\zpair$@
-@$\zpairplus$@ a b = inR ((a.z1 * b.z2) + (b.z1 * a.z2))
-                 (a.z2 * b.z2)
-                 (Integer_0-product a.z2 b.z2 a.p b.p)
+@$\zpairplus$@ a b =
+  case (a , b)
+    | (inR x1 y1 (_ := p1) , inR x2 y2 (_ := p2)) =>
+      inR ((x1 * y2) + (x2 * y1)) (y1 * y2) (_ := Integer_0-product y1 y2 p1 p2)
 \end{minted}
 
 This is an operation that can be shown to be commutative with respect to the
@@ -3433,15 +3448,20 @@ relation.
 @$\zpairplus$-Comm@ a b =
   let
     compat =
-      (a.z1 * b.z2 + b.z1 * a.z2) * (b.z2 * a.z2)
-        ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ (a.z1 * b.z2 + b.z1 * a.z2) * e)
-                    (Integer_*-comm b.z2 a.z2) >==
-      (a.z1 * b.z2 + b.z1 * a.z2) * (a.z2 * b.z2)
-        ==< Integer_*-comm (a.z1 * b.z2 + b.z1 * a.z2) (a.z2 * b.z2) >==
-      a.z2 * b.z2 * (a.z1 * b.z2 + b.z1 * a.z2)
-        ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ a.z2 * b.z2 * e)
-                    (Integer_+-comm (a.z1 * b.z2) (b.z1 * a.z2)) >==
-      a.z2 * b.z2 * (b.z1 * a.z2 + a.z1 * b.z2) @$\qed$@
+      case a return equalQ (@$\zpairplus$@ a b) (@$\zpairplus$@ b a)
+        | inR x1 y1 (_ := p1) @$\Rightarrow$@
+          case b return equal (@$\zpairplus$@ (inR x1 y1 (_ := p1)) b)
+                               (@$\zpairplus$@ b (inR x1 y1 (_ := p1)))
+            | inR x2 y2 (_ := p2) @$\Rightarrow$@
+              ((x1 * y2 + x2 * y1) * (y2 * y1)
+                ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ (x1 * y2 + x2 * y1) * e)
+                            (Integer_*-comm y2 y1) >==
+              (x1 * y2 + x2 * y1) * (y1 * y2)
+                ==< Integer_*-comm (x1 * y2 + x2 * y1) (y1 * y2) >==
+              y1 * y2 * (x1 * y2 + x2 * y1)
+                ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ y1 * y2 * e)
+                            (Integer_+-comm (x1 * y2) (x2 * y1)) >==
+              y1 * y2 * (x2 * y1 + x1 * y2) @$\qed$@)
   in
       Quotient_eq (R := @$\equalq$@)
                   (a  := @$\zpairplus$@ a b)
@@ -3454,10 +3474,8 @@ underlying relation, and since this is a binary operation, we will have to prove
 it for `both sides'. In other words, we have to produce the below proofs.
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
-@$\mathbb{Q}$+\_feql@ : (a : @$\zpair$@) @$\rightarrow$@ (a' : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@) @$\rightarrow$@ @$\equalq$@ a a'
-          @$\rightarrow$@ Eq (t := Quotient @$\zpair$@ @$\equalq$@)
-                (Quotient_in (@$\zpairplus$@ a b))
-                (Quotient_in (@$\zpairplus$@ a' b))
+@$\mathbb{Q}$+\_feql@ : (a a' b : @$\zpair$@) @$\rightarrow$@ equalQ a a'
+          @$\rightarrow$@ Quotient_in (@$\zpairplus$@ a b) @$\equiv$@ Quotient_in (@$\zpairplus$@ a' b)
 @$\mathbb{Q}$+\_feql@ = ?
 
 @$\mathbb{Q}$+\_feqr@ : (a : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@) @$\rightarrow$@ (b' : @$\zpair$@) @$\rightarrow$@ @$\equalq$@ b b'
@@ -3494,43 +3512,41 @@ Rational_- a b = Rational_+ a (Rational_negate b)
 \end{minted}
 
 $\id{Quotient\_rec2}$ is a library function that allows us to simultaneously
-eliminate two quotient expressions, more details are given in
+eliminate two quotient expressions by providing it with a function that deals
+with two terms of the base type, more details are given in
 \autoref{subsec:rec2}. Finally, we want to prove that the negation of a rational
 produces its additive inverse. We define $\id{Rational\_0}$ to be the additive
 identity using a trivial representative of its equivalence class.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-@$\zpairplus$@-Linv : (a : @$\zpair$@) @$\rightarrow$@ Eq (t := Rational)
-                              (Quotient_in (@$\zpairplus$@ (negate_a.z1) a))
-                              Rational_0
+@$\zpairplus$@-Linv : (a : $\zpair$@) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ (negate_fst a) a) @$\equiv$@ Rational_0
 @$\zpairplus$@-Linv a =
   let
-    h : Eq ((-1 * a.z1 * a.z2 + a.z1 * a.z2) * 1)
-           (a.z2 * a.z2 * 0)
-    h =
-      (-1 * a.z1 * a.z2 + a.z1 * a.z2) * 1
-      ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ (e * a.z2 + a.z1 * a.z2) * 1)
-                  (Integer_Negate@$\equiv$@ a.z1) >==
-      ((0 - a.z1) * a.z2 + a.z1 * a.z2) * 1
-      ==< Integer_*Rid ((0 - a.z1) * a.z2 + a.z1 * a.z2) >==
-      (0 - a.z1) * a.z2 + a.z1 * a.z2
-      ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ e + a.z1 * a.z2)
-                  (Eq_comm (Integer_NegateDistL* a.z1 a.z2)) >==
-      (0 - (a.z1 * a.z2)) + a.z1 * a.z2
-      ==< Integer_+-comm (0 - (a.z1 * a.z2)) (a.z1 * a.z2) >==
-      a.z1 * a.z2 + (0 - (a.z1 * a.z2))
-      ==< Integer_+Rinv (a.z1 * a.z2) >==
-      0
-      ==< Eq_comm (Integer_*Rzero (a.z2 * a.z2)) >==
-      a.z2 * a.z2 * 0 @$\qed$@
+    h = case a return equalQ (@$\zpairplus$ (negate_fst a) a)
+                             (inR 0 1 (_ := Integer_1≠0))
+      | inR x y (_ := p) @$\Rightarrow$@
+        ((-1 * x * y + x * y) * 1
+          ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ (e * y + x * y) * 1)
+                      (Integer_Negate≡ x) >==
+        ((0 - x) * y + x * y) * 1
+          ==< Integer_*Rid ((0 - x) * y + x * y) >==
+        (0 - x) * y + x * y
+          ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ e + x * y)
+                      (Eq_comm (Integer_NegateDistL* x y)) >==
+        (0 - (x * y)) + x * y
+          ==< Integer_+-comm (0 - (x * y)) (x * y) >==
+        x * y + (0 - (x * y))
+          ==< Integer_+Rinv (x * y) >==
+        0
+          ==< Eq_comm (Integer_*Rzero (y * y)) >==
+        y * y * 0 @$\qed$@)
   in
-    Quotient_eq (R := @$\equalq$@)
-                (a := @$\zpairplus$@ (negate_a.z1) a)
+    Quotient_eq (R := equalQ)
+                (a := @$\zpairplus$@ (negate_fst a) a)
                 (a' := inR 0 1 Integer_1@$\ne$@0)
                 h
 
-Rational_+Linv : (q : Rational) @$\rightarrow$@ Eq (Rational_+ (Rational_negate q) q)
-                                      Rational_0
+Rational_+Linv : (q : Rational) @$\rightarrow$@ Rational_+ (Rational_negate q) q @$\equiv$@ Rational_0
 Rational_+Linv q =
   Quotient_elimProp (R := @$\equalq$@)
                     (P := @$\lambda$@ q @$\rightarrow$@
@@ -3541,8 +3557,7 @@ Rational_+Linv q =
                                        Rational_0)
                     @$\zpairplus$@-Linv q
 
-Rational_+Rinv : (q : Rational) @$\rightarrow$@ Eq (Rational_+ q (Rational_negate q))
-                                      Rational_0
+Rational_+Rinv : (q : Rational) @$\rightarrow$@ Rational_+ q (Rational_negate q) @$\equiv$@ Rational_0
 Rational_+Rinv q = Eq_trans (Rational_+-Comm q (Rational_negate q))
                             (Rational_+Linv q)
 
@@ -5076,9 +5091,7 @@ example x y z w p q r =
 For a more involved example, we rewrite the proof of \verb|Integer_*DistR+| that was shown in Section~\ref{subsection:int-theorems} by using equational reasoning.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Integer_*DistR+ : (x : Integer) @$\rightarrow$@ (y : Integer) @$\rightarrow$@ (z : Integer)
-                  @$\rightarrow$@ Eq (Integer_* x (Integer_+ y z))
-                        (Integer_+ (Integer_* x y) (Integer_* x z))
+Integer_*DistR+ : (x y z : Integer) @$\rightarrow$@ x * (y + z) @$\equiv$@ (x * y) + (x * z)
 Integer_*DistR+ x y z =
   Integer_* x (Integer_+ y z)
   ==< Integer_*-comm x (Integer_+ y z) >==
