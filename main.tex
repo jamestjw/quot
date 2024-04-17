@@ -510,6 +510,7 @@ several constructs to streamline proof development in Typer.
 
 \begin{twocolumnlist}{.2\textwidth}{.7\textwidth}
   ETT & Extensional Type Theory\\
+  ITT & Intensional Type Theory\\
   HoTT & Homotopy Type Theory\\
   UIP & Uniqueness of Identity Proofs\\
 \end{twocolumnlist}
@@ -519,11 +520,7 @@ several constructs to streamline proof development in Typer.
 %%              pages vi                            %
 %%------------------------------------------------- %
 
-\chapter*{Remerciements}
 
-...remerciements...
-
- %
  % Fin des pages liminaires.  À partir d'ici, les
  % premières pages des chapitres ne doivent pas
  % être numérotées
@@ -776,21 +773,24 @@ Recent advances in type theory inspired by topology propose a different approach
 to represent equality proofs by modeling them as functions whose argument is of
 the interval type, i.e.\ functions of the type \fn{I $\rightarrow$ A} given that
 \id{I} represents the interval type and \id{A} is an arbitrary other type. We
-refer to the above hereafter as functions out of the unit interval. In this
+refer to the above hereafter as functions out of the unit interval. The interval
+may be seen as a special type that is similar to the Boolean type with the
+special property that both its endpoints should be indistiguishable. In this
 alternative formulation of equality proofs, equality is viewed as a continuous
-path along the unit interval that connects two equal terms. The return value of
-such functions is not allowed to directly depend on the value of the interval
-argument. For instance, the function may not do a case analysis on the interval
-and return a different term of type \id{A} depending on which endpoint of the
-interval is encountered. This essentially implies that such a function would
-indeed be constant on the unit interval and aptly respects the requirements of
-an equality proof. An equality type based on the interval also allows us to
-derive many proofs regarding the equality type in an alternative manner that is
-much cleaner and more elegant. It also allows us to derive new theorems
-regarding the equality type that are desirable, such as functional
-extensionality. This flavour of equality was first conceived in cubical type
-theories\cite{bezem2014model} to provide a computational interpretation of
-homotopy type theory (HoTT)\cite{HoTTbook}.
+path along the unit interval that connects two equal terms.
+%% The return value of such functions is not allowed to directly depend on the
+%% value of the interval argument. For instance, the function may not do a case
+%% analysis on the interval and return a different term of type \id{A} depending on
+%% which endpoint of the interval is encountered. This essentially implies that
+%% such a function would indeed be constant on the unit interval and aptly respects
+%% the requirements of an equality proof.
+An equality type based on the interval also allows us to derive many proofs
+regarding the equality type in an alternative manner that is much cleaner and
+more elegant. It also allows us to derive new theorems regarding the equality
+type that are desirable, such as functional extensionality. This flavour of
+equality was first conceived in cubical type theories\cite{bezem2014model} to
+provide a computational interpretation of homotopy type theory
+(HoTT)\cite{HoTTbook}.
 
 One of the key ideas introduced by HoTT is the univalence axiom which suggests
 that equivalences may be encoded as equalities. This is much like what is done
@@ -922,8 +922,6 @@ providing examples in the form of code along with commentary.
 
 We make several contributions:
 
-%% TODO: Might have to modify chapter references after I merge eq+quot
-%% and restructure stuff
 \begin{itemize}
   \item{First, we introduce a notion of heterogeneous equality based on the
     Interval type by drawing inspiration from cubical type theory
@@ -937,7 +935,7 @@ We make several contributions:
     (\hyperref[subsec:eq-examples]{Section~\ref*{subsec:eq-examples}}).}
 
   \item{We then introduced quotient types along with their typing and reduction
-    rules (\autoref{ch:quot}). Their elimination principle takes advantage of
+    rules (\autoref{sec:quot}). Their elimination principle takes advantage of
     heterogeneous equality by using it to express
     pathovers\cite{licata2015cubical}. We also convince ourselves that our
     quotients behave appropriately by proving their effectiveness
@@ -968,49 +966,12 @@ We make several contributions:
 %%                Chapters                          %
 %%------------------------------------------------- %
 
-%% SM: I think we need a background / state-of-the-art chapter here, first,
-%% You could move the "related works" chapter to here as a start, but it
-%% should have a more "introductory" feel to it.
-%% That chapter would kinda repeat the intro to some extent, but going in
-%% more details and talking more concretely about what existing systems do.
-%% You could talk in general terms about HoTT and how it introduced a host of
-%% new ideas, including HITs and a refined notion of equality, then
-%% show how this has been turned into practice in existing systems
-%% (clarifying along the way the difference between quotients and HITs).
-%% In that chapter, I'd expect you'd mention also setoid rewriting, as well
-%% as various attempts to add quotients to Coq, Miranda, ...
-%% This way, when you get to talk about your work, in the next chapters
-%% you can better situate it as a kind of compromise between HoTT concepts
-%% and more traditional notions.
-%% In this new chapter, you still don't want to be technical, you want
-%% most readers to still enjoy the ride and get the illusion that they
-%% understand.
-%% You could also use this chapter to give a quick intro to the relevant
-%% part of Typer.
-
 \chapter{Related works}
-
-%% SM: I expected in this section to see a presentation of Miranda's
-%% "quotient-like" types, and Courtieu's quotient types (and possibly other
-%% quotient types in Coq like Cohen's).
-%% Also, when talking about Cubical Agda (which should have its own
-%% (sub)section), I expected to see something
-%% explaining how instead of adding a separate notion of quotient type,
-%% they extended inductive types to HITs.
-%% And rather than just have a Quotient Haskell example within the QIT
-%% section, I expected a (sub)section about Quotient Haskell.
-%% IOW, this section should talk about existing implementations of
-%% (variations of) the concept rather than about variants of the
-%% concept themselves.
 
 In this chapter, we present works that are related to ours. We show where we
 drew our inspiration from and we also take this opportunity to give readers a
 taste of what quotient types are like and what they are capable of. We also
 present the existing implementation of Typer's \id{Eq} type.
-
-%% SM: The ordering of the sections is a bit puzzling.  I suggest you
-%% try to go by order of "complexity".  Maybe put Quotient Haskell
-%% right after Miranda.
 
 \section{Miranda}
 
@@ -1699,6 +1660,10 @@ of the congruence property of equality.
 %% the fact that your thesis on "quotient types in Typer" talks almost
 %% more about equalities than about quotients.
 
+This chapter starts by presenting cubical equality along with our adaption of it
+to Typer. We then build on that to discuss how we implemented quotient types in
+Typer.
+
 \section{Cubical Equality}
 
 We first present the existing version of Typer's equality type before presenting
@@ -1717,9 +1682,9 @@ the aforementioned interval type.
 \subsection{Typer's Equality Type}\label{sec:typer-old-eq}
 
 Typer's primitive equality type is similar to that defined in intensional
-Martin-Löf type theory\cite{martin1975intuitionistic} such that the equality is
-homogeneous and that equality reflection is not supported. Its type former takes
-on the following form:
+Martin-Löf type theory\cite{martin1975intuitionistic} (ITT) such that the
+equality is homogeneous and that equality reflection is not supported. Its type
+former takes on the following form:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Eq : (A : Type) @$\Rrightarrow$@ A @$\rightarrow$@ A @$\rightarrow$@ Type
@@ -1854,7 +1819,6 @@ as follows:
    \infer3{\oftype{\ctx, \oftype{i}{\bI}}{\kw{elim}_{\bI}^{A} (M, N, P, i)}{A}}
 \end{prooftree*}
 
-%% SM: Try and give some intuition for what I is like.
 It has the below computation rules:
 
 \begin{align*}
@@ -1865,28 +1829,35 @@ It has the below computation rules:
 
 We can expect the first two rules to hold definitionally. Definitional equality
 of two terms is determined by expanding out definitions. So when we say that
-$\kw{elim}_{\bI}^{_.A}(M, N , P, \ileft)$ is definitionally equal to \id{M}, we are
-saying that the former reduces to the latter when we check for equality. If we
-imagine that the first two computation rules were defined via pattern-matching,
-it would make sense for these equations to hold definitionally. The third rule
-is a more curious case, by the congruence of equality, the application of the
-interval eliminator with the equality proof $\id{P}$ to $\id{seg}$ should yield
-an equality proof between $\id{M}$ and $\id{N}$. The rule suggests that this
-should compute to $\id{P}$ itself. From a computational point of view,
-equalities between equality proofs are only an important consideration in a
-proof-relevant setting, e.g.\ in the context of HoTT\@. In the world of Typer
-where we demand that equality proofs be erasable and play no role during
-computation, such equalities are less meaningful. However, they are not
-completely irrelevant as we occasionally need
-%% SM: You haven't mentioned this notion of "coherence" yet.
-to construct such proofs for coherence purposes. In most cases, the third
-equation does not hold definitionally as the \kw{cong} construct is defined
-independently and it would be highly unusual to separately define how it should
-compute on new constructs such as the interval type. In cases where we are
-%% SM: Why should we?  What happens if we don't?
-unable to make the third rule hold definitionally, we should then postulate a
-propositional equality between $\kw{cong}_{\kw{elim}_{\bI}^{A}(M, N,
+$\kw{elim}_{\bI}^{_.A}(M, N , P, \ileft)$ is definitionally equal to \id{M}, we
+are saying that the former reduces to the latter when we check for equality. If
+we imagine that the first two computation rules were defined via
+pattern-matching, it would make sense for these equations to hold
+definitionally. The third rule is a more curious case, by the congruence of
+equality, the application of the interval eliminator with the equality proof
+$\id{P}$ to $\id{seg}$ should yield an equality proof between $\id{M}$ and
+$\id{N}$. The rule suggests that this should compute to $\id{P}$ itself. From a
+computational point of view, equalities between equality proofs are only an
+important consideration in a proof-relevant setting, e.g.\ in the context of
+HoTT\@. While working in synthetic homotopy theory, which is where the interval
+type is often used, such a rule is deemed as natural and necessary. Since this
+is not directly related to our work, we shall not further justify this rule. In
+most cases, this rule does not hold definitionally as the \kw{cong} construct is
+defined independently and it would be highly unusual to separately define how it
+should compute on new constructs such as the interval type. In cases where we
+are unable to make the third rule hold definitionally, we usually then postulate
+a propositional equality between $\kw{cong}_{\kw{elim}_{\bI}^{A}(M, N,
   P)}(\id{seg})$ and P.
+
+To provide an intuition for what $\bI$ is like, we use the eliminator to
+construct a map from $\bI$ to \id{Boolean}. For instance, two maps that we may
+construct are $\lambda \id{i} \rightarrow \kw{elim}_{\bI}^{Boolean}(\id{true},
+\id{true}, \kw{refl}_{true}, \id{i})$ and $\lambda \id{i} \rightarrow
+\kw{elim}_{\bI}^{A}(\id{false}, \id{false}, \kw{refl}_{\id{false}}, \id{i})$.
+The proof term that is required by the eliminator forces us to map $\ileft$ and
+$\iright$ to two terms that are equal. We would not be able to use the
+eliminator to map $\ileft$ and $\iright$ to \id{true} and \id{false}
+respectively as the type \fn{true $\equiv$ false} is uninhabited.
 
 \subsection{Motivation}
 We show that a function with an interval argument returning some type \id{A},
@@ -1908,19 +1879,19 @@ Now, we formally state the theorem that we are interested in.
 \begin{theo}\label{theo:i->a-equiv}
 The following type is inhabited:
 
-%% SM: Hmm... the casual reader may fail to understand the significance,
-%% e.g. if they mistake Σ for ∃, and/or think of those types as "mere
-%% propositions", so you want to "read it out loud".
 \begin{align}
   & \bI \rightarrow A \ \simeq \ \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}\nonumber
 \end{align}
 
 \end{theo}
 
-We provide a proof of the above in Appendix~\ref{app:proof-i->a-equiv}. By
-establishing the above equivalence, we no longer require the \fn{_$\equiv$_}
-type former that we assume we had in \autoref{sec:interval-introduction} as we
-may represent the equality type using functions out of the interval.
+$\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}$ may be seen as
+a triplet containing two terms of type \id{A} along with a proof of their
+equality. We provide a proof of the above in
+Appendix~\ref{app:proof-i->a-equiv}. By establishing the above equivalence, we
+no longer require the \fn{_$\equiv$_} type former that we assume we had in
+\autoref{sec:interval-introduction} as we may represent the equality type using
+functions out of the interval.
 
 \subsection{Adaptation to Typer}\label{sec:eq-justification}
 We have established in the previous section that equality between two terms is
@@ -1949,15 +1920,10 @@ More concretely, we define a function with the following type:
 h : I @$\Rrightarrow$@ A
 \end{minted}
 
-%% SM: Not sure if "vacuously", since it depends on whether we were careful
-%% enough to define "erasable" appropriately.  It's not 100% trivial.
 In Typer, we use $\Rrightarrow$ to denote erasable arguments in function types.
-%% FIXME: h(i_0) and h(i_1) are indeed not necessarily definitionally equal,
-%% making this claim a little dubious (especially after we implement
-%% Quotient_eq)
-It is true that $\eqtype{h(i_0)}{h(i_1)}$ since what is returned by the function
-could not have been influenced by the argument that was passed to it because the
-argument is erasable. With that, we can postulate the following equivalence.
+Intuitively, since \id{h} is not allowed to use its argument in a
+computationally relevant manner, what it returns when passed $i_0$ and $i_1$
+must be the same. With that, we can postulate the following equivalence.
 
 \begin{align*}
   & \bI \Rrightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} .
@@ -2008,10 +1974,6 @@ proven propositionally, however, we have set things up such that this holds
 definitionally. This is not entirely necessary, though it makes proofs that do
 indeed require this property a lot simpler and more elegant, allowing us to
 fully benefit from having an interval-based equality type.
-
-%% TODO: I don't have de Morgan's law, i.e. ~ (i ∨ j) = ~ i ∧ ~ j (and the other
-%% one ~ (i ∧ j) = ~ i ∨ ~ j)
-%% I guess I should add this huh?
 
 \subsubsection*{Meet}\label{subsubsec:interval-meet}
 
@@ -2493,7 +2455,7 @@ polymorphic identity function}.
 %% we don't really need or care about this here I believe. So either don't mention it,
 %% or briefly touch on it at the very end.
 
-\section{Quotient Types}\label{ch:quot}
+\section{Quotient Types}\label{sec:quot}
 
 In this section, we introduce our implementation of quotient types in Typer. We
 opted for an implementation more or less in accordance with the rules presented
@@ -2509,7 +2471,6 @@ code.
 
 \subsection{Syntax}\label{sec:quot-syntax}
 
-%% TODO: Do this for other sections too! Starting with eq to show some syntax?
 We give an abstract presentation of the syntax of the new constructs that we
 introduce in this section:
 
@@ -2553,7 +2514,6 @@ quotient type is done using the syntax \fn{Quotient\_elim f h q} where \id{f} is
 a function out of the base type and \id{h} is proof that \id{f} is compatible
 with the underlying relation of the quotient.
 
-%% SM: A (very) small&simple example would be welcome here.
 For instance, we could define the integers as a quotient \fn{Z = Quotient (Nat
   $\times$ Nat) R$_Z$}\footnote{The \fn{_$\times$_} syntax that we use is a
 shorthand for the $\Sigma$ type when the second projection does not depend on
@@ -2737,11 +2697,6 @@ deal of sense, however we believe that it is of limited practical utility.
 
 \subsection{Implementation}
 
-%% SM: Clarify in the previous part of the section that you were only talking
-%% about some "abstract" presentation.  E.g. you said at the beginning
-%% of this \section "We extend Type's syntax of terms with ..." which
-%% suggest that those were the actual thing added to Typer in
-%% the implementation.
 In this section, we describe how the rules described above were added to Typer.
 Subsequently, we describe some syntactic sugar that facilitates the usage of
 quotient types.
@@ -2890,7 +2845,7 @@ also known as the transport operation, as is most often the case in a HoTT
 setting.} is an implementation of Leibniz's principle of the indiscernibility of
 identicals. Instead of defining it as a primitive as was done in the
 aforementioned section, we now define it in terms of the interval primitive,
-\id{I\_transp}.
+\id{I\_transp} described in \autoref{sec:i-transp}.
 
 %% Eq_cast : (x : ?) ≡> (y : ?) ≡> (p : Eq x y) ≡> (f : ? -> ?)
 %%             ≡> f x -> f y
@@ -2919,32 +2874,56 @@ $\Funapp{\id{f}}{\id{x}}$, it returns something of type
 $\Funapp{\id{f}}{\id{y}}$, which is precisely what the transport function is
 meant to do.
 
+\paragraph{Equality Between \id{x} and \kw{cast}$_x$}\label{app:cast-is-eq}
+
 Transporting across a reflexive path should be equivalent to a no-op, as
 illustrated in the following proof.
 
-%% NOTE: Check if I mentioned somewhere that the below may be generalised using
-%% the `r` argument of I_transp to relate `cast p x' and `x' with a Heq proof
-
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
 Eq_cast_refl : (A : Type) |$\Rrightarrow$| (x : A)
-               |$\rightarrow$| Eq_cast (p := Eq_refl (x := A)) (f := id) x |$\equiv$| x
+               |$\rightarrow$| x |$\equiv$| Eq_cast (p := Eq_refl (x := A)) (f := id) x
 Eq_cast_refl A x = Eq_refl
 \end{minted}
 
-The above is possible because of the first reduction rule of \id{I\_transp},
+The above is possible because of the first reduction rule of \id{I\_transp} ,
 allowing us to recover the reduction rule of Typer's existing implementation of
 \id{Eq\_cast} as presented in \autoref{sec:typer-old-eq}. With cubical equality,
 this property is not restricted to reflexivity, it may be generalised to
 arbitrary equality proofs by using the special property of \id{I\_transp}.
 
-%% FIXME: Not sure what to name this
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-h : (p : ?A @$\equiv$@ ?B) @$\rightarrow$@ (x : ?A)
-    @$\Rrightarrow$@ Heq x (Eq_cast (p := p) (f := id) x)
-h p x = Heq_eq (t := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := p) (i := i))
-               (f := @$\lambda$@ i @$\Rrightarrow$@
-                       I_transp (A := @$\lambda$@ j @$\Rrightarrow$@ Eq_uneq (p := p) (i := I_meet i j))
-                                x (r := i));
+castIsEq : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0))
+           @$\rightarrow$@ Heq (t := A) x (Eq_cast (p := Eq_eq (f := A)) (f := id) x)
+castIsEq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x @$\rightarrow$@
+  let
+    p : I_transp (A := A) x (r := i1) @$\equiv$@ Eq_cast (p := Eq_eq (f := A)) (f := id) x
+    p = Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@
+                    I_transp
+                        (A := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := Eq_@$\eta$@ (A := A) i) (i := j))
+                        x (r := i1))
+
+   h : Heq (t := A) x (I_transp (A := A) x (r := i1))
+   h = Heq_eq (t := A)
+              (f := @$\lambda$@ i @$\Rrightarrow$@ I_transp (A := A) x (r := i))
+  in
+    Eq_cast (p := p) (f := @$\lambda$@ e @$\rightarrow$@ Heq (t := A) x e) h
+\end{minted}
+
+
+\fn{I_transp (A := A) x (r := i1)} and \fn{Eq_cast (p := Eq_eq (f := A)) (f :=
+  id) x} are not definitionally equal since the $\eta$-equivalence \fn{A (_ :=
+  i)) $\equiv$ (Eq_uneq (p := Eq_eq (f := A)) (i := i))} does not hold
+definitionally. Hence, we prove the $\eta$-equivalence propositionally and use
+it to complete our proof.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+Eq_@$\eta$@ : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (i : I)
+       @$\rightarrow$@ Eq (A (_ := i)) (Eq_uneq (p := Eq_eq (f := A)) (i := i))
+Eq_@$\eta$@ = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ i @$\rightarrow$@
+  case i return Eq (A (_ := i))
+                   (Eq_uneq (p := Eq_eq (f := A)) (i := i))
+  | i0 @$\Rightarrow$@ Eq_refl
+  | i1 @$\Rightarrow$@ Eq_refl
 \end{minted}
 
 %% NOTE: This is just an extra piece of information that may or may not interest
@@ -3816,17 +3795,15 @@ boilerplate in user code.
 \subsection*{rec$_2$}\label{sec:rec2}
 We start off by describing \id{Quotient\_rec2}, which serves to eliminate two arbitrary quotient expressions.
 
-%% FIXME: Check this, C_isSet should be erasable
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 rec2 : (C_isSet : isSet ?C)
-       @$\rightarrow$@ (f : ?A @$\rightarrow$@ ?B @$\rightarrow$@ ?C)
-       @$\rightarrow$@ ((a : ?A) @$\rightarrow$@ (b : ?A) @$\rightarrow$@ (c : ?B) @$\rightarrow$@ ?R a b @$\rightarrow$@ Eq (f a c) (f b c))
-       @$\rightarrow$@
-       ((a : ?A) @$\rightarrow$@ (b c: ?B) @$\rightarrow$@ ?S b c @$\rightarrow$@ Eq (f a b) (f a c))
-       @$\rightarrow$@ Quotient ?A ?R @$\rightarrow$@ Quotient ?B ?S @$\rightarrow$@ ?C
+       @$\Rrightarrow$@ (f : ?A @$\rightarrow$@ ?B @$\rightarrow$@ ?C)
+       @$\rightarrow$@ ((a b : ?A) @$\rightarrow$@ (c : ?B) @$\rightarrow$@ ?R a b @$\rightarrow$@ f a c @$\equiv$@ f b c)
+       @$\Rrightarrow$@ ((a : ?A) @$\rightarrow$@ (b c: ?B) @$\rightarrow$@ ?S b c @$\rightarrow$@ f a b  @$\equiv$@ f a c)
+       @$\Rrightarrow$@ Quotient ?A ?R @$\rightarrow$@ Quotient ?B ?S @$\rightarrow$@ ?C
 rec2 =
-  @$\lambda$@ A B C R S @$\Rrightarrow$@
-    @$\lambda$@ C_isSet f feql feqr @$\rightarrow$@
+  @$\lambda$@ A B C R S C_isSet @$\Rrightarrow$@
+    @$\lambda$@ f @$\rightarrow$@ @$\lambda$@ feql feqr @$\Rrightarrow$@
       Quotient_rec (R := R)
         (@$\lambda$@ a @$\rightarrow$@ @$\lambda$@ b @$\rightarrow$@
           Quotient_rec (R := S) (f a) (p := feqr a) b)
@@ -4052,51 +4029,52 @@ By ensuring that the witness $\id{t}$ of the type $\id{T}$ is erasable, this
 provides us with a guarantee that during elimination, the witness $\id{t}$ can
 only be used in an erasable, i.e.\ proof irrelevant manner.
 
-To convince ourselves that this type does indeed capture the essence of a
-mere proposition, we provide a proof of
-$\Funapp{\id{isProp}}{(\Funapp{\id{Erased}}{?\id{T}})}$. We first state the
-definition of $\id{isProp}$:
-
-\begin{minted}[escapeinside=||,mathescape=true]{agda}
-isProp : (T : Type) |$\rightarrow$| Type
-isProp T = (x y : T) |$\rightarrow$| Eq x y
-\end{minted}
-
-We now present the proof in the form of Typer code.
-
 %% FIXME: This would no longer work without conv_erase!
 %% I guess we just have to live without this proof?
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-erasedIsProp : (T : Type) @$\Rrightarrow$@ isProp (Erased T)
-erasedIsProp t1 t2 =
-  case t1
-    | erased (_ := e1) @$\Rightarrow$@
-        let
-          p1 = ##DeBruijn 0 : Eq (erased (t := e1)) t1
-        in
-          case t2
-            | erased (_ := e2) @$\Rightarrow$@
-                let
-                  p2 = ##DeBruijn 0 : Eq (erased (t := e2)) t2
-                in
-                  Eq_trans (Eq_comm p1) p2
-\end{minted}
 
-Typer does not offer the direct specialisation of $\kw{case}$ targets in
-branches. In other words, in the first case branch, we do not have a
-definitional equality between $\id{t1}$ and
-$\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$. Instead, an equality proof between
-them is injected into the context, which can be accessed as the variable at
-deBruijn index 0. Now that we have the two equality proofs, to
-concatenate them\footnote{By considering equalities as paths, the application of
-the transitivity property of equality is conceptually similar to concatenating
-two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and
-$\Funapp{\id{erased}}{(\earg{\_}{\id{e2}})}$ to be equal. A priori, the two
-terms are not equal as $\id{e1}$ and $\id{e2}$ are completely arbitrary.
-However, Typer ignores erasable terms when checking the convertibility of terms,
-this is a property that was proven to be sound in\cite{barras2008implicit} as
-convertibility is tested on extracted terms. This allows the concatenation to
-succeed and thus concludes the proof.
+%% To convince ourselves that this type does indeed capture the essence of a
+%% mere proposition, we provide a proof of
+%% $\Funapp{\id{isProp}}{(\Funapp{\id{Erased}}{?\id{T}})}$. We first state the
+%% definition of $\id{isProp}$:
+
+%% \begin{minted}[escapeinside=||,mathescape=true]{agda}
+%% isProp : (T : Type) |$\rightarrow$| Type
+%% isProp T = (x y : T) |$\rightarrow$| Eq x y
+%% \end{minted}
+
+%% We now present the proof in the form of Typer code.
+
+%% \begin{minted}[escapeinside=@@,mathescape=true]{agda}
+%% erasedIsProp : (T : Type) @$\Rrightarrow$@ isProp (Erased T)
+%% erasedIsProp t1 t2 =
+%%   case t1
+%%     | erased (_ := e1) @$\Rightarrow$@
+%%         let
+%%           p1 = ##DeBruijn 0 : Eq (erased (t := e1)) t1
+%%         in
+%%           case t2
+%%             | erased (_ := e2) @$\Rightarrow$@
+%%                 let
+%%                   p2 = ##DeBruijn 0 : Eq (erased (t := e2)) t2
+%%                 in
+%%                   Eq_trans (Eq_comm p1) p2
+%% \end{minted}
+
+%% Typer does not offer the direct specialisation of $\kw{case}$ targets in
+%% branches. In other words, in the first case branch, we do not have a
+%% definitional equality between $\id{t1}$ and
+%% $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$. Instead, an equality proof between
+%% them is injected into the context, which can be accessed as the variable at
+%% deBruijn index 0. Now that we have the two equality proofs, to
+%% concatenate them\footnote{By considering equalities as paths, the application of
+%% the transitivity property of equality is conceptually similar to concatenating
+%% two paths.}, we require $\Funapp{\id{erased}}{(\earg{\_}{\id{e1}})}$ and
+%% $\Funapp{\id{erased}}{(\earg{\_}{\id{e2}})}$ to be equal. A priori, the two
+%% terms are not equal as $\id{e1}$ and $\id{e2}$ are completely arbitrary.
+%% However, Typer ignores erasable terms when checking the convertibility of terms,
+%% this is a property that was proven to be sound in\cite{barras2008implicit} as
+%% convertibility is tested on extracted terms. This allows the concatenation to
+%% succeed and thus concludes the proof.
 
 \subsection*{Implementation details}
 
@@ -4382,6 +4360,9 @@ cost\footnote{The tests were executed on the author's 2018 Macbook Pro with a
 quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of executing the
 functions $\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
 $\fn{Rational\_*}$ on 15000 pairs of rational numbers with 500 iterations.
+We then report the average execution time along with the standard deviation. The
+overhead is defined to be the difference in the average execution time.
+
 
 \begin{table}[]
 \centering
@@ -4464,6 +4445,10 @@ A desirable optimisation is the inlining of \id{Quotient\_rec} and
   \item{\fn{Quotient\_rec f} $\rightsquigarrow$ \id{f}}
 \end{itemize}
 
+We also would require a multi-argument version of the $\eta$-reduction rule for
+lambda functions like so:
+
+\fn{($\lambda$ (e$_1$) ($\lambda$ (e$_2$) ... ($\lambda$ (e$_n$) f e$_1$ e$_2$ ... e$_n$))) $\rightsquigarrow$ f}
 
 With that, we show a possible series of reductions and optimisations that
 simplify \fn{Rational\_+} to $\zpairplus$. This implies that with an appropriate
@@ -4482,8 +4467,6 @@ unsurprisingly have a similar overhead due to how similarly they are defined.
 Since negation is a unary operation, it was defined directly using
 $\fn{Quotient\_rec}$ and thus has a lesser overhead than the other binary
 operations. We also defined subtraction based on
-%% SM: 52.7% is not significantly greater than 51.6%.  Are you talking about
-%% the overhead in seconds?
 addition combined with negation, so its greater overhead is well justified.
 %% FIXME: Wait, intuitively speaking, the overhead of subtraction should be the
 %% sum of the overhead of addition and negation?! Why isn't this the case?
@@ -4512,8 +4495,8 @@ to avoid the domination of the overhead cost by the runtime of the operation
 itself. For the \id{Multiset\_mem} operation, we ran the membership test with
 5000 integers on a multiset containing 50 integers. For lists, we ran the
 benchmark using the \id{List\_mem} function that we show below. We ran 2500
-iterations for each experiment and we report the average execution time along
-with the standard deviation.
+iterations for each experiment and like before, we report the average execution
+time along with the standard deviation.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 List_mem : Discrete ?A -> ?A -> List ?A -> Bool
@@ -4524,9 +4507,6 @@ We also observe that the generated Elexps for \id{Multiset\_append} and
 \id{Multiset\_mem} are devoid of their related proof terms. \id{Quotient\_rec}
 and \id{Quotient\_rec2} both reduce to the application of the lambda passed to
 it on the subsequent arguments.
-
-%% SM: Discuss if the same optimizations discussed for Rational work here,
-%% or if new ones would be needed.
 
 \begin{figure}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
@@ -4570,7 +4550,7 @@ simplify \id{Multiset\_mem} to an Elexp that would correspond to the Elexp of
    (@$\lambda$@ (l) ->
         (Dec2Bool (isMemberDec disc a l))) s)))
 
-    @$\rightsquigarrow$@ @$\eta$@-reduction of lambda
+    @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
 
 (@$\lambda$@ (disc) ->
  (@$\lambda$@ (a) ->
@@ -4701,7 +4681,15 @@ At the heart of category theory, we have the notion of composition. Suppose that
 
 \end{figure}
 
-To conclude our short introduction to category theory, we would like to present the category-theoretic equivalent of a ubiquitous construct in type theory, i.e.\ products (also known as tuples). One should be familiar with the notion of products being defined as pairs of elements, however in category theory, we have to define such objects in terms of its morphisms that relate it to other objects. If some object C were to be the product of objects A and B, then we require that it has two morphisms that behave as the first and second projections out of the product. In other words, we require the two morphisms $\id{p} : \id{C} \rightarrow \id{A}$ and $\id{q} : \id{C} \rightarrow \id{B}$.
+To conclude our short introduction to category theory, we would like to present
+the category-theoretic equivalent of a ubiquitous construct in type theory,
+i.e.\ products (also known as tuples). One should be familiar with the notion of
+products being defined as pairs of elements, however in category theory, we have
+to define such objects in terms of its morphisms that relate it to other
+objects. If some object C were to be the product of objects A and B, then we
+require that it has two morphisms that behave as the first and second
+projections out of the product. In other words, we require the two morphisms
+$\id{p} : \id{C} \rightarrow \id{A}$ and $\id{q} : \id{C} \rightarrow \id{B}$.
 
 \begin{figure}[H]
   \centering
@@ -5337,45 +5325,6 @@ whiskerRight = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ a0 a1 a2 @$\Rightarrow
 This is analogous to our proof of \id{Eq\_trans} in
 \autoref{sec:eqtransitivity}. \id{whiskerLeft} may be defined in a similar
 fashion.
-
-\section{Equality Between \id{x} and \kw{cast}$_x$}\label{app:cast-is-eq}
-
-For some term \id{x} of type \fn{A (_ := i0)}, we want to prove a heterogeneous
-equality between \id{x} and the result of casting it to \fn{A (_ := i1)}.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-castIsEq : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0))
-           @$\rightarrow$@ Heq (t := A) x (Eq_cast (p := Eq_eq (f := A)) (f := id) x)
-castIsEq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x @$\rightarrow$@
-  let
-    p : Eq (I_transp (A := A) x (r := i1))
-           (Eq_cast (p := Eq_eq (f := A)) (f := id) x);
-    p = Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@
-                    I_transp
-                        (A := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := Eq_@$\eta$@ (A := A) i) (i := j))
-                        x (r := i1));
-
-   h : Heq (t := A) x (I_transp (A := A) x (r := i1))
-   h = Heq_eq (t := A)
-              (f := @$\lambda$@ i @$\Rrightarrow$@ I_transp (A := A) x (r := i));
-  in
-    Eq_cast (p := p) (f := @$\lambda$@ e @$\rightarrow$@ Heq (t := A) x e) h
-\end{minted}
-
-We prove this using the special property of \id{I\_transp} described in
-\autoref{sec:i-transp}. Since the $\eta$-equivalence \fn{A (_ := i)) $\equiv$
-  (Eq_uneq (p := Eq_eq (f := A)) (i := i))} does not hold definitionally, we
-prove it propositionally and use it to complete our proof.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Eq_@$\eta$@ : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (i : I)
-       @$\rightarrow$@ Eq (A (_ := i)) (Eq_uneq (p := Eq_eq (f := A)) (i := i))
-Eq_@$\eta$@ = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ i @$\rightarrow$@
-  case i return Eq (A (_ := i))
-                   (Eq_uneq (p := Eq_eq (f := A)) (i := i))
-  | i0 @$\Rightarrow$@ Eq_refl
-  | i1 @$\Rightarrow$@ Eq_refl
-\end{minted}
 
 \section{Properties of dependent pairs}\label{app:deppairs-properties}
 In this work, we use the $\Sigma$ notation to denote dependent pairs. This may
