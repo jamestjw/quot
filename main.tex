@@ -939,16 +939,18 @@ We make several contributions:
     heterogeneous equality by using it to express
     pathovers\cite{licata2015cubical}. We also convince ourselves that our
     quotients behave appropriately by proving their effectiveness
-    (\autoref{ch:quotient-effectiveness}) and that they fulfil the universal
-    property of quotients (\autoref{sec:coequaliser}). }
+    (\hyperref[ch:quotient-effectiveness]{Chapter~\ref*{ch:quotient-effectiveness}})
+    and that they fulfil the universal property of quotients
+    (\hyperref[sec:coequaliser]{Section~\ref*{sec:coequaliser}}). }
 
   \item{To facilitate the use of quotients, we developed a library of
     convenience functions, macros, and also theorems regarding quotient types
-    (\autoref{ch:quot-examples}). This work explores the usability and
-    user-friendliness of quotient types in programming tasks through the
-    construction of examples of possible use cases of quotients. We also
-    investigate the runtime overhead of the utilisation of quotient types
-    (\autoref{sec:quot-benchmark}).}
+    (\hyperref[ch:quot-examples]{Chapter~\ref*{ch:quot-examples}}). This work
+    explores the usability and user-friendliness of quotient types in
+    programming tasks through the construction of examples of possible use cases
+    of quotients. We also investigate the runtime overhead of the utilisation of
+    quotient types
+    (\hyperref[sec:quot-benchmark]{Section~\ref*{sec:quot-benchmark}}).}
 
   \item{We also implemented a proof of Hedberg's
     theorem\cite{hedberg1998coherence} in Typer
@@ -958,7 +960,7 @@ We make several contributions:
     quotient type entails fewer proof obligations. }
 
   \item{As the first work to develop a substantial number of proofs in Typer,
-    our experiennce lead us to introduce several constructs to facilitate the
+    our experience lead us to introduce several constructs to facilitate the
     development of proofs in Typer in the form of macros and axioms. }
 \end{itemize}
 
@@ -2592,9 +2594,8 @@ is a witness of the above property.
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{a}_1}{\fn{Quotient A R}}}
    \hypo{\oftype{\ctx}{\id{a}_2}{\fn{Quotient A R}}}
-   \hypo{\oftype{\ctx}{p}{\id{a}_1 \equiv{} \id{a}_2}}
-   \hypo{\oftype{\ctx}{q}{\id{a}_1 \equiv{} \id{a}_2}}
-   \infer4[\textsc{Quot-Intro-Trunc}]{
+   \infer[no rule]2{\oftype{\ctx}{p}{\id{a}_1 \equiv{} \id{a}_2} \ \ \                  \oftype{\ctx}{q}{\id{a}_1 \equiv{} \id{a}_2}}
+   \infer1[\textsc{Quot-Intro-Trunc}]{
 \oftype{\ctx}{\Funapp{\id{Quotient\_trunc}}{\id{p}}{\id{q}}}
              {\id{p} \equiv{} \id{q}}}
 \end{prooftree*}\label{quot-intro-trunc-rule}
@@ -2647,7 +2648,7 @@ relation of the quotient. The usage of heterogeneous equality here is necessary
 as $\Funapp{\id{f}}{\id{a}_1}$ and $\Funapp{\id{f}}{\id{a}_2}$ are not
 necessarily of the \textbf{same} type.
 
-\subsection{Reduction rules}
+\subsection{Reduction rules}\label{quot-red-rules}
 We present the computation rule for the elimination of quotients.
 
 \begin{prooftree*}
@@ -2680,11 +2681,8 @@ This requires the condition that \id{f} be some function of type \fn{A
 instance, such a condition would for instance be fulfilled if \id{f} was a
 normalisation function on \id{A}. However, the above requirement is not easily
 enforced, not to mention that the $\eta$-rule itself is not necessarily that
-useful to have.
-%% SM: Maybe we can prove some of those η-like rules to be true. instead?
-%% Note: To prove both rules, use the fact that the projection into the
-%% quotient is surjective.
-Another similar $\eta$-rule that is more easily enforced is the following:
+useful to have. Another similar $\eta$-rule that is more easily enforced is the
+following:
 
 \begin{align*}
   & \fn{Quotient\_elim} \ \id{Quotient\_in} \ (\lambda \ \id{a} \ \id{a'} \ \id{r} \rightarrow \Funapp{\id{Quotient\_eq}}{\id{r}}) \ \id{q} \rightsquigarrow{} \id{q} \\
@@ -2693,7 +2691,9 @@ Another similar $\eta$-rule that is more easily enforced is the following:
 This rule says that if the elimination of a quotiented term \id{q} simply
 applies the projection into the quotient under the same relation, then the
 entire elimination may be seen as a no-op on \id{q}. Such a rule makes a great
-deal of sense, however we believe that it is of limited practical utility.
+deal of sense, however we believe that it is of limited practical utility. We
+show, however, that these $\eta$-equivalences may be proven propositionally in
+\autoref{app:quotient-eta}.
 
 \subsection{Implementation}
 
@@ -4242,7 +4242,7 @@ $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ and
 $\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$ are equal since they
 are both mere propositions.
 
-\chapter{Evaluation}
+\chapter{Evaluation}\label{ch:evaluation}
 
 At the start of this work, we first set out to augment Typer with a more
 powerful and expressive notion of equality. We achieved this by basing our new
@@ -5393,6 +5393,89 @@ dependent pairs are equal. The proof of this lemma is as follows:
 
 The above proof makes use of the \id{whiskerRight} lemma proved in
 \autoref{app:whiskering}.
+
+\section{Proof of Quotient $\eta$-equivalences}\label{app:quotient-eta}
+
+We prove the $\eta$-equivalences of \id{Quotient} that were mentioned in
+\autoref{quot-red-rules}. The first rule we prove involves first applying the
+elimination principle of \id{Quotient} followed by an application of the
+introduction rule to construct a quotient term that should be equal to the
+initial term that was eliminated. To realise this, we require the elimination to
+be carried out with a function \id{f} that acts as a normalisation function of
+sorts. \id{f} maps all terms of type \id{A} to some other term that is a
+canonical representative of the equivalence class of the input term. This proof
+requires the usage of the property that \id{Quotient\_in} is surjective as
+described in \autoref{sec:coequaliser} to allow us to `look inside' the
+quotient. The usage of this property in turn requires that the equality we are
+trying to prove be a mere proposition, we fulfil this by using the axiom that
+says the \id{Quotient} is a Set, i.e.\ the set truncation of \id{Quotient}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+Quotient_eta1 : (f : ?A @$\rightarrow$@ ?A)
+                @$\rightarrow$@ (h1 : (a : ?A) @$\rightarrow$@ R a (f a))
+                @$\rightarrow$@ (h2 : (a a' : ?A) @$\rightarrow$@ R a a' @$\rightarrow$@ f a @$\equiv$@ f a')
+                @$\rightarrow$@ (q : Quotient ?A ?R)
+                @$\rightarrow$@ Quotient_in (R := ?R) (Quotient_rec f (p := h2) q) @$\equiv$@ q
+Quotient_eta1 f h1 h2 q =
+  propTruncRec
+    (A := SurjectiveQuotientProof A R q)
+    (P := Quotient_in (R := R) (Quotient_rec f (p := h2) q) @$\equiv$@ q)
+    (Quotient_trunc (x := Quotient_in (R := R) (Quotient_rec f (p := h2) q))
+                    (y := q))
+    (@$\lambda$@ s @$\rightarrow$@ case s
+      | surjectiveQuotientProof a qina@$\equiv$@q @$\Rightarrow$@
+        let
+          q' = Quotient_in (R := R) a
+          p1 : Quotient_in (R := R) (Quotient_rec f (p := h2) q')
+               @$\equiv$@ Quotient_in (R := R) (f a)
+          p1 = Eq_refl %% By the @$\beta$@-rule of Quotient_elim
+
+          p2 : Quotient_in (R := R) (f a)) @$\equiv$@ Quotient_in (R := R) a
+          p2 = Eq_comm (Quotient_eq (R := R) (h1 a))
+
+          p3 = Eq_trans p1 p2
+        in
+          Eq_cast (p := qina@$\equiv$@q)
+                  (f := @$\lambda$@ x @$\rightarrow$@ Quotient_in (R := R) (Quotient_rec f (p := h2) x) @$\equiv$@ x)
+                  p3)
+    (Quotient_in_surjective q)
+\end{minted}
+
+The second rule that we would like to prove does not involve the composition
+\id{Quotient\_in} with \id{Quotient\_rec}. Instead, it uses \id{Quotient\_in} as
+the elimination function when calling \id{Quotient\_rec}. Intuitively speaking,
+the entire operation should be equal to a no-op, i.e.\ it should return a term
+equal to the quotient term that was eliminated. The proof is carried out in a
+similar way to the previous proof.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+Quotient_eta2 : (q : Quotient ?A ?R)
+                @$\rightarrow$@ Quotient_rec (@$\lambda$@ e @$\rightarrow$@ Quotient_in (R := ?R) e)
+                                (p := @$\lambda$@ a a' r @$\rightarrow$@ Quotient_eq (R := ?R) r)
+                                q
+                   @$\equiv$@ q
+Quotient_eta2 q =
+  propTruncRec
+    (A := SurjectiveQuotientProof A R q)
+    (P := Quotient_rec (@$\lambda$@ e @$\rightarrow$@ Quotient_in (R := R) e)
+                       (p := @$\lambda$@ a a' r @$\rightarrow$@ Quotient_eq (R := R) r)
+                       q
+          @$\equiv$@ q)
+    (Quotient_trunc (x := Quotient_rec (@$\lambda$@ e @$\rightarrow$@ Quotient_in (R := R) e)
+                           (p := @$\lambda$@ a a' r @$\rightarrow$@ Quotient_eq (R := R) r)
+                           q)
+                    (y := q))
+    (@$\lambda$@ s @$\rightarrow$@ case s
+      | surjectiveQuotientProof a qina@$\equiv$@q @$\Rightarrow$@
+          Eq_cast (p := qina@$\equiv$@q)
+                  (f := @$\lambda$@ x @$\rightarrow$@ Quotient_rec (@$\lambda$@ e @$\rightarrow$@ Quotient_in (R := R) e)
+                                             (p := @$\lambda$@ a a' r @$\rightarrow$@ Quotient_eq (R := R) r)
+                                             x
+                                @$\equiv$@ x)
+                  %% By the @$\beta$@-rule of Quotient_elim
+                  Eq_refl)
+    (Quotient_in_surjective q)
+\end{minted}
 
 \section{UMP of Quotients}\label{app:ump-quot}
 
