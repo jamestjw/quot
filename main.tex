@@ -389,6 +389,8 @@
 
 \chapter*{Résumé}
 
+%% SM: This is still missing.
+
 ...sommaire et mots clés en français...
 
 %%------------------------------------------------- %
@@ -398,14 +400,6 @@
 \anglais
 \chapter*{Abstract}
 
-%% SM: As an "abstract" it's much too dry/detailed/technical, of course.
-%%   It's OK if some of your audience won't understand all of the abstract,
-%%   but they should all be able to understand at least about half of your
-%%   abstract.
-%% SM: As a set of contributions, try to "structure" the presentation
-%%   to give a feeling for how the different parts relate to each other,
-%%   and the relative importance of each one.
-
 This work describes the introduction of quotient types to
 Typer\cite{monnier2019typer}, a dependently typed programming language. Quotient
 types allow programmers to construct new types based on existing types by
@@ -413,10 +407,16 @@ redefining the notion of equality for the base type. This is typically based on
 equivalence relations defined on the base type; terms that are \emph{equivalent}
 according to the relation are thus treated as equal in the resulting quotient
 type. For instance, rational numbers may be defined as the quotient of pairs of
+%% SM: "Appropriate" here presumes the reader understands what we're
+%% talking about.  Better replace it with something more concrete so the
+%% readers can confirms that they understood correctly.
 integers under an appropriate equivalence relation. To better accommodate the
 introduction of quotient types to Typer, we revamped the built-in equality type
 by drawing inspiration from cubical type theory and proof assistants that
 implement it. As such, Typer's new equality type is based on functions that have
+%% SM: "our new interval" suggests you already talked about it, which
+%% you haven't, so tweak the previous sentence to introduce the term
+%% "interval" there already.
 our new interval primitive as an argument. Such an equality type is more
 powerful and expressive, it notably lends itself well to the writing of proofs
 related to quotient types. In this work, we also investigate the practicality of
@@ -549,6 +549,8 @@ transforms all proofs of \fn{A} to proofs of \fn{B}\footnote{We only consider
 total functions.}. Such a function corresponds directly to our intuition of
 \emph{A implies B}, its existence is thus a proof of \fn{A $\supset$ B}. A
 conjunction \fn{A $\wedge$ B} is represented by a pair \fn{A $\times$ B}. To
+%% SM: "proof of A and B" tends to be parsed as "proof of (A and B)",
+%% which is not what you mean here.
 prove that \fn{A} and \fn{B} are both true, we need a proof of \fn{A} and \fn{B}
 respectively, which is precisely what we need a construct the pair \fn{A
   $\times$ B}. In the same vein, a disjunction \fn{A $\vee$ B} is interpreted as
@@ -572,6 +574,7 @@ known as \emph{propositional equality}.
 %% SM: A bit of motivation for why we care about proofs in programs
 %% would be welcome.
 
+%% SM: Lack of transition between the first and second sentence.
 Not only can we write mathematical proofs, but we may also prove properties of
 our programs. In general, it is desirable for proofs not to be executed during
 runtime, i.e.\ we only want them to be verified at compile time, or more
@@ -605,10 +608,13 @@ that array accesses will never lead to a runtime error. Additionally, this could
 also allow us to skip runtime bounds-checking as the index is necessarily valid
 as long as the program is well-typed.
 
+%% SM: A bit rough transition between the previous paragraph and this one.
 In general, proofs improve the reliability of programs by allowing more errors
 to be detected at compile-time by making use of the type system to impose
 constraints on programs. A notable example of the usage of proofs in real-world
 programs is the CompCert project that worked on the formal verification of a C
+%% SM: "Equality proofs may also ..." suggests the previous context was talking
+%% about equality proofs, which is wasn't.
 compiler\cite{Leroy-Compcert-CACM}. Equality proofs may also be used as the
 backbone of more sophisticated features that improve the expressivity of a
 language. For instance, they are used extensively in the internal language of
@@ -624,6 +630,8 @@ consider equality between terms of the same type. This gives us a type former
 that takes a type as input, along with two terms of that type. In Typer,
 equality between terms is represented by the $\kw{Eq}$ type former.
 
+%% SM: I'd indent all those short code examples by a few spaces,
+%% like `displaymath` and `quote` would do.
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\rightarrow$@ Type
 \end{minted}
@@ -637,6 +645,8 @@ notation \fn{(x y $\colon$ A)} instead of the more verbose \fn{(x $\colon$ A)
   $\rightarrow$ (y $\colon$ A)}. The usage of $\Rrightarrow$ indicates that the
 parameter $\id{A}$ is implicit and erasable, this is explained in greater detail
 in \autoref{sec:eq-justification}. Recall that types may be seen as
+%% SM: This shouldn't be a footnote since readers who skip it may not
+%% understand what you mean by ≡!
 propositions, the type $\fn{Eq x y}$\footnote{For aesthetic purposes, we shall
 use the operator $\equiv$ to represent the $\kw{Eq}$ type throughout the rest of
 this work, i.e.\ we write $\fn{Eq x y}$ as $\fn{x $\equiv$ y}$.} is thus a
@@ -655,6 +665,9 @@ returns a proof that \fn{m + n $\equiv$ n + m}. \fn{m + n $\equiv$ n + m} is
 merely a type and can be seen as a statement of the proposition that \fn{m + n}
 and \fn{n + m} are equal. To prove that the proposition is 
 true, we would need to construct a term of this type. Such a term may be seen as
+%% SM: Rather then send readers to the appendix, I think we should refer
+%% them to the next page where we present Eq_refl, (or just ask for their
+%% patience).
 a proof object that witnesses the validity of the proposition. Interested
 readers may find the complete proof of the commutativity of the addition of natural
 numbers in \autoref{app:other-proofs}.
@@ -679,6 +692,7 @@ length'. To humans, the fact that \fn{Vector A (m + n)} and \fn{Vector A (n +
 general, the type checker of a dependently typed language would not immediately
 consider the above types equal without further evidence. Hence, one would not be
 able to pass a vector of the first type to a function that expects a vector of
+%% SM: Don't assume the readers know the term "zip" for lists/vectors.
 the latter type. Suppose we have a function that zips vectors, it could
 reasonably expect both input vectors to have the \emph{same} length. Hence, the
 zipping of a \fn{Vector A (m + n)} and a \fn{Vector A (n + m)} would not
@@ -709,13 +723,20 @@ Vlength_comm+ m n v = Eq_cast (p := Nat+_comm m n) (f := Vector A) v
 The \id{?A} notation when used in a type allows us to say that we want the
 variable \id{A} to be defined as an implicit argument of the function, allowing
 us to write more succinct types. In this case, the type signature is expanded to
+%% SM: The `?` in `(A $\colon$ ?)` may trip some readers, so better replace it
+%% by `Type`.
 \fn{(A $\colon$ ?) $\Rrightarrow$ (m n $\colon$ Nat) $\Rrightarrow$ Vector A (m
   + n) $\rightarrow$ Vector A (n + m)}. Here, the type of \id{A} is a
+%% SM: "initialised to \id{Type}"?  Doesn't sound right.  Also, I'm not sure
+%% we need to try and explain what's going on, at this point.
 metavariable that will be initialised to \id{Type} through unification.
 \fn{Vlength\_comm+} is a function that converts a vector of type \fn{Vector A (m
   + n)} to one of type \fn{Vector A (n + m)}. When calling a function, we might
 want to explicitly instantiate an implicit argument, we do so using the \fn{(x
   := y)} notation that instantiates the implicit argument \id{x} with the term
+%% SM: You may want to mention `Nat+_comm` to help the readers make the
+%% connection in case they forgot since last page that this is the
+%% proof of this commutativity.
 \id{y}. By making use of a proof that \fn{m + n $\equiv$ n + m}, we can perform
 type casting on a vector of type \fn{Vector A (m + n)} to produce a vector of
 the desired type. If we had a data type of matrices indexed by their dimensions,
@@ -741,11 +762,15 @@ that $x$ is equal to itself. This is known as the reflexive proof of equality.
 What we have just seen is commonly known as homogeneous equality as only terms
 of the same type may be equated under this form of equality. Occasionally, it is
 also useful to be able to relate two terms of types that are not definitionally
+%% SM: Spacing on this line is a bit confusing: too big around `:` compared
+%% to the space around `and`, encouraging the readers to misparse.
 equal. Suppose that we had the terms \fn{u $\colon$ Vector A (m + n)} and \fn{v $\colon$ Vector A
   (n + m)} and that we would like to construct a proposition of their equality.
 We would not be able to do it with the \fn{Eq} constructor as \id{u} and \id{v}
 are not of the \emph{same} type, though we know that the types may be proven to
 be equal. To state equalities between terms of different types, McBride
+%% SM: AFAIK that notion existed before.  What he introduced there is
+%% the John Major equality.
 introduced the notion of heterogeneous equality\cite{mcbride2000dependently},
 with which we may state our desired equality as \fn{Heq u v}. However, for two
 things to truly be equal, they need to be one and the same, their types
@@ -770,6 +795,7 @@ Typer and its role in the elimination of quotients.
 
 Recent advances in type theory inspired by topology propose a different approach
 to represent equality proofs by modeling them as functions whose argument is of
+%% SM: Use \emph for "interval" here.
 the interval type, i.e.\ functions of the type \fn{I $\rightarrow$ A} given that
 \id{I} represents the interval type and \id{A} is an arbitrary other type. We
 refer to the above hereafter as functions out of the unit interval. The interval
@@ -818,6 +844,9 @@ quotient types in Typer. Quotient types allow us to redefine the equality of a
 type, usually based on an equivalence relation on the type. This is inspired by
 quotients in set theory, where if we are given a set A and an equivalence
 relation $\sim$ on A, then we can construct the quotient set of A by $\sim$,
+%% SM: Spacing around / is uneven.
+%% SM: "Equivalent elements in A" needs to say that it's equivalence according
+%% to ~ rather than some other notion of equivalence.
 which we denote as $A / \sim$. Equivalent elements in A are considered equal in
 $A / \sim$. Conversely, the subsets of elements that are considered equal in $A
 / \sim$ are precisely the subsets whose elements are all equivalent under the
@@ -828,6 +857,8 @@ denoted as $[a]$. When we take the quotient of a set, we are essentially
 partitioning the set into equivalence classes, implying that we can regard a
 quotient set as simply the set of equivalence classes induced by the equivalence
 relation. For example, consider the integers modulo \id{5} where the underlying
+%% SM: They "are" not inherently so, so better say that we choose them as
+%% the canonical representatives.
 relation is congruence modulo \id{5}. Here, 0, 1, 2, 3, and 4 are the canonical
 representatives of their respective equivalence classes, or more specifically,
 congruence classes.
@@ -869,6 +900,9 @@ instance, different rotations of a binary tree may be treated equivalently. If
 we wish to represent unordered sets using lists, then we would like to treat
 different permutations of the same list equally. These nuances are not typically
 explicitly expressible in the implementation of the data types nor may they be
+%% SM: You could mention that those invariants/intentions may usually appear
+%% as comments and that quotient types allow turning them into actual code
+%% verified by the type checker.
 encoded at the type level. They are instead treated as \emph{implementation
 details} which one hopes to encapsulate by using abstraction barriers. Quotient
 types ensure that elements of the same equivalence class are treated
@@ -914,6 +948,7 @@ With the gradual maturing of dependently-typed languages, we believe that it is
 an opportune moment to bring quotients into the picture again. In the rest of
 this thesis, we discuss our experience of introducing quotient types to Typer.
 We first describe the typing and reduction rules of the introduced quotient
+%% SM: Avoid passive "was implemented".
 type, and then we discuss the library that was implemented to facilitate their
 usage in Typer. Finally, we illustrate how the quotient type may be used by
 providing examples in the form of code along with commentary.
@@ -929,11 +964,13 @@ We make several contributions:
     Heterogeneous equality makes it possible to identify terms of different
     types\footnote{To identify A and B is to claim that they are equal.}. }
 
+    %% SM: Use present tense (same for the next few ıtems).
   \item{Next, we defined normal homogeneous equality as a special case of
     heterogeneous equality. We then showed that an interval-based equality
     type lends itself better to proof of equality-related properties
     (\hyperref[subsec:eq-examples]{Section~\ref*{subsec:eq-examples}}).}
 
+    %% SM: "pathover" has not be explained yet.
   \item{We then introduced quotient types along with their typing and reduction
     rules (\autoref{sec:quot}). Their elimination principle takes advantage of
     heterogeneous equality by using it to express
@@ -3304,6 +3341,7 @@ Integer_0-product x y x|$\ne$|0 y|$\ne$|0 xy|$\ne$|0 =
 
 We will eventually also make use of the below theorem that states that the negation of an integer may be distributed over multiplication. Its `right' counterpart may also be proven in a similar manner.
 
+%% SM: Describe briefly ==<..>== and \qed
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
 Integer_NegateDistL* : (x y : Integer) |$\rightarrow$| 0 - (x * y) |$\equiv$| (0 - x) * y
 Integer_NegateDistL* x y =
@@ -4015,6 +4053,7 @@ congruence property of equality.
 
 We show that if it is the case that two projections of two terms into a quotient
 are equal, i.e. \fn{Quotient_in (R := R) a $\equiv$ Quotient (R := R) a'}, then
+%% SM: "then two terms" => "then *the* two terms".
 two terms \id{a} and \id{a'} must necessarily be related under the relation. In
 other words, we want to show that the reverse of
 \hyperref[quot-intro-eq-rule]{\textsc{Quot-Intro-Eq}} is also valid. We note
@@ -4381,10 +4420,19 @@ cost\footnote{The tests were executed on the author's 2018 Macbook Pro with a
 quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of executing the
 functions $\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
 $\fn{Rational\_*}$ on 15000 pairs of rational numbers with 500 iterations.
+%% SM: Average over the 500 iterations or over what?
 We then report the average execution time along with the standard deviation. The
 overhead is defined to be the difference in the average execution time.
 
-
+%% SM: The standard deviation is a large proportion of the average,
+%% and is larger than the overhead.  That's a problem.  We don't necessarily
+%% have to fix it (e.g. by re-running the benchmarks in such a way that
+%% the SD is reduced), but we definitely need to discuss/explain it, because
+%% it's definitely larger than what is usually considered normal.
+%% Also the fact that SD is much smaller for one case (negation on ZxZ)
+%% needs to be discussed/explained.
+%% SM: Personally I find the overhead to make more sense when expressed
+%% as a percentage.
 \begin{table}[]
 \centering
 \begin{tabular}{@{}cccccc@{}}
@@ -4423,6 +4471,7 @@ $\fn{Rational\_+}$:
 Through a series of $\eta$-reductions and inlinings, we can see that the above
 expression is equivalent to $\zpairplus$.
 
+%% SM: Make this a \begin{figure}...\end{figure}...
 \begin{mdframed}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
 (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
@@ -4471,6 +4520,8 @@ lambda functions like so:
 
 \fn{($\lambda$ (e$_1$) ($\lambda$ (e$_2$) ... ($\lambda$ (e$_n$) f e$_1$ e$_2$ ... e$_n$))) $\rightsquigarrow$ f}
 
+%% SM: .. and refer to the figure here.  Clarify that these optimisations
+%% are very simple/standard/common.
 With that, we show a possible series of reductions and optimisations that
 simplify \fn{Rational\_+} to $\zpairplus$. This implies that with an appropriate
 optimisation phase, Elexps containing quotient primitives could be simplified to
@@ -4497,6 +4548,9 @@ addition combined with negation, so its greater overhead is well justified.
 We do a similar set of experiments on our construction of \id{Multiset} with the
 \id{Multiset\_append} and \id{Multiset\_mem} operations.
 
+%% SM: The times are "too small": increase the number of repetitions to
+%% bring it into the 1-2s seconds range.  Same as before, discuss/explain
+%% the large value of the standard deviation.
 \begin{table}[]
 \centering
 \begin{tabular}{@{}cccccc@{}}
@@ -4515,6 +4569,9 @@ The \id{Multiset\_append} operation was tested by appending multisets containing
 to avoid the domination of the overhead cost by the runtime of the operation
 itself. For the \id{Multiset\_mem} operation, we ran the membership test with
 5000 integers on a multiset containing 50 integers. For lists, we ran the
+%% SM: Usually 100 repetitions of the test are considered sufficient
+%% to get a good average and SD.  Better increase the time per repetition
+%% instead.
 benchmark using the \id{List\_mem} function that we show below. We ran 2500
 iterations for each experiment and like before, we report the average execution
 time along with the standard deviation.
@@ -4528,6 +4585,9 @@ We also observe that the generated Elexps for \id{Multiset\_append} and
 \id{Multiset\_mem} are devoid of their related proof terms. \id{Quotient\_rec}
 and \id{Quotient\_rec2} both reduce to the application of the lambda passed to
 it on the subsequent arguments.
+%% SM: You should also say something about the benchmark results (e.g.
+%% the fact that the overhead is large, why it's larger or smaller than
+%% for the previous benchmark, ...).
 
 \begin{figure}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
@@ -5035,6 +5095,8 @@ itself, the proof is provided in \autoref{app:ump-quot} of the appendix.
 
 \chapter{Conclusion}
 
+%% SM: You didn't really implement "cubical equality": it's related,
+%% but it's not the same.
 The principal objective of our work is to introduce cubical equality and
 quotient types to Typer. Cubical equality provides our system with a more
 powerful equality type by viewing equalities as paths. The extra expressivity
