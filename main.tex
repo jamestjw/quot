@@ -407,31 +407,26 @@ redefining the notion of equality for the base type. This is typically based on
 equivalence relations defined on the base type; terms that are \emph{equivalent}
 according to the relation are thus treated as equal in the resulting quotient
 type. For instance, rational numbers may be defined as the quotient of pairs of
-%% SM: "Appropriate" here presumes the reader understands what we're
-%% talking about.  Better replace it with something more concrete so the
-%% readers can confirms that they understood correctly.
-integers under an appropriate equivalence relation. To better accommodate the
-introduction of quotient types to Typer, we revamped the built-in equality type
-by drawing inspiration from cubical type theory and proof assistants that
-implement it. As such, Typer's new equality type is based on functions that have
-%% SM: "our new interval" suggests you already talked about it, which
-%% you haven't, so tweak the previous sentence to introduce the term
-%% "interval" there already.
-our new interval primitive as an argument. Such an equality type is more
-powerful and expressive, it notably lends itself well to the writing of proofs
-related to quotient types. In this work, we also investigate the practicality of
-the usage of quotient types in a language such as Typer, both in terms of
-runtime efficiency and developer-friendliness. Quotient types do not exist in
-most modern dependently typed languages, principally because their usage entails
-burdensome proof obligations. To facilitate the usage of quotient types, we
-provide a library that helps simplify the manipulation of quotient types. We
-also leverage this new addition to the language to introduce new built-in types,
-such as rational numbers, propositional truncation, etc. Finally, this work also
-explores the development of proofs in Typer, to our knowledge this is the first
-attempt to write a substantial amount of proofs using the language since the
-language is primarily intended to be a general-purpose programming language. We
-describe our experience and the challenges faced in the process. Additionally,
-we introduce several constructs to streamline proof development in Typer.
+integers under an equivalence relation based on cross-multiplication. To better
+accommodate the introduction of quotient types to Typer, we revamped the
+built-in equality type by drawing inspiration from cubical type theory that
+features the interval type and proof assistants that implement it. As such,
+Typer's new equality type is based on functions that have our new interval
+primitive as an argument. Such an equality type is more powerful and expressive,
+it notably lends itself well to the writing of proofs related to quotient types.
+In this work, we also investigate the practicality of the usage of quotient
+types in a language such as Typer, both in terms of runtime efficiency and
+developer-friendliness. Quotient types do not exist in most modern dependently
+typed languages, principally because their usage entails burdensome proof
+obligations. To facilitate the usage of quotient types, we provide a library
+that helps simplify the manipulation of quotient types. We also leverage this
+new addition to the language to introduce new built-in types, such as rational
+numbers, propositional truncation, etc. Finally, this work also explores the
+development of proofs in Typer, to our knowledge this is the first attempt to
+write a substantial amount of proofs using the language since the language is
+primarily intended to be a general-purpose programming language. We describe our
+experience and the challenges faced in the process. Additionally, we introduce
+several constructs to streamline proof development in Typer.
 
 %%------------------------------------------------- %
 %%        page v --- Table de matieres              %
@@ -513,6 +508,7 @@ we introduce several constructs to streamline proof development in Typer.
   HoTT & Homotopy Type Theory\\
   UIP & Uniqueness of Identity Proofs\\
   HIT & Higher Inductive Type\\
+  SMT & Satisfiability Modulo Theory\\
 \end{twocolumnlist}
 %% L'environnement <threecolumnlist> existe aussi pour trois colonnes.
 
@@ -549,9 +545,7 @@ transforms all proofs of \fn{A} to proofs of \fn{B}\footnote{We only consider
 total functions.}. Such a function corresponds directly to our intuition of
 \emph{A implies B}, its existence is thus a proof of \fn{A $\supset$ B}. A
 conjunction \fn{A $\wedge$ B} is represented by a pair \fn{A $\times$ B}. To
-%% SM: "proof of A and B" tends to be parsed as "proof of (A and B)",
-%% which is not what you mean here.
-prove that \fn{A} and \fn{B} are both true, we need a proof of \fn{A} and \fn{B}
+prove that \fn{A} and \fn{B} are both true, we need a proof of each of them
 respectively, which is precisely what we need a construct the pair \fn{A
   $\times$ B}. In the same vein, a disjunction \fn{A $\vee$ B} is interpreted as
 a sum type \fn{A + B}. A sum type has two constructors, one of them requires a
@@ -574,18 +568,18 @@ known as \emph{propositional equality}.
 %% SM: A bit of motivation for why we care about proofs in programs
 %% would be welcome.
 
-%% SM: Lack of transition between the first and second sentence.
 Not only can we write mathematical proofs, but we may also prove properties of
-our programs. In general, it is desirable for proofs not to be executed during
-runtime, i.e.\ we only want them to be verified at compile time, or more
-precisely, during type-checking. This allows us to prove that our programs have
-the right behaviour without incurring an additional runtime cost. In Typer, this
-is mainly achieved through a certain feature that allows certain terms to be
-marked as \emph{erasable}, a point that we shall come back to later. Consider a
-function that accesses the i$^{th}$ element of an array with the below type:
+our programs. Proofs exist primarily to convince us of the correctness of our
+programs, it is thus desirable for proofs not to be executed during runtime,
+i.e.\ we only want them to be verified at compile time, or more precisely,
+during type-checking. This allows us to prove that our programs have the right
+behaviour without incurring an additional runtime cost. In Typer, this is mainly
+achieved through a certain feature that allows certain terms to be marked as
+\emph{erasable}, a point that we shall come back to later. Consider a function
+that accesses the i$^{th}$ element of an array with the below type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-arrayGet : (a : Array A) @$\rightarrow$@ (i : Nat) @$\rightarrow$@ i < length a @$\rightarrow$@ A
+    arrayGet : (a : Array A) @$\rightarrow$@ (i : Nat) @$\rightarrow$@ i < length a @$\rightarrow$@ A
 \end{minted}
 
 The above is a type declaration that says that the variable $\fn{arrayGet}$ has
@@ -606,21 +600,24 @@ with all three arguments, it then returns something of type $\fn{A}$ --- the
 element of the array that we are trying to retrieve. This gives us a guarantee
 that array accesses will never lead to a runtime error. Additionally, this could
 also allow us to skip runtime bounds-checking as the index is necessarily valid
-as long as the program is well-typed.
+as long as the program is well-typed. In general, proofs improve the reliability
+of programs by allowing more errors to be detected at compile-time by making use
+of the type system to impose constraints on programs.
 
 %% SM: A bit rough transition between the previous paragraph and this one.
-In general, proofs improve the reliability of programs by allowing more errors
-to be detected at compile-time by making use of the type system to impose
-constraints on programs. A notable example of the usage of proofs in real-world
-programs is the CompCert project that worked on the formal verification of a C
-%% SM: "Equality proofs may also ..." suggests the previous context was talking
-%% about equality proofs, which is wasn't.
-compiler\cite{Leroy-Compcert-CACM}. Equality proofs may also be used as the
-backbone of more sophisticated features that improve the expressivity of a
-language. For instance, they are used extensively in the internal language of
-the Glasgow Haskell Compiler (GHC) as they form the backbone of features such as
-generalised algebraic data types, functional dependencies, and associated
-types\cite{sulzmann2007systemfeq}.
+By making use of the type system in this manner extensively, we are able obtain
+static guarantees about the behaviour of our programs. A notable example of the
+usage of proofs in real-world programs is the CompCert project that worked on
+the formal verification of a C compiler\cite{Leroy-Compcert-CACM}. Idris, a
+dependently-typed programming language, has \emph{type-driven development} as
+its mantra as it emphasises on the usage of types as a tool for constructing
+correct programs, particularly to handle state, interactive programs, and
+concurrent programming. Equality proofs, as we shall introduce in the subsequent
+section, are used as the backbone of more sophisticated features that improve
+the expressivity of a programming language. For instance, they are used
+extensively in the internal language of the Glasgow Haskell Compiler (GHC) as
+they form the backbone of features such as generalised algebraic data types,
+functional dependencies, and associated types\cite{sulzmann2007systemfeq}.
 
 \section{Equality}\label{sec:intro-eq}
 
@@ -628,12 +625,12 @@ For two terms \id{x} and \id{y} of the same type \id{A}, we would like to be
 able to state the proposition that the two terms are equal. For now, we merely
 consider equality between terms of the same type. This gives us a type former
 that takes a type as input, along with two terms of that type. In Typer,
-equality between terms is represented by the $\kw{Eq}$ type former.
+equality between terms is represented by the $\id{Eq}$ type former.
 
 %% SM: I'd indent all those short code examples by a few spaces,
 %% like `displaymath` and `quote` would do.
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\rightarrow$@ Type
+     Eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\rightarrow$@ Type
 \end{minted}
 
 Just like $\id{arrayGet}$, $\id{Eq}$ is a function. However, instead of
@@ -641,42 +638,36 @@ returning values, it returns types. Since this type of function constructs
 types, it is also known as a type former. $\id{Eq}$ takes as arguments a type
 $\id{A}$ and two terms $\id{x}$ and $\id{y}$ of type $\id{A}$. Whenever we have
 two or more consecutive parameters of the same type, we use the shorthand
-notation \fn{(x y $\colon$ A)} instead of the more verbose \fn{(x $\colon$ A)
-  $\rightarrow$ (y $\colon$ A)}. The usage of $\Rrightarrow$ indicates that the
+notation \fn{(x y :\@ A)} instead of the more verbose \fn{(x :\@ A)
+  $\rightarrow$ (y :\@ A)}. The usage of $\Rrightarrow$ indicates that the
 parameter $\id{A}$ is implicit and erasable, this is explained in greater detail
 in \autoref{sec:eq-justification}. Recall that types may be seen as
-%% SM: This shouldn't be a footnote since readers who skip it may not
-%% understand what you mean by ≡!
-propositions, the type $\fn{Eq x y}$\footnote{For aesthetic purposes, we shall
-use the operator $\equiv$ to represent the $\kw{Eq}$ type throughout the rest of
-this work, i.e.\ we write $\fn{Eq x y}$ as $\fn{x $\equiv$ y}$.} is thus a
-proposition that $\fn{x}$ and $\fn{y}$ are equal, and its terms are proofs of
-this proposition.
+propositions, the type \fn{Eq x y} is thus a proposition that $\fn{x}$ and
+$\fn{y}$ are equal, and its terms are proofs of this proposition. For aesthetic
+purposes, we shall use the operator $\equiv$ to represent the \id{Eq} type
+throughout the rest of this work, i.e.\ we write \fn{Eq x y} as \fn{x $\equiv$
+  y}.
 
 We could then construct the type that stipulates that the addition of natural
-numbers is commutative by using the $\kw{Eq}$ type former.
+numbers is commutative by using the $\id{Eq}$ type former.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Nat+_comm : (m n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m
+     Nat+_comm : (m n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m
 \end{minted}
 
 $\fn{Nat+\_comm}$ takes 2 natural numbers $\fn{m}$ and $\fn{n}$ as arguments and
 returns a proof that \fn{m + n $\equiv$ n + m}. \fn{m + n $\equiv$ n + m} is
 merely a type and can be seen as a statement of the proposition that \fn{m + n}
-and \fn{n + m} are equal. To prove that the proposition is 
-true, we would need to construct a term of this type. Such a term may be seen as
-%% SM: Rather then send readers to the appendix, I think we should refer
-%% them to the next page where we present Eq_refl, (or just ask for their
-%% patience).
-a proof object that witnesses the validity of the proposition. Interested
-readers may find the complete proof of the commutativity of the addition of natural
-numbers in \autoref{app:other-proofs}.
+and \fn{n + m} are equal. To prove that the proposition is true, we would need
+to construct a term of this type. Such a term may be seen as a proof object that
+witnesses the validity of the proposition. We defer the proof of this to a later
+part of this section after we finish describing the equality type.
 
 To see how such a proof may be utilised, suppose we have a type of
 length-indexed vectors:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Vector : (A : Type) @$\rightarrow$@ Nat @$\rightarrow$@ Type
+    Vector : (A : Type) @$\rightarrow$@ Nat @$\rightarrow$@ Type
 \end{minted}
 
 This type is parametrised by \fn{A}, the type of the elements of the vector, as
@@ -692,18 +683,17 @@ length'. To humans, the fact that \fn{Vector A (m + n)} and \fn{Vector A (n +
 general, the type checker of a dependently typed language would not immediately
 consider the above types equal without further evidence. Hence, one would not be
 able to pass a vector of the first type to a function that expects a vector of
-%% SM: Don't assume the readers know the term "zip" for lists/vectors.
-the latter type. Suppose we have a function that zips vectors, it could
-reasonably expect both input vectors to have the \emph{same} length. Hence, the
-zipping of a \fn{Vector A (m + n)} and a \fn{Vector A (n + m)} would not
-type-check. Below is a typical definition of the addition operation on natural
-numbers:
+the latter type. Suppose we have a zip function that parallelly iterates over 2
+vectors, it could reasonably expect both input vectors to have the \emph{same}
+length. Hence, the zipping of a \fn{Vector A (m + n)} and a \fn{Vector A (n +
+  m)} would not type-check. Below is a typical definition of the addition
+operation on natural numbers:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-_+_ : Nat @$\rightarrow$@ Nat @$\rightarrow$@ Nat
-_+_ x y = case x
-  | zero @$\Rightarrow$@ y
-  | succ x' @$\Rightarrow$@ succ (x' + y)
+    _+_ : Nat @$\rightarrow$@ Nat @$\rightarrow$@ Nat
+    _+_ x y = case x
+      | zero @$\Rightarrow$@ y
+      | succ x' @$\Rightarrow$@ succ (x' + y)
 \end{minted}
 
 The function is defined by case analysis on its first argument, it is thus not
@@ -716,32 +706,24 @@ proof, we may then use it to cast vectors between those two types. This is
 achieved by defining a function like the one below:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Vlength_comm+ : (m n : Nat) @$\Rrightarrow$@ Vector ?A (m + n) @$\rightarrow$@ Vector ?A (n + m)
-Vlength_comm+ m n v = Eq_cast (p := Nat+_comm m n) (f := Vector A) v
+    Vlength_comm+ : (m n : Nat) @$\Rrightarrow$@ Vector ?A (m + n) @$\rightarrow$@ Vector ?A (n + m)
+    Vlength_comm+ m n v = Eq_cast (p := Nat+_comm m n) (f := Vector A) v
 \end{minted}
 
 The \id{?A} notation when used in a type allows us to say that we want the
 variable \id{A} to be defined as an implicit argument of the function, allowing
 us to write more succinct types. In this case, the type signature is expanded to
-%% SM: The `?` in `(A $\colon$ ?)` may trip some readers, so better replace it
-%% by `Type`.
-\fn{(A $\colon$ ?) $\Rrightarrow$ (m n $\colon$ Nat) $\Rrightarrow$ Vector A (m
-  + n) $\rightarrow$ Vector A (n + m)}. Here, the type of \id{A} is a
-%% SM: "initialised to \id{Type}"?  Doesn't sound right.  Also, I'm not sure
-%% we need to try and explain what's going on, at this point.
-metavariable that will be initialised to \id{Type} through unification.
-\fn{Vlength\_comm+} is a function that converts a vector of type \fn{Vector A (m
-  + n)} to one of type \fn{Vector A (n + m)}. When calling a function, we might
-want to explicitly instantiate an implicit argument, we do so using the \fn{(x
-  := y)} notation that instantiates the implicit argument \id{x} with the term
-%% SM: You may want to mention `Nat+_comm` to help the readers make the
-%% connection in case they forgot since last page that this is the
-%% proof of this commutativity.
-\id{y}. By making use of a proof that \fn{m + n $\equiv$ n + m}, we can perform
-type casting on a vector of type \fn{Vector A (m + n)} to produce a vector of
-the desired type. If we had a data type of matrices indexed by their dimensions,
-the cast operation might also be necessary to ensure the appropriate alignment
-of dimensions when working with a function that calculates matrix products. The
+\fn{(A :\@ Type) $\Rrightarrow$ (m n :\@ Nat) $\Rrightarrow$ Vector A
+  (m + n) $\rightarrow$ Vector A (n + m)}. \fn{Vlength\_comm+} is a function
+that converts a vector of type \fn{Vector A (m + n)} to one of type \fn{Vector A
+  (n + m)}. When calling a function, we might want to explicitly instantiate an
+implicit argument, we do so using the \fn{(x := y)} notation that instantiates
+the implicit argument \id{x} with the term \id{y}. By making use of a proof of
+\id{Nat+\_comm}, i.e.\ that \fn{m + n $\equiv$ n + m}, we can perform type
+casting on a vector of type \fn{Vector A (m + n)} to produce a vector of the
+desired type. If we had a data type of matrices indexed by their dimensions, the
+cast operation might also be necessary to ensure the appropriate alignment of
+dimensions when working with a function that calculates matrix products. The
 equality type satisfies Leibniz's principle of the indiscernibility of
 identicals, i.e.\ two identical things may be substituted for one another.
 \fn{Eq\_cast} is thus a witness of the fact that if two terms are equal, then if
@@ -750,35 +732,60 @@ other.
 
 Now that we have seen how equality proofs may be used in programs, the next
 question that ought to be answered is how are such terms introduced. The one and
-only constructor of the $\kw{Eq}$ type is the following:
+only constructor of te \id{Eq} type is the following:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Eq_refl : (x : ?A) @$\Rrightarrow$@ x @$\equiv$@ x
+    Eq_refl : (x : ?A) @$\Rrightarrow$@ x @$\equiv$@ x
 \end{minted}
 
-Given a term $x$ of an arbitrary type $A$, we can trivially construct the proof
-that $x$ is equal to itself. This is known as the reflexive proof of equality.
+Given a term \id{x} of an arbitrary type \id{A}, we can trivially construct the
+proof that \id{x} is equal to itself. This is known as the reflexive proof of
+equality. At first sight, it does not seem like this constructor would be
+capable of much, but it turns out that this is precisely what we require the
+complete the previously mentioned \id{Nat+\_comm} proof. We first define two
+lemmas that we ultimately use to prove the commutativity of addition.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+    Nat+_zero : (m : Nat) @$\rightarrow$@ m + zero @$\equiv$@ m
+    Nat+_zero m =
+      case m return m + zero @$\equiv$@ m
+             | zero @$\Rightarrow$@ Eq_refl
+             | succ n @$\Rightarrow$@ Eq_cong succ (Nat+_zero n)
+
+    Nat+_succ : (m n : Nat) @$\rightarrow$@ m + succ n @$\equiv$@ succ (m + n)
+    Nat+_succ m n =
+      case m return m + succ n @$\equiv$@ succ (m + n)
+             | zero @$\Rightarrow$@ Eq_refl
+             | succ m' @$\Rightarrow$@ Eq_cong succ (Nat+_succ m' n)
+
+    Nat+_comm : (m n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m
+    Nat+_comm m n =
+      case n return m + n @$\equiv$@ n + m
+             | zero @$\Rightarrow$@ Nat+_zero m
+             | succ n' @$\Rightarrow$@ Eq_trans (Nat+_succ m n')
+                                   (Eq_cong succ (Nat+_comm m n'))
+\end{minted}
+
 
 What we have just seen is commonly known as homogeneous equality as only terms
 of the same type may be equated under this form of equality. Occasionally, it is
 also useful to be able to relate two terms of types that are not definitionally
 %% SM: Spacing on this line is a bit confusing: too big around `:` compared
 %% to the space around `and`, encouraging the readers to misparse.
-equal. Suppose that we had the terms \fn{u $\colon$ Vector A (m + n)} and \fn{v $\colon$ Vector A
-  (n + m)} and that we would like to construct a proposition of their equality.
-We would not be able to do it with the \fn{Eq} constructor as \id{u} and \id{v}
-are not of the \emph{same} type, though we know that the types may be proven to
-be equal. To state equalities between terms of different types, McBride
-%% SM: AFAIK that notion existed before.  What he introduced there is
-%% the John Major equality.
-introduced the notion of heterogeneous equality\cite{mcbride2000dependently},
-with which we may state our desired equality as \fn{Heq u v}. However, for two
-things to truly be equal, they need to be one and the same, their types
+equal. Suppose that we had the terms \fn{u :\@ Vector A (m + n)} and \fn{v :\@
+  Vector A (n + m)} and that we would like to construct a proposition of their
+equality. We would not be able to do it with the \fn{Eq} constructor as \id{u}
+and \id{v} are not of the \emph{same} type, though we know that the types may be
+proven to be equal. To state equalities between terms of different types,
+McBride introduced the notion of heterogeneous
+equality\cite{mcbride2000dependently}, known in the paper as John Major
+equality, with which we may state our desired equality as \fn{Heq u v}. However,
+for two things to truly be equal, they need to be one and the same, their types
 included. This is witnessed by the constructor of \fn{Heq} which has the
 following type.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Heq_refl : (x : ?A) @$\Rrightarrow$@ Heq x x
+    Heq_refl : (x : ?A) @$\Rrightarrow$@ Heq x x
 \end{minted}
 
 In subsequent sections, we discuss the introduction of heterogeneous equality to
@@ -795,14 +802,13 @@ Typer and its role in the elimination of quotients.
 
 Recent advances in type theory inspired by topology propose a different approach
 to represent equality proofs by modeling them as functions whose argument is of
-%% SM: Use \emph for "interval" here.
-the interval type, i.e.\ functions of the type \fn{I $\rightarrow$ A} given that
-\id{I} represents the interval type and \id{A} is an arbitrary other type. We
-refer to the above hereafter as functions out of the unit interval. The interval
-may be seen as a special type that is similar to the Boolean type with the
-special property that both its endpoints should be indistinguishable. In this
-alternative formulation of equality proofs, equality is viewed as a continuous
-path along the unit interval that connects two equal terms.
+the \emph{interval} type, i.e.\ functions of the type \fn{I $\rightarrow$ A}
+given that \id{I} represents the interval type and \id{A} is an arbitrary other
+type. We refer to the above hereafter as functions out of the unit interval. The
+interval may be seen as a special type that is similar to the Boolean type with
+the special property that both its endpoints should be indistinguishable. In
+this alternative formulation of equality proofs, equality is viewed as a
+continuous path along the unit interval that connects two equal terms.
 %% The return value of such functions is not allowed to directly depend on the
 %% value of the interval argument. For instance, the function may not do a case
 %% analysis on the interval and return a different term of type \id{A} depending on
@@ -844,27 +850,22 @@ quotient types in Typer. Quotient types allow us to redefine the equality of a
 type, usually based on an equivalence relation on the type. This is inspired by
 quotients in set theory, where if we are given a set A and an equivalence
 relation $\sim$ on A, then we can construct the quotient set of A by $\sim$,
-%% SM: Spacing around / is uneven.
-%% SM: "Equivalent elements in A" needs to say that it's equivalence according
-%% to ~ rather than some other notion of equivalence.
-which we denote as $A / \sim$. Equivalent elements in A are considered equal in
-$A / \sim$. Conversely, the subsets of elements that are considered equal in $A
-/ \sim$ are precisely the subsets whose elements are all equivalent under the
-equivalence relation. We can say that for some $a \in A$, the subset of $A$ such
-that all elements are equivalent to $a$ is $\{a' \in A \ | \ a' \sim a \}$.
-Indeed, this subset is what one would call the equivalence class of $a$, usually
-denoted as $[a]$. When we take the quotient of a set, we are essentially
-partitioning the set into equivalence classes, implying that we can regard a
-quotient set as simply the set of equivalence classes induced by the equivalence
-relation. For example, consider the integers modulo \id{5} where the underlying
-%% SM: They "are" not inherently so, so better say that we choose them as
-%% the canonical representatives.
-relation is congruence modulo \id{5}. Here, 0, 1, 2, 3, and 4 are the canonical
-representatives of their respective equivalence classes, or more specifically,
-congruence classes.
+which we denote as $A\; / \sim$. Equivalent elements in A according to the
+relation $\sim$ are considered equal in $A\; / \sim$. Conversely, the subsets of
+elements that are considered equal in $A\; / \sim$ are precisely the subsets
+whose elements are all equivalent under the relation $\sim$. We can say that for
+some $a \in A$, the subset of $A$ such that all elements are equivalent to $a$
+is $\{a' \in A \ | \ a' \sim a \}$. Indeed, this subset is what one would call
+the equivalence class of $a$, usually denoted as $[a]$. When we take the
+quotient of a set, we are essentially partitioning the set into equivalence
+classes, implying that we can regard a quotient set as simply the set of
+equivalence classes induced by the equivalence relation. For example, consider
+the integers modulo \id{5} where the underlying relation is congruence modulo
+\id{5}. Here, we choose 0, 1, 2, 3, and 4 as the canonical representatives of
+their respective equivalence classes, or more specifically, congruence classes.
 
 \begin{equation}
-\mathbb{Z} / 5\mathbb{Z} = \{ [0], [1], [2], [3], [4] \}
+\mathbb{Z}\; /\; 5\mathbb{Z} = \{ [0], [1], [2], [3], [4] \}
 \end{equation}
 
 %% SM: Another way to look at it is to say that, as programmers we
@@ -900,12 +901,11 @@ instance, different rotations of a binary tree may be treated equivalently. If
 we wish to represent unordered sets using lists, then we would like to treat
 different permutations of the same list equally. These nuances are not typically
 explicitly expressible in the implementation of the data types nor may they be
-%% SM: You could mention that those invariants/intentions may usually appear
-%% as comments and that quotient types allow turning them into actual code
-%% verified by the type checker.
 encoded at the type level. They are instead treated as \emph{implementation
-details} which one hopes to encapsulate by using abstraction barriers. Quotient
-types ensure that elements of the same equivalence class are treated
+details} which one hopes to encapsulate by using abstraction barriers. Some of
+these details tend to be noted down as comments in the codebase, quotient types
+allow us to transform them into code that is verified by the type checker. This
+verification ensures that elements of the same equivalence class are treated
 \textbf{equally}. In a sense, quotient types allow us to expose the internal
 details of a type, but at the same time, they also enforce a contract that
 ensures that all interactions with it are lawful with respect to the quotient.
@@ -1082,7 +1082,7 @@ checker for refinement types in Haskell. Refinement types are types equipped
 with predicates that must be respected by all elements of the refined type, this
 is also known as predicate subtyping. In Liquid Haskell, this is represented
 using the set comprehension notation. For instance, a refined type that
-represents the type of positive integers is \fn{\{ i $\colon$ Int | i >= 0 \}}.
+represents the type of positive integers is \fn{\{ i :\@ Int | i >= 0 \}}.
 Such types may be used to annotate the arguments and return types of functions
 so that we can define the pre-conditions and post-conditions of functions. The
 type checker then makes use of the extra information to verify that function
@@ -1191,8 +1191,8 @@ judgementally by virtue of an augmentation of the internal conversion and
 equality rules.
 
 To eliminate a term \id{u} of type \fn{\kw{Norm}(A, nf)}, we use the
-\kw{ElimNorm} primitive. By using a function \fn{f $\colon$ A $\rightarrow$ B},
-we can write the term \fn{\kw{ElimNorm}(A, nf, f, u) $\colon$ B}. The eliminator
+\kw{ElimNorm} primitive. By using a function \fn{f :\@ A $\rightarrow$ B},
+we can write the term \fn{\kw{ElimNorm}(A, nf, f, u) :\@ B}. The eliminator
 has the expected computation rule \fn{\kw{ElimNorm}(A, nf, f, \kw{Class}(A, nf,
   t)) $\rightsquigarrow{}$ f (nf t)}.
 
@@ -1303,8 +1303,8 @@ i.e.\ the projection into the quotient, whereas the second function is known as
 %% \end{minted}
 
 %% We can easily prove the reverse of this too, i.e.\ if we have that
-%% $\Funapp{\kw{Eq}}{(\Funapp{\kw{Qnorm\_in}}{x})}{(\Funapp{\kw{Qnorm\_in}}{y})}$,
-%% then $\Funapp{\kw{Eq}}{(\Funapp{r}{x})}{(\Funapp{r}{y})}$ is immediate by taking
+%% $\Funapp{\id{Eq}}{(\Funapp{\kw{Qnorm\_in}}{x})}{(\Funapp{\kw{Qnorm\_in}}{y})}$,
+%% then $\Funapp{\id{Eq}}{(\Funapp{r}{x})}{(\Funapp{r}{y})}$ is immediate by taking
 %% the first projection of the pairs.
 
 %% Finally, we can also show that $\kw{Qnorm}$ fulfils the universal property of a
@@ -1338,7 +1338,7 @@ If an equality between two terms is seen as a path, then we may construct an
 equality between two paths to produce a square. This process may be iterated to
 produce cubes, hypercubes, etc, justifying the name of the type theory. Cubical
 Agda introduced the interval type as a primitive with two endpoints \fn{i0
-  $\colon$ I} and \fn{i1 $\colon$ I}. Unlike normal types, we are not allowed to
+  :\@ I} and \fn{i1 :\@ I}. Unlike normal types, we are not allowed to
 observe the difference between \id{i0} and \id{i1}. This implies that among
 other things, pattern matching on an interval variable is disallowed. The type
 of homogeneous equality is represented by $\equiv$ with the following type:
@@ -1753,7 +1753,7 @@ even. Naturally, if we know that \id{m} and \id{n} are equal and that \id{m} is
 even, we should also be able to derive the fact that \id{n} is also even. The
 \emph{cast} operation allows us precisely to do the above. We define the
 primitive \id{Eq\_cast} such that it takes a proof that \id{x} and \id{y} of
-type \id{A} are equal, a type family \fn{f $\colon$ A $\rightarrow$ Type} and
+type \id{A} are equal, a type family \fn{f :\@ A $\rightarrow$ Type} and
 gives us a function that maps \fn{f x} to \fn{f y}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
@@ -1788,7 +1788,7 @@ require.
 
 In this section, we base our definitions on the assumption that we have an
 existing equality type similar to what was described in the previous subsection,
-i.e.\ that we have a type former \fn{\_$\equiv$\_ $\colon$ A $\rightarrow$ A
+i.e.\ that we have a type former \fn{\_$\equiv$\_ :\@ A $\rightarrow$ A
   $\rightarrow$ Type} along with its constructor and eliminator. We assume that
 we have access to the following syntax in the subsequent discussion.
 
@@ -2238,7 +2238,7 @@ Indeed, \id{Heq\_eq} and \id{Heq\_uneq} correspond to the forward and backward
 functions of the equivalence presented in Theorem~\ref{theo:i->a-equiv}. Thus,
 it comes as no surprise that the composition of $\id{Heq\_uneq}$ and
 $\id{Heq\_eq}$ (modulo the implicit arguments) is equal to the identity
-function, which gives us the $\eta$-equivalence for some \fn{p $\colon$ Heq x y}.
+function, which gives us the $\eta$-equivalence for some \fn{p :\@ Heq x y}.
 
 \begin{align*}
   & \Funapp{\id{Heq\_eq}}{(\earg{f}{\lambda i \Rrightarrow
@@ -2689,7 +2689,7 @@ bottom), the type with no habitants.
 For this example, we reuse the definition of integers given in
 \autoref{sec:quot-syntax}. We might want to define a function that
 \emph{decides} whether a certain integer is positive, i.e.\ of type \fn{(z
-  $\colon$ Z) $\rightarrow$ Dec (isPos z)}. This is known as dependent
+  :\@ Z) $\rightarrow$ Dec (isPos z)}. This is known as dependent
 elimination as the term that we are trying to eliminate, \id{z}, is itself
 present in the return type. To perform the elimination of a quotient, we require
 some function $\id{f}$ that takes some $\id{a}$ of the base type $\id{A}$ to
@@ -2813,13 +2813,13 @@ qcase q
 \end{minted}
 
 \id{q} is the scrutinee of the case analysis. A type annotation may be given to it
-by specifying the base type and relation of the quotient, e.g. \fn{(e $\colon$ A / R)}.
+by specifying the base type and relation of the quotient, e.g. \fn{(e :\@ A / R)}.
 The variable \id{a} is defined in the scope of \id{e1} and the variables \id{x},
 \id{y}, and \id{r} are defined in the scope of \id{e2}. The bound variables are
 the parameters of the two constructors of \id{Quotient}. In the first branch, we
 say what we would like to map a quotient expression to. In the second branch, we
 prove that the above mapping respects the quotient by constructing a term
-\fn{e2 $\colon$ [x/a]e1 $\equiv$ [y/a]e2}.
+\fn{e2 :\@ [x/a]e1 $\equiv$ [y/a]e2}.
 
 To illustrate how this works, we construct a simple example based on the
 quotient of the \id{A $\rightarrow$ B} type along with a relation
@@ -3150,10 +3150,8 @@ isSet : Type @$\rightarrow$@ Type
 isSet A = (x y : A) @$\rightarrow$@ (p q : x @$\equiv$@ y) @$\rightarrow$@ p @$\equiv$@ q
 \end{minted}
 
-
-We shall see in a subsequent section that this
-property plays a substantial role in the elimination of quotients in
-\autoref{sec:rec2}.
+We shall see in a subsequent section that this property plays a substantial role
+in the elimination of quotients in \autoref{sec:rec2}.
 
 \begin{theo}[Hedberg's theorem\cite{hedberg1998coherence}]
 If a type \fn{A} has decidable equality, then \fn{A} has collapsed equality
@@ -4351,9 +4349,9 @@ modularity of the existing implementation of inductive types in Typer while
 providing users with the power of quotients.
 
 The introduction of \id{Quotient\_eq} as an axiom also leads to the absence of a
-desirable computational property. Suppose that the following terms \fn{a $\colon$ A},
-\fn{a' $\colon$ A}, and \fn{r $\colon$ R a a'} as well as a function \fn{f : A $\rightarrow$
-  B} and a proof that it respects the relation \id{R}, i.e.\ \fn{p $\colon$ (a a' $\colon$ A)
+desirable computational property. Suppose that the following terms \fn{a :\@ A},
+\fn{a' :\@ A}, and \fn{r :\@ R a a'} as well as a function \fn{f : A $\rightarrow$
+  B} and a proof that it respects the relation \id{R}, i.e.\ \fn{p :\@ (a a' :\@ A)
   $\rightarrow$ R a a' $\rightarrow$ f a $\equiv$ f a'}. Unfortunately, the
 following equality does not hold definitionally \fn{Eq\_cong (Quotient\_rec f (p
   := p)) (Quotient\_eq r) $\equiv$ p a a' r}. This would indeed be a
@@ -4367,8 +4365,7 @@ types is often accompanied by a considerable amount of proof obligations. As we
 have seen, such proofs are not always trivial to construct, mainly because of
 Typer's current lack of support for the development of proofs as opposed to
 other contemporary programming languages. For instance, the Quotient Haskell
-extension\cite{hewer2023quotient} is implemented with the help of Satisfiability
-Modulo Theories (SMT) solvers. This enables many proof obligations generated by
+extension\cite{hewer2023quotient} is implemented with the help of SMT solvers. This enables many proof obligations generated by
 quotient types to be satisfied automatically. In other words, most of the proofs
 that we had to write by hand in \autoref{ch:quot-examples} while constructing
 the types \id{Rational} and \id{Multiset} could have been solved automatically
@@ -4419,10 +4416,10 @@ $\fn{rational\_benchmark.typer}$ file.}. We examine the runtime
 cost\footnote{The tests were executed on the author's 2018 Macbook Pro with a
 quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of executing the
 functions $\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
-$\fn{Rational\_*}$ on 15000 pairs of rational numbers with 500 iterations.
-%% SM: Average over the 500 iterations or over what?
-We then report the average execution time along with the standard deviation. The
-overhead is defined to be the difference in the average execution time.
+$\fn{Rational\_*}$ on 15000 pairs of rational numbers with 500 iterations. We
+then report the average execution time over the 500 iterations along with the
+standard deviation. The overhead is defined to be the difference in the average
+execution time.
 
 %% SM: The standard deviation is a large proportion of the average,
 %% and is larger than the overhead.  That's a problem.  We don't necessarily
@@ -5268,21 +5265,21 @@ inverse of \id{f}.
 To do the above, we need to introduce a few new definitions. First, we introduce
 the notion of a \emph{path over a path}\cite{licata2015cubical}. Consider terms
 \id{a} and \id{a'} of type \id{A} as well as an equality proof \id{p} between
-them. If we had a type family \fn{P $\colon$ A $\rightarrow$ Type}, it would be
+them. If we had a type family \fn{P :\@ A $\rightarrow$ Type}, it would be
 desirable to consider equalities between terms of type \fn{P a} and \fn{P a'}.
 However, this is not possible as homogeneous equality only allows us to compare
 terms of the same type. Nevertheless, we know that the types \fn{P a} and \fn{P
   a'} are propositionally equal by virtue of the path \id{p}. Hence, if we want
-to equate \fn{pa $\colon$ P a} and \fn{pa' $\colon$ P a'}, we would have to
+to equate \fn{pa :\@ P a} and \fn{pa' :\@ P a'}, we would have to
 construct a path between them \textbf{over} the path \id{p}. We write the type
 as \fn{pa $\equiv^{x. P \ x}_{p}$ pa'}. This may be defined in several ways, one
 way is to do it in terms of normal equality as $\kw{cast}(\id{p}, \lambda \id{x}
 . \id{P} \ \id{x}, \id{pa}) \equiv \id{pa'}$. By casting \id{pa} to \id{P a'},
 we obtain something comparable with \id{pa'}. There is also a dependent version
 of congruence on equality, \kw{congd}, which applies a dependent function to a
-homogeneous equality to produce a path over it. For \fn{a a' $\colon$ A}, \fn{p
-  : a $\equiv$ a'} and \fn{f : (x : A) $\rightarrow$ C a}, we write
-\fn{\kw{congd}$_{f}$(p) $\colon$ f a $\equiv^{x. C \ x}_{p}$ f a'}. We also
+homogeneous equality to produce a path over it. For \fn{a a' :\@ A}, \fn{p
+  :\@ a $\equiv$ a'} and \fn{f :\@ (x :\@ A) $\rightarrow$ C a}, we write
+\fn{\kw{congd}$_{f}$(p) :\@ f a $\equiv^{x. C \ x}_{p}$ f a'}. We also
 define the dependent eliminator \kw{elimd}$_{\bI}$ for the interval type as
 follows:
 
@@ -5345,60 +5342,16 @@ on $seg$ computes to $p$ to simplify the proof. Given that we may reduce $f \ (g
 \ \braket{x, \braket{y, p}})$ to $\braket{x, \braket{y, p}}$, they are thus
 definitionally equal, allowing us to proof $\beta$ by reflexivity.\end{proof}
 
-
-\section{Commutativity of addition of natural numbers}
-
-We first define the type of natural numbers along with the addition operation
-the usual way.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Nat : Type
-
-type Nat
-  | zero
-  | succ Nat
-
-_+_ : Nat @$\rightarrow$@ Nat @$\rightarrow$@ Nat
-_+_ x y = case x
-  | zero @$\Rightarrow$@ y
-  | succ m @$\Rightarrow$@ succ (m + y)
-\end{minted}
-
-We then define two lemmas that we ultimately use to prove the commutativity of
-addition.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Nat+_zero : (m : Nat) @$\rightarrow$@ Eq (m + zero) m
-Nat+_zero m =
-  case m return Eq (m + zero) m
-         | zero @$\Rightarrow$@ Eq_refl
-         | succ n @$\Rightarrow$@ Eq_cong succ (Nat+_zero n)
-
-Nat+_succ : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ Eq (m + succ n) (succ (m + n))
-Nat+_succ m n =
-  case m return Eq (m + succ n) (succ (m + n))
-         | zero @$\Rightarrow$@ Eq_refl
-         | succ m' @$\Rightarrow$@ Eq_cong succ (Nat+_succ m' n)
-
-Nat+_comm : (m : Nat) @$\rightarrow$@ (n : Nat) @$\rightarrow$@ Eq (m + n) (n + m)
-Nat+_comm m n =
-  case n return Eq (m + n) (n + m)
-         | zero @$\Rightarrow$@ Nat+_zero m
-         | succ n' @$\Rightarrow$@ Eq_trans (Nat+_succ m n')
-                               (Eq_cong succ (Nat+_comm m n'))
-\end{minted}
-
 \section{Closure of Mere Propositions under the $\Pi$-type}\label{app:closure-mp-pi}
 
-Consider a type \id{A} and a type family \fn{B $\colon$ A $\rightarrow$ Type}.
+Consider a type \id{A} and a type family \fn{B :\@ A $\rightarrow$ Type}.
 If it is the case that \fn{$\forall$ a.\ isProp (B a)}, then it is also true that
-\fn{isProp ((a : A) $\rightarrow$ B a)}. In other words, the property that \fn{B
+\fn{isProp ((a :\@ A) $\rightarrow$ B a)}. In other words, the property that \fn{B
   a} is a mere proposition is closed under the $\Pi$ type former. We provide a proof of this in the form of Typer code.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-isProp@$\Pi$@ : (A : Type) @$\Rrightarrow$@ (B : A @$\rightarrow$@ Type)
-          @$\Rrightarrow$@ (h : (x : A) @$\rightarrow$@ isProp (B x))
-          @$\rightarrow$@ isProp ((x : A) @$\rightarrow$@ B x)
+isProp@$\Pi$@ : (h : (x : ?A) @$\rightarrow$@ isProp (?B x))
+          @$\rightarrow$@ isProp ((x : ?A) @$\rightarrow$@ ?B x)
 isProp@$\Pi$@ h f g = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@ @$\lambda$@ (x : A) @$\rightarrow$@ Eq_uneq (p := h x (f x) (g x))
                                                          (i := i))
 \end{minted}
@@ -5416,7 +5369,7 @@ heterogeneous equality proof between \id{a0} and \id{a2} as follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 whiskerRight : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (a0 : A (_ := i0)) @$\Rightarrow$@ (a1 a2 : A (_ := i1))
-               @$\Rightarrow$@ Heq a0 a1 @$\rightarrow$@ Eq a1 a2 @$\rightarrow$@ Heq a0 a2
+               @$\Rightarrow$@ Heq a0 a1 @$\rightarrow$@ a1 @$\equiv$@ a2 @$\rightarrow$@ Heq a0 a2
 whiskerRight = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ a0 a1 a2 @$\Rightarrow$@ @$\lambda$@ p1 p2 @$\rightarrow$@
   Eq_cast (p := p2) (f := @$\lambda$@ x @$\rightarrow$@ Heq (t := A) a0 x) p1
 \end{minted}
@@ -5441,19 +5394,20 @@ $\eta$-equivalence does not hold definitionally for the \id{Sigma} type, however
 it may be proven propositionally:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Sigma_@$\eta$@ : (A : Type) @$\Rrightarrow$@ (P : (a : A) @$\rightarrow$@ Type)
-          @$\Rrightarrow$@ (p : Sigma A P) @$\rightarrow$@ Eq p (sigma (B := P) p.fst p.snd)
+Sigma_@$\eta$@ : (p : Sigma ?A ?P) @$\rightarrow$@ p @$\equiv$@ sigma (B := ?P) p.fst p.snd
 Sigma_@$\eta$@ p = case p
     | sigma x y =>
         let
           sigmaxy = sigma (B := P) x y
-          branch=p : Eq sigmaxy p
+
+          branch=p : sigmaxy @$\equiv$@ p
           branch=p = ##DeBruijn 0
-          sigmaxy_@$\eta$@ : Eq sigmaxy (sigma (B := P) sigmaxy.fst sigmaxy.snd)
+
+          sigmaxy_@$\eta$@ : sigmaxy @$\equiv$@ sigma (B := P) sigmaxy.fst sigmaxy.snd
           sigmaxy_@$\eta$@ = Eq_refl
         in
           Eq_cast (p := branch=p)
-                  (f := @$\lambda$@ x @$\rightarrow$@ Eq x (sigma (B := P) x.fst x.snd))
+                  (f := @$\lambda$@ x @$\rightarrow$@ x @$\equiv$@ sigma (B := P) x.fst x.snd)
                   sigmaxy_@$\eta$@
 \end{minted}
 
@@ -5463,11 +5417,9 @@ prove that two terms of type \fn{Sigma A B} are equal, if \fn{$\Pi_{x \colon A}$
 dependent pairs are equal. The proof of this lemma is as follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-@$\Sigma$@@$\equiv$@Prop : (A : Type) @$\Rrightarrow$@ (B : (a : A) @$\rightarrow$@ Type)
-         @$\Rrightarrow$@ ((x : A) @$\rightarrow$@ isProp (B x))
-         @$\rightarrow$@ (u : Sigma A B) @$\rightarrow$@ (v : Sigma A B)
-         @$\rightarrow$@ (p : Eq u.fst v.fst) @$\rightarrow$@ Eq u v
-@$\Sigma$@@$\equiv$@Prop = @$\lambda$@ A B @$\Rrightarrow$@ @$\lambda$@ propB u v p @$\rightarrow$@
+@$\Sigma$@@$\equiv$@prop : ((x : ?A) @$\rightarrow$@ isProp (?B x)) @$\rightarrow$@ (u v : Sigma ?A ?B)
+         @$\rightarrow$@ (p : u.fst @$\equiv$@ v.fst) @$\rightarrow$@ u @$\equiv$@ v
+@$\Sigma$@@$\equiv$@prop propB u v p =
   let
     h : Heq (t := lambda i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
             u.snd (Eq_cast (p := p) (f := B) u.snd)
@@ -5475,18 +5427,20 @@ dependent pairs are equal. The proof of this lemma is as follows:
                (f := @$\lambda$@ i @$\Rrightarrow$@
                       I_transp (A := @$\lambda$@ j @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := I_meet i j)))
                                (r := I_not i) u.snd)
-    sndv_eq : Eq (Eq_cast (p := p) (f := B) u.snd) v.snd
+
+    sndv_eq : Eq_cast (p := p) (f := B) u.snd @$\equiv$@ v.snd
     sndv_eq = propB v.fst (Eq_cast (p := p) (f := B) u.snd) v.snd
+
     pathOver : Heq (t := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
                    u.snd v.snd
     pathOver = whiskerRight (A := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
                             h sndv_eq
-    r : Eq (sigma (B := B) u.fst u.snd) (sigma (B := B) v.fst v.snd)
+    r : sigma (B := B) u.fst u.snd @$\equiv$@ sigma (B := B) v.fst v.snd
     r = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@
                     sigma (B := B) (Eq_uneq (p := p) (i := i))
-                            (Heq_uneq (t := @$\lambda$@ j @$\Rrightarrow$@
-                                            B (Eq_uneq (p := p) (i := j)))
-                            (p := pathOver) (i := i)))
+                          (Heq_uneq (t := @$\lambda$@ j @$\Rrightarrow$@
+                                          B (Eq_uneq (p := p) (i := j)))
+                          (p := pathOver) (i := i)))
   in
     Eq_trans (Sigma_@$\eta$@ u) (Eq_trans r (Eq_comm (Sigma_@$\eta$@ v)))
 \end{minted}
@@ -5594,12 +5548,10 @@ of the base type that are related under the relation are \emph{equal} after
 their surjection into the quotient.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-e : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
-    @$\Rrightarrow$@ (Quotient A R @$\rightarrow$@ B)
-    @$\rightarrow$@ Sigma (A @$\rightarrow$@ B)
-             (@$\lambda$@ g @$\rightarrow$@ (a : A) @$\rightarrow$@ (a' : A) @$\rightarrow$@ R a a' @$\rightarrow$@ Eq (g a) (g a'))
-e = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ f @$\rightarrow$@
-      sigma (@$\lambda$@ x @$\rightarrow$@ f (Quotient_in (R := R) x))
+e : (Quotient ?A ?R @$\rightarrow$@ ?B)
+    @$\rightarrow$@ Sigma (?A @$\rightarrow$@ ?B)
+             (@$\lambda$@ g @$\rightarrow$@ (a a' : ?A) @$\rightarrow$@ ?R a a' @$\rightarrow$@ g a @$\equiv$@ g a')
+e f = sigma (@$\lambda$@ x @$\rightarrow$@ f (Quotient_in (R := R) x))
             (@$\lambda$@ x y r @$\rightarrow$@ Eq_cong f (Quotient_eq (R := R) r))
 \end{minted}
 
@@ -5611,11 +5563,10 @@ and may be regarded as a trivial right inverse to the pre-composition with
 \id{Quotient\_in}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-e' : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
-     @$\Rrightarrow$@ Sigma (A @$\rightarrow$@ B)
-              (@$\lambda$@ g @$\rightarrow$@ (a : A) @$\rightarrow$@ (a' : A) @$\rightarrow$@ R a a' @$\rightarrow$@ Eq (g a) (g a'))
-     @$\rightarrow$@ (Quotient A R @$\rightarrow$@ B)
-e' = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ s @$\rightarrow$@ Quotient_rec (R := R) s.fst (p := s.snd)
+e' : Sigma (?A @$\rightarrow$@ ?B)
+           (@$\lambda$@ g @$\rightarrow$@ (a a' : ?A) @$\rightarrow$@ R a a' @$\rightarrow$@ Eq (g a) (g a'))
+     @$\rightarrow$@ (Quotient ?A ?R @$\rightarrow$@ ?B)
+e' s = Quotient_rec (R := R) s.fst (p := s.snd)
 \end{minted}
 
 Now it remains to prove that \id{e} and \id{e'} are both left and right inverses
@@ -5624,14 +5575,11 @@ by using functional extensionality and the fact that the output type \id{B} is a
 Set.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-e'e=id : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
-         @$\Rrightarrow$@ isSet B
-         @$\rightarrow$@ (f : Quotient A R @$\rightarrow$@ B)
-         @$\rightarrow$@ Eq (e' (R := R) (e f)) f
-e'e=id = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ isSetB f @$\rightarrow$@
+e'e=id : isSet ?B @$\rightarrow$@ (f : Quotient ?A ?R @$\rightarrow$@ ?B) @$\rightarrow$@ e' (R := ?R) (e f) @$\equiv$@ f
+e'e=id isSetB f =
   let
     p : (x : Quotient A R) @$\rightarrow$@ (f : Quotient A R @$\rightarrow$@ B)
-        @$\rightarrow$@ Eq (e' (R := R) (e f) x) (f x)
+        @$\rightarrow$@ e' (R := R) (e f) x @$\equiv$@ f x
     p x f =
       elimProp (R := R)
                (P := @$\lambda$@ x @$\rightarrow$@ Eq (e' (R := R) (e f) x) (f x))
@@ -5651,8 +5599,8 @@ be proven propositionally.
 
 Another thing that we are lacking is a proof that the dependent map induced by
 \id{Quotient\_rec} and \id{Quotient\_eq} is coherent. Suppose that we had terms
-\fn{x y $\colon$ A}, \fn{r $\colon$ R x y} and a function \fn{f $\colon$ A $\rightarrow$ B} as well as a
-proof \id{p} that \id{f} respects the quotient, i.e.\ \fn{p $\colon$ (a $\colon$ A) $\rightarrow$
+\fn{x y :\@ A}, \fn{r :\@ R x y} and a function \fn{f :\@ A $\rightarrow$ B} as well as a
+proof \id{p} that \id{f} respects the quotient, i.e.\ \fn{p :\@ (a :\@ A) $\rightarrow$
   (a':A) $\rightarrow$ R a a' $\rightarrow$ f a $\equiv$ f a'}. Then we could
 expect the below coherence property to hold:
 
@@ -5663,29 +5611,28 @@ expect the below coherence property to hold:
 This property does not hold definitionally in Typer, however, we could prove it
 by appealing to the fact that the output type \id{B} is a \textbf{Set}. In our
 proof of \fn{e $\circ{}$ e' $\equiv$ id}, we shall make use of both of the above
-properties manually by invoking the \id{$\Sigma$$\equiv$Prop} lemma defined in
+properties manually by invoking the \id{$\Sigma$$\equiv$prop} lemma defined in
 \autoref{app:deppairs-properties}. The lemma allows us to construct a short and
 elegant proof of \fn{e $\circ{}$ e' $\equiv$ id}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-ee'=id : (A : Type) @$\Rrightarrow$@ (B : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
-         @$\Rrightarrow$@ HoTT_isSet B
-         @$\rightarrow$@ (p : Sigma (A @$\rightarrow$@ B)
-                       (@$\lambda$@ g @$\rightarrow$@ (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ R x y @$\rightarrow$@ Eq (g x) (g y)))
-         @$\rightarrow$@ Eq (e (e' (R := R) p)) p
-ee'=id = @$\lambda$@ A B R @$\Rrightarrow$@ @$\lambda$@ isSetB p @$\rightarrow$@
+ee'=id : isSet ?B
+         @$\rightarrow$@ (p : Sigma (?A @$\rightarrow$@ ?B)
+                       (@$\lambda$@ g @$\rightarrow$@ (x y : ?A) @$\rightarrow$@ ?R x y @$\rightarrow$@ g x @$\equiv$@ g y))
+         @$\rightarrow$@ e (e' (R := R) p) @$\equiv$@ p
+ee'=id isSetB p =
   let
     propSnd g =
       isProp@$\Pi$@
-        (B := @$\lambda$@ x @$\rightarrow$@ (y : A) @$\rightarrow$@ R x y @$\rightarrow$@ Eq (g x) (g y))
+        (B := @$\lambda$@ x @$\rightarrow$@ (y : A) @$\rightarrow$@ R x y @$\rightarrow$@ g x @$\equiv$@ g y)
         (@$\lambda$@ x @$\rightarrow$@ isProp@$\Pi$@
-                  (B := @$\lambda$@ y @$\rightarrow$@ R x y @$\rightarrow$@ Eq (g x) (g y))
+                  (B := @$\lambda$@ y @$\rightarrow$@ R x y @$\rightarrow$@ g x @$\equiv$@ g y)
                   (@$\lambda$@ y @$\rightarrow$@ isProp@$\Pi$@
-                            (B := @$\lambda$@ (r : R x y) @$\rightarrow$@ Eq (g x) (g y))
+                            (B := @$\lambda$@ (r : R x y) @$\rightarrow$@ g x @$\equiv$@ g y)
                             (@$\lambda$@ r @$\rightarrow$@ isSetB (g x) (g y))))
   in
-    @$\Sigma$@@$\equiv$@Prop
-      (B := @$\lambda$@ g @$\rightarrow$@ (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ R x y @$\rightarrow$@ Eq (g x) (g y))
+    @$\Sigma$@@$\equiv$@prop
+      (B := @$\lambda$@ g @$\rightarrow$@ (x : A) @$\rightarrow$@ (y : A) @$\rightarrow$@ R x y @$\rightarrow$@ g x @$\equiv$@ g y)
       propSnd
       (e (e' (R := R) p)) p Eq_refl
 \end{minted}
