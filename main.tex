@@ -743,35 +743,82 @@ proof that \id{x} is equal to itself. This is known as the reflexive proof of
 equality. At first sight, it does not seem like this constructor would be
 capable of much, but it turns out that this is precisely what we require the
 complete the previously mentioned \id{Nat+\_comm} proof. We first define two
-lemmas that we ultimately use to prove the commutativity of addition.
+lemmas \id{Nat+\_zero} and \id{Nat+\_succ} that we ultimately use to prove the
+commutativity of addition.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     Nat+_zero : (m : Nat) @$\rightarrow$@ m + zero @$\equiv$@ m
     Nat+_zero m =
       case m return m + zero @$\equiv$@ m
-             | zero @$\Rightarrow$@ Eq_refl
-             | succ n @$\Rightarrow$@ Eq_cong succ (Nat+_zero n)
+        | zero @$\Rightarrow$@ Eq_refl
+        | succ n @$\Rightarrow$@ Eq_cong succ (Nat+_zero n)
 
     Nat+_succ : (m n : Nat) @$\rightarrow$@ m + succ n @$\equiv$@ succ (m + n)
     Nat+_succ m n =
       case m return m + succ n @$\equiv$@ succ (m + n)
-             | zero @$\Rightarrow$@ Eq_refl
-             | succ m' @$\Rightarrow$@ Eq_cong succ (Nat+_succ m' n)
+        | zero @$\Rightarrow$@ Eq_refl
+        | succ m' @$\Rightarrow$@ Eq_cong succ (Nat+_succ m' n)
+\end{minted}
 
+\id{Nat+\_zero} says that the addition of any natural number \id{m} with zero
+should be equal to \id{m} itself. To construct such a proof, we perform case
+analysis on \id{m} and handle each branch separately. When the return type of
+the case analysis depends on the scrutinee, we use the \kw{case...return...}
+construct that ensures that the branches are well-typed. Consider the case where
+\id{m} is \id{zero}, then based on the definition of \id{\_+\_}, \fn{zero +
+  zero} is equal to \id{zero}, allowing us to trivially use \id{Eq\_refl} to
+complete the proof.
+
+The congruence of equality dictates that applying a function to equal values
+yields equal values. More concretely, if we have a proof that \id{x} and \id{y}
+are equal, then the application of a function \id{f} to \id{x} and \id{y} must
+also be equal. This property is witnessed by a function of the following type:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+    Eq_cong : (f : ?A @$\rightarrow$@ ?B) @$\rightarrow$@ (p : ?x @$\equiv$@ ?y) @$\rightarrow$@ f x @$\equiv$@ f y
+\end{minted}
+
+In the case where \id{m} is \fn{succ n}, we make a recursive call to
+\id{Nat+\_zero} using \id{n} as an argument to obtain a proof that \fn{n + zero
+  $\equiv$ n}, this is equivalent to invoking the induction hypothesis. By
+congruence of equality, we construct a proof that \fn{succ (n + zero) $\equiv$
+  succ n}. By definition of \id{\_+\_}, \fn{succ n + zero} is actually equal to
+\fn{succ (n + zero)}, meaning that we have exactly what we require. The
+\id{Nat+\_succ} lemma may be proven in the exact same way, hence we shall not
+elaborate on it.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
     Nat+_comm : (m n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m
     Nat+_comm m n =
       case n return m + n @$\equiv$@ n + m
-             | zero @$\Rightarrow$@ Nat+_zero m
-             | succ n' @$\Rightarrow$@ Eq_trans (Nat+_succ m n')
-                                   (Eq_cong succ (Nat+_comm m n'))
+        | zero @$\Rightarrow$@ Nat+_zero m
+        | succ n' @$\Rightarrow$@ Eq_trans (Nat+_succ m n')
+                              (Eq_cong succ (Nat+_comm m n'))
 \end{minted}
 
+To prove the commutativity of addition, we perform a case analysis on the second
+argument, \id{n}. When \id{n} is \id{zero}, we use the \id{Nat+\_zero} lemma to
+construct a proof of \fn{m + zero $\equiv$ m}. This is sufficient because
+\fn{zero + m} is definitionally equal to \id{m}.
+
+Since the equality type is an equivalence relation, it is transitive. This is
+witnessed by the following function.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+    Eq_trans : ?x @$\equiv$@ ?y @$\rightarrow$@ ?y @$\equiv$@ ?z @$\rightarrow$@ ?x @$\equiv$@ ?z
+\end{minted}
+
+In the other case where \id{n} is equal to \fn{succ n'}, we use the
+\id{Nat+\_succ} lemma to construct a proof that \fn{m + succ n' $\equiv$ succ
+  (m + n')}. We then use the induction hypothesis along with the congruence
+property of equality to construct a proof of \fn{succ (m + n') $\equiv$ succ
+  (n' + m)}. By transitivity of equality, we have a proof of \fn{m + succ n'
+  $\equiv$ succ (n' + m)}. Like before, this is precisely what we require as
+\fn{succ n' + m} is definitionally equal to \fn{succ (n' + m)}.
 
 What we have just seen is commonly known as homogeneous equality as only terms
 of the same type may be equated under this form of equality. Occasionally, it is
 also useful to be able to relate two terms of types that are not definitionally
-%% SM: Spacing on this line is a bit confusing: too big around `:` compared
-%% to the space around `and`, encouraging the readers to misparse.
 equal. Suppose that we had the terms \fn{u :\@ Vector A (m + n)} and \fn{v :\@
   Vector A (n + m)} and that we would like to construct a proposition of their
 equality. We would not be able to do it with the \fn{Eq} constructor as \id{u}
@@ -948,8 +995,7 @@ With the gradual maturing of dependently-typed languages, we believe that it is
 an opportune moment to bring quotients into the picture again. In the rest of
 this thesis, we discuss our experience of introducing quotient types to Typer.
 We first describe the typing and reduction rules of the introduced quotient
-%% SM: Avoid passive "was implemented".
-type, and then we discuss the library that was implemented to facilitate their
+type, and then we discuss the library that we implemented to facilitate their
 usage in Typer. Finally, we illustrate how the quotient type may be used by
 providing examples in the form of code along with commentary.
 
@@ -964,23 +1010,19 @@ We make several contributions:
     Heterogeneous equality makes it possible to identify terms of different
     types\footnote{To identify A and B is to claim that they are equal.}. }
 
-    %% SM: Use present tense (same for the next few ıtems).
-  \item{Next, we defined normal homogeneous equality as a special case of
-    heterogeneous equality. We then showed that an interval-based equality
+  \item{Next, we define normal homogeneous equality as a special case of
+    heterogeneous equality. We then show that an interval-based equality
     type lends itself better to proof of equality-related properties
     (\hyperref[subsec:eq-examples]{Section~\ref*{subsec:eq-examples}}).}
 
-    %% SM: "pathover" has not be explained yet.
-  \item{We then introduced quotient types along with their typing and reduction
-    rules (\autoref{sec:quot}). Their elimination principle takes advantage of
-    heterogeneous equality by using it to express
-    pathovers\cite{licata2015cubical}. We also convince ourselves that our
-    quotients behave appropriately by proving their effectiveness
+  \item{We then introduce quotient types along with their typing and reduction
+    rules (\autoref{sec:quot}). We also convince ourselves that our quotients
+    behave appropriately by proving their effectiveness
     (\hyperref[ch:quotient-effectiveness]{Chapter~\ref*{ch:quotient-effectiveness}})
     and that they fulfil the universal property of quotients
     (\hyperref[sec:coequaliser]{Section~\ref*{sec:coequaliser}}). }
 
-  \item{To facilitate the use of quotients, we developed a library of
+  \item{To facilitate the use of quotients, we develop a library of
     convenience functions, macros, and also theorems regarding quotient types
     (\hyperref[ch:quot-examples]{Chapter~\ref*{ch:quot-examples}}). This work
     explores the usability and user-friendliness of quotient types in
@@ -989,7 +1031,7 @@ We make several contributions:
     quotient types
     (\hyperref[sec:quot-benchmark]{Section~\ref*{sec:quot-benchmark}}).}
 
-  \item{We also implemented a proof of Hedberg's
+  \item{We also implement a proof of Hedberg's
     theorem\cite{hedberg1998coherence} in Typer
     (\hyperref[subsec:hedberg]{Section~\ref*{subsec:hedberg}}). The theorem
     states that if a type has decidable equalities, then its equalities are
@@ -997,7 +1039,7 @@ We make several contributions:
     quotient type entails fewer proof obligations. }
 
   \item{As the first work to develop a substantial number of proofs in Typer,
-    our experience lead us to introduce several constructs to facilitate the
+    our experience led us to introduce several constructs to facilitate the
     development of proofs in Typer in the form of macros and axioms. }
 \end{itemize}
 
@@ -2241,8 +2283,8 @@ $\id{Heq\_eq}$ (modulo the implicit arguments) is equal to the identity
 function, which gives us the $\eta$-equivalence for some \fn{p :\@ Heq x y}.
 
 \begin{align*}
-  & \Funapp{\id{Heq\_eq}}{(\earg{f}{\lambda i \Rrightarrow
-      \Funapp{\id{Heq\_uneq}}{(\earg{p}{p})}{(\earg{i}{i})}})} \rightsquigarrow{} p
+  & \Funapp{\id{Heq\_eq}}{(\earg{\id{f}}{\lambda \id{i} \Rrightarrow
+      \Funapp{\id{Heq\_uneq}}{(\earg{\id{p}}{\id{p}})}{(\earg{\id{i}}{\id{i}})}})} \rightsquigarrow{} \id{p}
 \end{align*}
 
 \paragraph{Reduction rules}
@@ -3339,7 +3381,6 @@ Integer_0-product x y x|$\ne$|0 y|$\ne$|0 xy|$\ne$|0 =
 
 We will eventually also make use of the below theorem that states that the negation of an integer may be distributed over multiplication. Its `right' counterpart may also be proven in a similar manner.
 
-%% SM: Describe briefly ==<..>== and \qed
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
 Integer_NegateDistL* : (x y : Integer) |$\rightarrow$| 0 - (x * y) |$\equiv$| (0 - x) * y
 Integer_NegateDistL* x y =
@@ -3352,8 +3393,17 @@ Integer_NegateDistL* x y =
 \end{minted}
 
 We introduced equational reasoning to facilitate the development and reading of
-such proofs, more details are given in Section~\ref{section:eqreasoning} of the
-appendix.
+such proofs. To construct an equality proof between \id{x} and \id{y}, this
+syntax allows us to go from \id{x} to \id{y} in an arbitrary number of steps by
+chaining equality proofs. For instance, the below example constructs a proof
+of \fn{x $\equiv$ y} by using the fact \id{x} is equal to \id{i} as witnessed by
+\id{p1} and that \id{i} is equal to \id{j} according to the proof \id{p2} etc.
+The $\qed$ symbol indicates the end of the equational reasoning. More details
+are given in Section~\ref{section:eqreasoning} of the appendix.
+
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
+  x ==< p1 >== i ==< p2 >== j ==< p3 >== k ... ==< pn >== y |$\qed$|
+\end{minted}
 
 \subsection*{Implementation of Rationals}
 As stated before, the base type of our quotient type is a pair of integers along
@@ -3881,21 +3931,21 @@ The function itself does the only logical thing it could do, it uses
 \kw{Quotient\_rec} to eliminate the first quotient, and then it makes another
 nested call to \kw{Quotient\_rec} to eliminate the second one. Essentially, the
 result of the elimination of the first quotient is a function that takes another
-quotient as an argument and then eliminates that. This is the intution behind
+quotient as an argument and then eliminates that. This is the intuition behind
 the requirement that the output type $\id{C}$ be a $\kw{Set}$. In other words,
 this enables us to prove that for two quotients of type $\id{Quotient A R}$, we
-are indeed producting two output functions that are equal. We also made use of
+are indeed producing two equal output functions. We also made use of
 $\id{elimProp}$, a function that we shall describe next.
 
 \subsection*{elimProp}
 $\id{elimProp}$ is a function that simplifies the elimination of a quotient when
 the target type is a mere proposition as was introduced in
-\autoref{sec:prop-trunc} . We will see that the nature of the function $\id{f}$
-has no bearing on our proof obligations, as they can be discharged in a very
-systematic way by leveraging the fact that output type is a $\kw{Prop}$. First,
-we need to prove a lemma, $\id{toPathOver}$. Suppose that we have a type former
-$\id{A} \colon \id{I} \Rrightarrow \kw{Type}$, two terms $\id{x}$ and $\id{y}$
-of types $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and
+\autoref{sec:prop-trunc}. We will see that the nature of the function \id{f} has
+no bearing on our proof obligations, as they can be discharged in a very
+systematic way by leveraging the fact that output type is a \kw{Prop}. First, we
+need to prove a lemma, \id{castEqToHeq}. Suppose that we have a type former
+$\id{A} \colon \id{I} \Rrightarrow \kw{Type}$, two terms \id{x} and \id{y} of
+types $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and
 $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ respectively, and a term \id{cast\_x}
 that we obtain by casting \id{x} to $\Funapp{\id{A}}{(\earg{\_}{\iright})}$, we
 get the following diagram.
@@ -3934,7 +3984,7 @@ get the following diagram.
 % Text Node
 \draw (148,222) node [anchor=north west][inner sep=0.75pt]   [align=left] {A (\_ := i$_1$) };
 % Text Node
-\draw (361,102) node [anchor=north west][inner sep=0.75pt]  [rotate=-0.06] [align=left] {toPathOver};
+\draw (361,102) node [anchor=north west][inner sep=0.75pt]  [rotate=-0.06] [align=left] {castEqToHeq};
 % Text Node
 \draw (259,102) node [anchor=north west][inner sep=0.75pt]  [font=\normalsize] [align=left] {castIsEq};
 
@@ -3955,13 +4005,13 @@ is casted to $\id{cast\_x}$, and that $\id{cast\_x}$ is equal to
 $\id{y}$, we also want to be able to say something about the relationship
 between $\id{x}$ and $\id{y}$. Since they are not of the same type, all we can
 do is construct a heterogeneous equality between them, and this is precisely
-what the function $\id{toPathOver}$ seeks to do.
+what the function $\id{castEqToHeq}$ seeks to do.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-toPathOver : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0)) @$\Rightarrow$@ (y : A (_ := i1))
-             @$\Rightarrow$@ Eq_cast (p := Eq_eq (f := A)) (f := id) x @$\equiv$@ y
-             @$\rightarrow$@ Heq (t := A) x y
-toPathOver = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x y @$\Rightarrow$@ @$\lambda$@ p @$\rightarrow$@
+castEqToHeq : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0)) @$\Rightarrow$@ (y : A (_ := i1))
+              @$\Rightarrow$@ Eq_cast (p := Eq_eq (f := A)) (f := id) x @$\equiv$@ y
+              @$\rightarrow$@ Heq (t := A) x y
+castEqToHeq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x y @$\Rightarrow$@ @$\lambda$@ p @$\rightarrow$@
   whiskerRight (A := A) (castIsEq (A := A) x) p
 \end{minted}
 
@@ -3976,7 +4026,7 @@ elimProp : (P : Quotient ?A ?R @$\rightarrow$@ Type)
            @$\Rrightarrow$@ (prop : (x : Quotient ?A ?R) @$\rightarrow$@ isProp (P x))
            @$\rightarrow$@ (f : (x : ?A) @$\rightarrow$@ P (Quotient_in x))
            @$\rightarrow$@ (x : Quotient ?A ?R) @$\rightarrow$@ P x
-elimProp = @$\lambda$@ A R P @$\Rrightarrow$@ @$\lambda$@ prop f @$\rightarrow$@
+elimProp prop f =
   Quotient_elim
     (R := R) (P := P) f
     (p := @$\lambda$@ a a' r @$\rightarrow$@
@@ -3984,15 +4034,15 @@ elimProp = @$\lambda$@ A R P @$\Rrightarrow$@ @$\lambda$@ prop f @$\rightarrow$@
         a=a' : Quotient_in (R := R) a @$\equiv$@ Quotient_in (R := R) a'
         a=a' = Quotient_eq (R := R) (a := a) (a' := a') r
         fa=fa' : Heq (f a) (f a')
-        fa=fa' = toPathOver (A := @$\lambda$@ i @$\Rrightarrow$@ P (Eq_uneq (p := a=a') (i := i)))
-                            (prop (Quotient_in a')
-                                  (Eq_cast (p := a=a') (f := P) (f a))
-                                  (f a'))
+        fa=fa' = castEqToHeq (A := @$\lambda$@ i @$\Rrightarrow$@ P (Eq_uneq (p := a=a') (i := i)))
+                             (prop (Quotient_in a')
+                                   (Eq_cast (p := a=a') (f := P) (f a))
+                                   (f a'))
       in
         fa=fa')
 \end{minted}
 
-$\fn{toPathOver}$ does the heavy lifting in this proof by allowing us to leverage $\Funapp{\fn{isProp}}{(\Funapp{\id{P}}{\id{x}})}$ to easily produce a proof of $\Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}})}{(\Funapp{\id{f}}{\id{a}'})}$. We can also iterate this to define $\fn{elimProp}_2$, $\fn{elimProp}_3$ etc. In general, we can define $\fn{elimProp}_n$ in terms of $\fn{elimProp}_{n-1}$ and $\fn{elimProp}$. To illustrate this, we define $\fn{elimProp}_2$.
+$\fn{castEqToHeq}$ does the heavy lifting in this proof by allowing us to leverage $\Funapp{\fn{isProp}}{(\Funapp{\id{P}}{\id{x}})}$ to easily produce a proof of $\Funapp{\id{Heq}}{(\Funapp{\id{f}}{\id{a}})}{(\Funapp{\id{f}}{\id{a}'})}$. We can also iterate this to define $\fn{elimProp}_2$, $\fn{elimProp}_3$ etc. In general, we can define $\fn{elimProp}_n$ in terms of $\fn{elimProp}_{n-1}$ and $\fn{elimProp}$. To illustrate this, we define $\fn{elimProp}_2$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 elimProp2 : (P : Quotient ?A ?R @$\rightarrow$@ Quotient ?B ?S @$\rightarrow$@ Type)
@@ -4000,7 +4050,7 @@ elimProp2 : (P : Quotient ?A ?R @$\rightarrow$@ Quotient ?B ?S @$\rightarrow$@ T
                        @$\rightarrow$@ isProp (P x y))
             @$\rightarrow$@ (f : (x : ?A) @$\rightarrow$@ (y : ?B) @$\rightarrow$@ P (Quotient_in x) (Quotient_in y))
             @$\rightarrow$@ (x : Quotient ?A ?R) @$\rightarrow$@ (y : Quotient ?B ?S) @$\rightarrow$@ P x y
-elimProp2 = @$\lambda$@ A B R S P @$\Rrightarrow$@ @$\lambda$@ prop f @$\rightarrow$@
+elimProp2 prop f =
   elimProp (P := @$\lambda$@ x @$\rightarrow$@ (y : Quotient B S) @$\rightarrow$@ P x y)
            (@$\lambda$@ x @$\rightarrow$@ isProp@$\Pi$@ (B := P x) (prop x))
            (@$\lambda$@ a @$\rightarrow$@ elimProp (P := P (Quotient_in a))
@@ -4051,9 +4101,8 @@ congruence property of equality.
 
 We show that if it is the case that two projections of two terms into a quotient
 are equal, i.e. \fn{Quotient_in (R := R) a $\equiv$ Quotient (R := R) a'}, then
-%% SM: "then two terms" => "then *the* two terms".
-two terms \id{a} and \id{a'} must necessarily be related under the relation. In
-other words, we want to show that the reverse of
+the two terms \id{a} and \id{a'} must necessarily be related under the relation.
+In other words, we want to show that the reverse of
 \hyperref[quot-intro-eq-rule]{\textsc{Quot-Intro-Eq}} is also valid. We note
 however that this is only valid for relations that are equivalence relations
 (i.e.\ reflexive, symmetric, and transitive).
@@ -4416,18 +4465,11 @@ $\fn{rational\_benchmark.typer}$ file.}. We examine the runtime
 cost\footnote{The tests were executed on the author's 2018 Macbook Pro with a
 quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of executing the
 functions $\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
-$\fn{Rational\_*}$ on 15000 pairs of rational numbers with 500 iterations. We
-then report the average execution time over the 500 iterations along with the
+$\fn{Rational\_*}$ on 50000 pairs of rational numbers with 100 iterations. We
+then report the average execution time over the 100 iterations along with the
 standard deviation. The overhead is defined to be the difference in the average
 execution time.
 
-%% SM: The standard deviation is a large proportion of the average,
-%% and is larger than the overhead.  That's a problem.  We don't necessarily
-%% have to fix it (e.g. by re-running the benchmarks in such a way that
-%% the SD is reduced), but we definitely need to discuss/explain it, because
-%% it's definitely larger than what is usually considered normal.
-%% Also the fact that SD is much smaller for one case (negation on ZxZ)
-%% needs to be discussed/explained.
 %% SM: Personally I find the overhead to make more sense when expressed
 %% as a percentage.
 \begin{table}[]
@@ -4437,10 +4479,10 @@ execution time.
 \multirow{3}{*}{Operation} & \multicolumn{4}{c}{Execution Time (seconds)}                         & \multirow{3}{*}{Overhead (seconds)} \\ \cmidrule(lr){2-5}
                            & \multicolumn{2}{c}{Average} & \multicolumn{2}{c}{Standard Deviation} &                                     \\ \cmidrule(lr){2-5}
                & $\zpair$ & Rational & $\zpair$ & Rational &         \\ \midrule
-Negation       & 0.112   & 0.229   & 0.0348 & 0.133  & 0.117  \\
-Addition       & 0.386   & 0.538   & 0.260  & 0.298  & 0.152  \\
-Subtraction    & 0.460   & 0.660   & 0.262  & 0.279  & 0.2  \\
-Multiplication & 0.352   & 0.496   & 0.270  & 0.329  & 0.144 \\ \bottomrule
+Negation       & 0.2825   & 0.3872  & 0.0272 & 0.0201  & 0.1047  \\
+Addition       & 0.5268   & 0.8354  & 0.0308 & 0.0415  & 0.3086  \\
+Subtraction    & 0.6899   & 1.1180  & 0.0411 & 0.0286  & 0.4281  \\
+Multiplication & 0.4877   & 0.8000  & 0.0346 & 0.0372  & 0.3123 \\ \bottomrule
 \end{tabular}
 \caption{The runtime cost of operations on rational numbers with and without the
   use of quotient types.}\label{tab:rational-benchmark}
@@ -4468,7 +4510,7 @@ $\fn{Rational\_+}$:
 Through a series of $\eta$-reductions and inlinings, we can see that the above
 expression is equivalent to $\zpairplus$.
 
-%% SM: Make this a \begin{figure}...\end{figure}...
+\begin{figure}
 \begin{mdframed}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
 (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
@@ -4502,6 +4544,8 @@ Quotient_rec (@$\lambda$@ (a) @$\rightarrow$@
 @$\zpairplus$@
 \end{minted}
 \end{mdframed}
+\caption{Proposed optimisations for \id{Rational\_+}}\label{fig:optim-rational-add}
+\end{figure}
 
 A desirable optimisation is the inlining of \id{Quotient\_rec} and
 \id{Quotient\_rec2} as follows:
@@ -4517,28 +4561,24 @@ lambda functions like so:
 
 \fn{($\lambda$ (e$_1$) ($\lambda$ (e$_2$) ... ($\lambda$ (e$_n$) f e$_1$ e$_2$ ... e$_n$))) $\rightsquigarrow$ f}
 
-%% SM: .. and refer to the figure here.  Clarify that these optimisations
-%% are very simple/standard/common.
 With that, we show a possible series of reductions and optimisations that
-simplify \fn{Rational\_+} to $\zpairplus$. This implies that with an appropriate
-optimisation phase, Elexps containing quotient primitives could be simplified to
-completely neutralise the overhead of quotient types. We leave
-%% SM: It would be nice to list the optimizations/rewrite-rules needed
-%% and maybe discuss them.  E.g. replacing
-%% (λ (y) → (ZxZ+ x y)) => (ZxZ+ x) is generally not considered acceptable
-%% for an optimizer because it moves the time when `ZxZ+ x` is evaluated,
-%% which is important if that time is non-negligible (and the optimizer
-%% often has no idea if that's the case).   In contrast replacing
-%% (λ (x) → (λ (y) → (ZxZ+ x y))) => ZxZ+
-%% doesn't suffer from such problems since both terms are constant-time.
-this optimisation for future work. We also note that addition and multiplication
-unsurprisingly have a similar overhead due to how similarly they are defined.
-Since negation is a unary operation, it was defined directly using
-$\fn{Quotient\_rec}$ and thus has a lesser overhead than the other binary
-operations. We also defined subtraction based on
-addition combined with negation, so its greater overhead is well justified.
-%% FIXME: Wait, intuitively speaking, the overhead of subtraction should be the
-%% sum of the overhead of addition and negation?! Why isn't this the case?
+simplify \fn{Rational\_+} to $\zpairplus$ in \autoref{fig:optim-rational-add}.
+This implies that with an appropriate optimisation phase, Elexps containing
+quotient primitives could be simplified to completely neutralise the overhead of
+quotient types. We would also like to point out that as far as optimisations go,
+our propositions are fairly standard, we thus leave them for future work.
+
+We believe that the incurred overhead for these operations should be a constant
+cost based on whether the operation is defined using \id{Quotient\_rec} or
+\id{Quotient\_rec2}. Since \id{Quotient\_rec2} is defined in terms of
+\id{Quotient\_rec}, \id{Quotient\_rec2} logically incurs a larger overhead than
+\id{Quotient\_rec}. \id{Rational\_negate} being a unary function, was the only
+one that was defined using \id{Quotient\_rec}, and thus suffers from the least
+amount of overhead. \id{Rational\_+} and \id{Rational\_*} were both defined
+using \id{Quotient\_rec2}, we observe how the two operations have a similar
+overhead. Since we defined \id{Rational\_-} based on \id{Rational\_+} combined
+with \id{Rational\_negate}, it is well justified that its overhead is similar to
+the combined overhead of the two operations that it was defined on.
 
 \subsection*{Multiset}
 
@@ -4552,7 +4592,7 @@ We do a similar set of experiments on our construction of \id{Multiset} with the
 \centering
 \begin{tabular}{@{}cccccc@{}}
 \toprule
-\multirow{3}{*}{\textbf{Operation}} & \multicolumn{4}{c}{\textbf{Execution Time (seconds)}} & \multirow{3}{*}{\textbf{Overhead (seconds)}} \\ \cmidrule(lr){2-5}
+\multirow{3}{*}{Operation} & \multicolumn{4}{c}{Execution Time (seconds)} & \multirow{3}{*}{Overhead (seconds)} \\ \cmidrule(lr){2-5}
        & \multicolumn{2}{c}{Average} & \multicolumn{2}{c}{Standard Deviation} &         \\ \cmidrule(lr){2-5}
        & List         & Multiset     & List              & Multiset           &         \\ \midrule
 Append & 0.02979      & 0.08366      & 0.01119           & 0.07886            & 0.05387 \\
@@ -4610,8 +4650,9 @@ The same optimisations proposed for \id{Rational} also work here, we do not
 discuss \id{Multiset\_append} as its Elexps shares a similar form to
 \id{Rational\_+}. Instead, we show a series of rewrites and reductions to
 simplify \id{Multiset\_mem} to an Elexp that would correspond to the Elexp of
-\id{List\_mem}.
+\id{List\_mem} in \autoref{fig:optim-multiset-mem}.
 
+\begin{figure}
 \begin{mdframed}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
 (@$\lambda$@ (disc) ->
@@ -4637,6 +4678,8 @@ simplify \id{Multiset\_mem} to an Elexp that would correspond to the Elexp of
 
 \end{minted}
 \end{mdframed}
+\caption{Proposed optimisations for \id{Multiset\_mem}}\label{fig:optim-multiset-mem}
+\end{figure}
 
 \chapter{Relationship to Category Theory}
 There is an intricate relationship between logic, programming (type theory), and
@@ -5011,7 +5054,9 @@ type SurjectiveQuotientProof (A : Type) (R : A @$\rightarrow$@ A @$\rightarrow$@
    | surjectiveQuotientProof (a : A) (Eq (Quotient_in (R := R) a) x);
 \end{minted}
 
-We define the above type, intending to return the propositional truncation of it as a proof of the surjectivity of $\kw{Quotient\_in}$. The proof goes as follows:
+We define the above type, intending to return the propositional truncation of it
+as a proof of the surjectivity of $\kw{Quotient\_in}$. The proof goes as
+follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Quotient_in_surjective : (A : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
@@ -5092,14 +5137,13 @@ itself, the proof is provided in \autoref{app:ump-quot} of the appendix.
 
 \chapter{Conclusion}
 
-%% SM: You didn't really implement "cubical equality": it's related,
-%% but it's not the same.
-The principal objective of our work is to introduce cubical equality and
-quotient types to Typer. Cubical equality provides our system with a more
-powerful equality type by viewing equalities as paths. The extra expressivity
-allows us to manipulate equalities more conveniently and elegantly. This has
-also allowed us to derive functional extensionality as a theorem, something that
-is not typically feasible in intensional type theories.
+The principal objective of our work is to introduce a new equality type inspired
+by cubical equality as well as quotient types to Typer. Cubical equality
+provides our system with a more powerful equality type by viewing equalities as
+paths. The extra expressivity allows us to manipulate equalities more
+conveniently and elegantly. This has also allowed us to derive functional
+extensionality as a theorem, something that is not typically feasible in
+intensional type theories.
 
 We forewent the more powerful quotient inductive types in favour of classic
 quotient types \latinphrase{à la} Hoffman. The implementation of our quotients
