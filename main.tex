@@ -604,7 +604,6 @@ as long as the program is well-typed. In general, proofs improve the reliability
 of programs by allowing more errors to be detected at compile-time by making use
 of the type system to impose constraints on programs.
 
-%% SM: A bit rough transition between the previous paragraph and this one.
 By making use of the type system in this manner extensively, we are able obtain
 static guarantees about the behaviour of our programs. A notable example of the
 usage of proofs in real-world programs is the CompCert project that worked on
@@ -627,8 +626,6 @@ consider equality between terms of the same type. This gives us a type former
 that takes a type as input, along with two terms of that type. In Typer,
 equality between terms is represented by the $\id{Eq}$ type former.
 
-%% SM: I'd indent all those short code examples by a few spaces,
-%% like `displaymath` and `quote` would do.
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
      Eq : (A : Type) @$\Rrightarrow$@ (x y : A) @$\rightarrow$@ Type
 \end{minted}
@@ -1063,9 +1060,9 @@ they shall always be in \emph{normal} form. To illustrate this, we show a
 definition of the integer data type.
 
 \begin{minted}{agda}
-integer :: Zero |
-           Succ integer |
-           Pred integer
+    integer :: Zero |
+               Succ integer |
+               Pred integer
 \end{minted}
 
 Such a definition gives rise to many redundant terms, each integer has an
@@ -1075,8 +1072,8 @@ where laws come into play, since the composition of \id{Succ} with \id{Pred}
 should be equal to the identity function, we define the following laws:
 
 \begin{minted}{agda}
-Succ (Pred n) => n
-Pred (Succ n) => n
+    Succ (Pred n) => n
+    Pred (Succ n) => n
 \end{minted}
 
 Types that are constrained by laws are known in Miranda as \emph{lawful types}.
@@ -1089,15 +1086,15 @@ to be as `simplified' as possible, i.e.\ we want the numerator and denominator
 to be coprime.
 
 \begin{minted}{agda}
-rational ::= Rat num num
+    rational ::= Rat num num
 
-Rat a b => error "zero denominator", b == O
-        => Rat (-a) (-b),            b < O
-        => Rat a' b',                g > 1
-           where
-           a' = a div g
-           b' = b div g
-           g = gcd a b
+    Rat a b => error "zero denominator", b == O
+            => Rat (-a) (-b),            b < O
+            => Rat a' b',                g > 1
+               where
+               a' = a div g
+               b' = b div g
+               g = gcd a b
 \end{minted}
 
 Functions that act on lawful types enjoy the convenience of being able to assume
@@ -1107,8 +1104,8 @@ taken care of by the language itself. We may define the addition operation on
 rationals via pattern-matching with a syntax that is reminiscent of Haskell.
 
 \begin{minted}{agda}
-radd :: rational -> rational -> rational
-radd (Rat x1 y1) (Rat x2 y2) = Rat ((x1 mul y2) add (x2 mul y1)) (y1 mul y2)
+    radd :: rational -> rational -> rational
+    radd (Rat x1 y1) (Rat x2 y2) = Rat ((x1 mul y2) add (x2 mul y1)) (y1 mul y2)
 \end{minted}
 
 Indeed, laws in Miranda are no more than smart constructors in disguise.
@@ -1146,11 +1143,11 @@ then we use it to construct unordered pairs with the introduction of the
 pair.
 
 \begin{minted}{haskell}
-data Pair a where
-  pair :: a -> a -> Pair a
+    data Pair a where
+      pair :: a -> a -> Pair a
 
-data UnorderedPair a = Pair a
-  |/ swap :: x:a -> y:a -> pair x y == pair y x
+    data UnorderedPair a = Pair a
+      |/ swap :: x:a -> y:a -> pair x y == pair y x
 \end{minted}
 
 %% Unlike our encoding of quotient types \latinphrase{à la}
@@ -1386,7 +1383,7 @@ other things, pattern matching on an interval variable is disallowed. The type
 of homogeneous equality is represented by $\equiv$ with the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-_@$\equiv$@_ : {A : Set @$\ell$@} @$\rightarrow$@ A @$\rightarrow$@ A @$\rightarrow$@ Set @$\ell$@
+    _@$\equiv$@_ : {A : Set @$\ell$@} @$\rightarrow$@ A @$\rightarrow$@ A @$\rightarrow$@ Set @$\ell$@
 \end{minted}
 
 Readers that are not familiar with \Agda{} are reminded that \fn{\_$\equiv$\_}
@@ -1418,8 +1415,8 @@ indeed nothing more than a typical function in Agda, we could move the argument
 function arguments.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-refl : {A : Set @$\ell$@} {x : A} @$\rightarrow$@ x @$\equiv$@ x
-refl {x = a} i = a
+    refl : {A : Set @$\ell$@} {x : A} @$\rightarrow$@ x @$\equiv$@ x
+    refl {x = a} i = a
 \end{minted}
 
 Although pattern matching is forbidden on interval variables, numerous primitives
@@ -1427,8 +1424,8 @@ act on the interval type, allowing us to manipulate them. We illustrate this wit
 a proof of the commutativity of equality.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-comm : {A : Type} {x y : A} @$\rightarrow$@ x @$\equiv$@ y @$\rightarrow$@ y @$\equiv$@ x
-comm p i = p (~ i)
+    comm : {A : Type} {x y : A} @$\rightarrow$@ x @$\equiv$@ y @$\rightarrow$@ y @$\equiv$@ x
+    comm p i = p (~ i)
 \end{minted}
 
 Like before, we introduced a new interval variable \id{i} since we are
@@ -1446,8 +1443,8 @@ that is not typically provable in Martin-Löf type
 theory\cite{martin1975intuitionistic}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-funext : {A B : Type} {f g : A @$\rightarrow$@ B} @$\rightarrow$@ (@$\forall$@ (a : A) @$\rightarrow$@ f a @$\equiv$@ g a) @$\rightarrow$@ f @$\equiv$@ g
-funext p i = @$\lambda$@ x @$\rightarrow$@ p x i
+    funext : {A B : Type} {f g : A @$\rightarrow$@ B} @$\rightarrow$@ (@$\forall$@ (a : A) @$\rightarrow$@ f a @$\equiv$@ g a) @$\rightarrow$@ f @$\equiv$@ g
+    funext p i = @$\lambda$@ x @$\rightarrow$@ p x i
 \end{minted}
 
 The proof \id{p} is a witness that the functions \id{f} and \id{g} agree on all
@@ -1489,12 +1486,12 @@ We decided not to do it however as higher paths are not immediately relevant to
 our work}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-data Int : Type where
-  zero : Int
-  pred : Int @$\rightarrow$@ Int
-  succ : Int @$\rightarrow$@ Int
-  predsucc@$\equiv$@id : (n : Int) @$\rightarrow$@ pred (succ n) @$\equiv$@ n
-  succpred@$\equiv$@id : (n : Int) @$\rightarrow$@ succ (pred n) @$\equiv$@ n
+    data Int : Type where
+      zero : Int
+      pred : Int @$\rightarrow$@ Int
+      succ : Int @$\rightarrow$@ Int
+      predsucc@$\equiv$@id : (n : Int) @$\rightarrow$@ pred (succ n) @$\equiv$@ n
+      succpred@$\equiv$@id : (n : Int) @$\rightarrow$@ succ (pred n) @$\equiv$@ n
 \end{minted}
 
 Here we define a new type \id{Int}. The first three constructors are known as
@@ -1511,12 +1508,12 @@ analysis. We illustrate this by constructing a function that negates integers by
 recursively switching every \id{pred} to a \id{succ} and vice versa.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Int-negate : Int @$\rightarrow$@ Int
-Int-negate zero = zero
-Int-negate (pred n) = succ (Int-negate n)
-Int-negate (succ n) = pred (Int-negate n)
-Int-negate (predsucc@$\equiv$@id n i) = succpred@$\equiv$@id (Int-negate n) i
-Int-negate (succpred@$\equiv$@id n i) = predsucc@$\equiv$@id (Int-negate n) i
+    Int-negate : Int @$\rightarrow$@ Int
+    Int-negate zero = zero
+    Int-negate (pred n) = succ (Int-negate n)
+    Int-negate (succ n) = pred (Int-negate n)
+    Int-negate (predsucc@$\equiv$@id n i) = succpred@$\equiv$@id (Int-negate n) i
+    Int-negate (succpred@$\equiv$@id n i) = predsucc@$\equiv$@id (Int-negate n) i
 \end{minted}
 
 In the first three branches, we say what the function should do to the term
@@ -1534,10 +1531,10 @@ We could also define quotient types as formulated by
 Hoffman\cite{hofmann1995extensional} as a higher inductive type in \Agda{}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-data _/_ {l l'} (A : Type l) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type l') : Type (l-max l l')
-   where
-   [_] : A @$\rightarrow$@ A / R
-   eq/ : (a b : A) @$\rightarrow$@ (r : R a b) @$\rightarrow$@ [ a ] @$\equiv$@ [ b ]
+    data _/_ {l l'} (A : Type l) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type l') : Type (l-max l l')
+       where
+       [_] : A @$\rightarrow$@ A / R
+       eq/ : (a b : A) @$\rightarrow$@ (r : R a b) @$\rightarrow$@ [ a ] @$\equiv$@ [ b ]
 \end{minted}
 
 We define the quotient type former \fn{\_/\_} which has two parameters. \id{A}
@@ -1566,8 +1563,8 @@ pair we get element-wise equality. With that, we can now define the type of
 unordered pairs.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-UnorderedPair : @$\forall$@ {l} @$\rightarrow$@ Type l @$\rightarrow$@ Type l
-UnorderedPair A = (A @$\times$@ A) / UPairR
+    UnorderedPair : @$\forall$@ {l} @$\rightarrow$@ Type l @$\rightarrow$@ Type l
+    UnorderedPair A = (A @$\times$@ A) / UPairR
 \end{minted}
 
 If we would like to define a map from \fn{UnorderedPair A} to some type \id{B},
@@ -1578,11 +1575,11 @@ ordering of the pairs does not matter, i.e.\ that \fn{$\forall$ x y. f x y
 captures the above idea.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-UPairR-elim : @$\forall$@ {A B} @$\rightarrow$@ (f : A × A @$\rightarrow$@ B)
-              @$\rightarrow$@ ((x y : A) @$\rightarrow$@ f (x , y) @$\equiv$@ f (y , x))
-              @$\rightarrow$@ UnorderedPair A @$\rightarrow$@ B
-UPairR-elim f h [ p ] = f p
-UPairR-elim f h (eq/ (x1 , y1) (x2 , y2) r i) = ?
+    UPairR-elim : @$\forall$@ {A B} @$\rightarrow$@ (f : A × A @$\rightarrow$@ B)
+                @$\rightarrow$@ ((x y : A) @$\rightarrow$@ f (x , y) @$\equiv$@ f (y , x))
+                @$\rightarrow$@ UnorderedPair A @$\rightarrow$@ B
+    UPairR-elim f h [ p ] = f p
+    UPairR-elim f h (eq/ (x1 , y1) (x2 , y2) r i) = ?
 \end{minted}
 
 Pattern matching on an unordered pair gives us two cases to cover. The \id{[\_]}
@@ -1799,7 +1796,7 @@ type \id{A} are equal, a type family \fn{f :\@ A $\rightarrow$ Type} and
 gives us a function that maps \fn{f x} to \fn{f y}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Eq_cast : (x y : ?A) @$\Rrightarrow$@ (p : Eq x y) @$\Rrightarrow$@ (f : ?A -> Type) @$\Rrightarrow$@ f x @$\rightarrow$@ f y
+    Eq_cast : (x y : ?A) @$\Rrightarrow$@ (p : Eq x y) @$\Rrightarrow$@ (f : ?A -> Type) @$\Rrightarrow$@ f x @$\rightarrow$@ f y
 \end{minted}
 
 It has the following reduction rule:
@@ -1815,8 +1812,8 @@ property of the equality type, namely the commutativity of equality, i.e.\ if
 \id{x} is equal to \id{y}, then \id{y} is naturally also equal to \id{x}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Eq_comm : (x y : ?A) @$\Rrightarrow$@ Eq x y @$\rightarrow$@ Eq y x
-Eq_comm p = Eq_cast (f := @$\lambda$@ a @$\rightarrow$@ Eq a x) (p := p) Eq_refl
+    Eq_comm : (x y : ?A) @$\Rrightarrow$@ Eq x y @$\rightarrow$@ Eq y x
+    Eq_comm p = Eq_cast (f := @$\lambda$@ a @$\rightarrow$@ Eq a x) (p := p) Eq_refl
 \end{minted}
 
 To prove this, we use \id{Eq\_cast} with an elimination motive that is an
@@ -1993,15 +1990,15 @@ define the interval type as a normal algebraic data type. Next, we model the
 equality type as a function with an erasable argument out of the interval type.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-type I
-  | @$i_0$@
-  | @$i_1$@
+    type I
+      | @$i_0$@
+      | @$i_1$@
 \end{minted}
 
 More concretely, we define a function with the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-h : I @$\Rrightarrow$@ A
+    h : I @$\Rrightarrow$@ A
 \end{minted}
 
 In Typer, we use $\Rrightarrow$ to denote erasable arguments in function types.
@@ -2028,7 +2025,7 @@ The negation operator does what its name suggests, i.e.\ it simply negates or
 swaps endpoints of the interval type. Unsurprisingly, it has the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-I_not : I @$\rightarrow$@ I
+    I_not : I @$\rightarrow$@ I
 \end{minted}
 
 The negation operator computes as follows:
@@ -2065,7 +2062,7 @@ The meet operator returns the minimum of two terms of the Interval type. The
 order of the Interval type is such that $i_0 \le i \le i_1, \forall i \in I$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-I_meet : I @$\rightarrow$@ I @$\rightarrow$@ I
+    I_meet : I @$\rightarrow$@ I @$\rightarrow$@ I
 \end{minted}
 
 It has the following reduction rules:
@@ -2120,8 +2117,8 @@ The join operator returns the maximum of two terms of the Interval type. We
 define it in terms of the meet and not operators by using De Morgan's law.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-I_join : I @$\rightarrow$@ I @$\rightarrow$@ I
-I_join i j = I_not (I_meet (I_not i) (I_not j))
+    I_join : I @$\rightarrow$@ I @$\rightarrow$@ I
+    I_join i j = I_not (I_meet (I_not i) (I_not j))
 \end{minted}
 
 The above definition allows the \id{I\_join} operator to inherit the required
@@ -2226,7 +2223,7 @@ The function is implemented in Typer as a primitive with the following type
 signature:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ A (_ := i0) @$\rightarrow$@ (r : I) @$\Rrightarrow$@ A (_ := r)
+    I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ A (_ := i0) @$\rightarrow$@ (r : I) @$\Rrightarrow$@ A (_ := r)
 \end{minted}
 
 Its implementation is simple in that its runtime behaviour involves returning
@@ -2246,7 +2243,7 @@ that are not necessarily definitionally equal. The heterogeneous equality type
 has the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Heq : (t : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ t (_ := i0) @$\rightarrow$@ t (_ := i1) @$\rightarrow$@ Type
+    Heq : (t : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ t (_ := i0) @$\rightarrow$@ t (_ := i1) @$\rightarrow$@ Type
 \end{minted}
 
 As we have previously proven, \fn{I $\Rrightarrow$ Type} is equivalent to an
@@ -2260,7 +2257,8 @@ accept an argument of that form as a witness of the equality being constructed.
 %%           ≡> Heq (f (_ := i0)) (f (_ := i1))
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Heq_eq : (t : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (f : (i : I) @$\Rrightarrow$@ t (_ := i)) @$\Rrightarrow$@ Heq (f (_ := i0)) (f (_ := i1))
+    Heq_eq : (t : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (f : (i : I) @$\Rrightarrow$@ t (_ := i))
+             @$\Rrightarrow$@ Heq (f (_ := i0)) (f (_ := i1))
 \end{minted}
 
 The elimination of equality types merely does the opposite of the introduction
@@ -2271,9 +2269,9 @@ equality.
 %%                     ≡> (x : t (_ := i0)) => (y : t (_ := i1))
 %%                     => (p : Heq x y) ≡> (i : I) ≡> t (_ := i)
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Heq_uneq : (t : I @$\Rrightarrow$@ Type)
-           @$\Rrightarrow$@ (x : t (_ := i0)) @$\Rightarrow$@ (y : t (_ := i1))
-           @$\Rightarrow$@ (p : Heq x y) @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t (_ := i)
+    Heq_uneq : (t : I @$\Rrightarrow$@ Type)
+               @$\Rrightarrow$@ (x : t (_ := i0)) @$\Rightarrow$@ (y : t (_ := i1))
+               @$\Rightarrow$@ (p : Heq x y) @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t (_ := i)
 \end{minted}
 
 Indeed, \id{Heq\_eq} and \id{Heq\_uneq} correspond to the forward and backward
@@ -2342,8 +2340,8 @@ $\bI$ given that such a function is necessarily a constant function.
 %% Eq_refl = lambda _ ≡> lambda _ ≡> lambda x ≡>
 %%             Eq_eq (f := lambda _ ≡> x)
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Eq_refl : (x : ?t) |$\Rrightarrow$| x |$\equiv$| x
-Eq_refl x = Eq_eq (f := |$\lambda$| _ |$\Rrightarrow$| x)
+    Eq_refl : (x : ?t) |$\Rrightarrow$| x |$\equiv$| x
+    Eq_refl x = Eq_eq (f := |$\lambda$| _ |$\Rrightarrow$| x)
 \end{minted}
 
 \subsubsection*{Commutativity}
@@ -2360,8 +2358,8 @@ invert the path. This is the intuition behind the following proof.
 %% Eq_comm : (x : ?t) ≡> (y : ?t) ≡> Eq x y -> Eq y x
 %% Eq_comm p = Eq_eq (f := lambda i ≡> Eq_uneq (p := p) (i := I_not i))
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Eq_comm : (x y : ?t) |$\Rrightarrow$| x |$\equiv$| y |$\rightarrow$| y |$\equiv$| x
-Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := I_not i))
+    Eq_comm : (x y : ?t) |$\Rrightarrow$| x |$\equiv$| y |$\rightarrow$| y |$\equiv$| x
+    Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := I_not i))
 \end{minted}
 
 \begin{figure}[H]
@@ -2418,8 +2416,8 @@ based on it, functional extensionality can be derived as a theorem as we
 illustrate below.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Eq_funExt : (f g : (?A |$\rightarrow$| ?B)) |$\Rightarrow$| (p : (x : ?A) |$\rightarrow$| f x |$\equiv$| g x) |$\rightarrow$| f |$\equiv$| g
-Eq_funExt p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| |$\lambda$| x |$\rightarrow$| Eq_uneq (p := p x) (i := i))
+    Eq_funExt : (f g : (?A |$\rightarrow$| ?B)) |$\Rightarrow$| (p : (x : ?A) |$\rightarrow$| f x |$\equiv$| g x) |$\rightarrow$| f |$\equiv$| g
+    Eq_funExt p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| |$\lambda$| x |$\rightarrow$| Eq_uneq (p := p x) (i := i))
 \end{minted}
 
 We note that the above proof makes use of the $\eta$-equivalence of functions,
@@ -2471,13 +2469,13 @@ constructed by functionality extensionality does not lead to a stuck term as
 shown in the following code snippet:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-plus0 : (x : Nat) @$\rightarrow$@ zero + x @$\equiv$@ x + zero
-plus0 x = Nat+_comm zero x
+    plus0 : (x : Nat) @$\rightarrow$@ zero + x @$\equiv$@ x + zero
+    plus0 x = Nat+_comm zero x
 
-eqf = Eq_funext (f := @$\lambda$@ x @$\rightarrow$@ zero + x) (g := @$\lambda$@ x @$\rightarrow$@ x + zero) plus0
+    eqf = Eq_funext (f := @$\lambda$@ x @$\rightarrow$@ zero + x) (g := @$\lambda$@ x @$\rightarrow$@ x + zero) plus0
 
-canon0 : Eq_cast (p := eqf) (f := @$\lambda$@ _ @$\rightarrow$@ Nat) zero @$\equiv$@ zero
-canon0 = Eq_refl
+    canon0 : Eq_cast (p := eqf) (f := @$\lambda$@ _ @$\rightarrow$@ Nat) zero @$\equiv$@ zero
+    canon0 = Eq_refl
 \end{minted}
 
 \id{plus0} is a proof that both ways of adding \id{zero} to an integer \id{x}
@@ -2502,8 +2500,8 @@ simplified in a system with a cubical equality.
 %% Eq_cong = lambda f -> lambda p ->
 %%             Eq_eq (f := lambda i ≡> f (Eq_uneq (p := p) (i := i)))
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Eq_cong : (x y : ?A) |$\Rightarrow$| (g : (?A |$\rightarrow$| ?B)) |$\rightarrow$| (p : x |$\equiv$| y) |$\rightarrow$| g x |$\equiv$| g y
-Eq_cong g p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| g (Eq_uneq (p := p) (i := i)))
+    Eq_cong : (x y : ?A) |$\Rightarrow$| (g : (?A |$\rightarrow$| ?B)) |$\rightarrow$| (p : x |$\equiv$| y) |$\rightarrow$| g x |$\equiv$| g y
+    Eq_cong g p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| g (Eq_uneq (p := p) (i := i)))
 \end{minted}
 
 To construct a proof of \fn{Eq (f x) (f y)}, we apply the \id{Eq\_eq}
@@ -2710,9 +2708,9 @@ we must have a witness of such an inhabitant. In Typer, decidability can be
 represented by the following inductive type.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-type Dec (A : Type)
-  | yes A
-  | no (Not A)
+    type Dec (A : Type)
+      | yes A
+      | no (Not A)
 \end{minted}
 
 \id{Not} is the propositions as type variation of logical negation. It is
@@ -2720,8 +2718,8 @@ defined based on the idea that if a proposition is \underline{not} true, then a
 proof of the proposition would lead to a contradiction.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Not : (T : Type) @$\rightarrow$@ Type
-Not T = T @$\rightarrow$@ Void
+    Not : (T : Type) @$\rightarrow$@ Type
+    Not T = T @$\rightarrow$@ Void
 \end{minted}
 
 Here, \id{Void} is the $\mathbb{0}$ type (also known as the empty type or
@@ -2802,7 +2800,7 @@ below functions are universe polymorphic.
 The $\id{Quotient}$ type former has the following type:
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Quotient : (A : Type) |$\rightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| Type
+    Quotient : (A : Type) |$\rightarrow$| (R : A |$\rightarrow$| A |$\rightarrow$| Type) |$\rightarrow$| Type
 \end{minted}
 
 \paragraph{Introduction}
@@ -2849,9 +2847,9 @@ style of a case analysis where both the term and path constructors have to be
 addressed with the following syntax:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-qcase q
-  | Quotient_in a @$\Rightarrow$@ e1
-  | Quotient_eq x y r @$\Rightarrow$@ e2
+    qcase q
+      | Quotient_in a @$\Rightarrow$@ e1
+      | Quotient_eq x y r @$\Rightarrow$@ e2
 \end{minted}
 
 \id{q} is the scrutinee of the case analysis. A type annotation may be given to it
@@ -2887,13 +2885,13 @@ of type \id{B $\rightarrow$ C} to produce functions of type \id{A $\rightarrow$
 %% \end{minted}
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-PointwiseEq : (A : ?) @$\Rightarrow$@ (B : ?) @$\Rightarrow$@ (A @$\rightarrow$@ B) @$\rightarrow$@ (A @$\rightarrow$@ B) @$\rightarrow$@ Type
-PointwiseEq f g = (x : A) @$\rightarrow$@ Eq (f x) (g x)
+    PointwiseEq : (A : ?) @$\Rightarrow$@ (B : ?) @$\Rightarrow$@ (A @$\rightarrow$@ B) @$\rightarrow$@ (A @$\rightarrow$@ B) @$\rightarrow$@ Type
+    PointwiseEq f g = (x : A) @$\rightarrow$@ Eq (f x) (g x)
 
-e1 : Quotient (?A @$\rightarrow$@ ?B) PointwiseEq @$\rightarrow$@ (?B @$\rightarrow$@ ?C) @$\rightarrow$@ ?A @$\rightarrow$@ ?C
-e1 q g a = qcase (q : (A @$\rightarrow$@ B) / PointwiseEq)
-        | Quotient_in f @$\Rightarrow$@ g (f a)
-        | Quotient_eq f f' r @$\Rightarrow$@ Eq_cong g (r a)
+    e1 : Quotient (?A @$\rightarrow$@ ?B) PointwiseEq @$\rightarrow$@ (?B @$\rightarrow$@ ?C) @$\rightarrow$@ ?A @$\rightarrow$@ ?C
+    e1 q g a = qcase (q : (A @$\rightarrow$@ B) / PointwiseEq)
+            | Quotient_in f @$\Rightarrow$@ g (f a)
+            | Quotient_eq f f' r @$\Rightarrow$@ Eq_cong g (r a)
 \end{minted}
 
 Drawing inspiration from Arend, the \id{Quotient\_eq} branch may also be handled
@@ -2915,10 +2913,10 @@ constructing an equality proof, we simply specify what the given map for the
 %% \end{minted}
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-e2 : Quotient (?A @$\rightarrow$@ ?B) PointwiseEq @$\rightarrow$@ (?B @$\rightarrow$@ ?C) @$\rightarrow$@ ?A @$\rightarrow$@ ?C
-e2 q g a = qcase (q : (A @$\rightarrow$@ B) / PointwiseEq)
-        | Quotient_in f @$\Rightarrow$@ g (f a)
-        | Quotient_eq f f' r i @$\Rightarrow$@ g (Eq_uneq (p := r a) (i := i))
+    e2 : Quotient (?A @$\rightarrow$@ ?B) PointwiseEq @$\rightarrow$@ (?B @$\rightarrow$@ ?C) @$\rightarrow$@ ?A @$\rightarrow$@ ?C
+    e2 q g a = qcase (q : (A @$\rightarrow$@ B) / PointwiseEq)
+            | Quotient_in f @$\Rightarrow$@ g (f a)
+            | Quotient_eq f f' r i @$\Rightarrow$@ g (Eq_uneq (p := r a) (i := i))
 \end{minted}
 
 More elaborate examples of usages of this macro are given in subsequent
@@ -2951,10 +2949,10 @@ aforementioned section, we now define it in terms of the interval primitive,
 %%
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Eq_cast : (x y : ?A) |$\Rrightarrow$| (p : x |$\equiv$| y) |$\Rrightarrow$| (f : ?A |$\rightarrow$| Type) |$\Rrightarrow$| f x |$\rightarrow$| f y
-Eq_cast A x y p f fx =
-  I_transp (A := |$\lambda$| t |$\Rrightarrow$| f (Eq_uneq (t := t) (p := p) (i := i)))
-           fx (r := |$\iright$|)
+    Eq_cast : (x y : ?A) |$\Rrightarrow$| (p : x |$\equiv$| y) |$\Rrightarrow$| (f : ?A |$\rightarrow$| Type) |$\Rrightarrow$| f x |$\rightarrow$| f y
+    Eq_cast A x y p f fx =
+      I_transp (A := |$\lambda$| t |$\Rrightarrow$| f (Eq_uneq (t := t) (p := p) (i := i)))
+               fx (r := |$\iright$|)
 \end{minted}
 
 Here, we make use of the built-in function $\id{I\_transp}$ by passing it the
@@ -2969,9 +2967,9 @@ Transporting across a reflexive path should be equivalent to a no-op, as
 illustrated in the following proof.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Eq_cast_refl : (A : Type) |$\Rrightarrow$| (x : A)
-               |$\rightarrow$| x |$\equiv$| Eq_cast (p := Eq_refl (x := A)) (f := id) x
-Eq_cast_refl A x = Eq_refl
+    Eq_cast_refl : (A : Type) |$\Rrightarrow$| (x : A)
+                   |$\rightarrow$| x |$\equiv$| Eq_cast (p := Eq_refl (x := A)) (f := id) x
+    Eq_cast_refl A x = Eq_refl
 \end{minted}
 
 The above is possible because of the first reduction rule of \id{I\_transp},
@@ -3005,11 +3003,12 @@ definitionally. Hence, we prove the $\eta$-equivalence propositionally and use
 it to complete our proof.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Eq_@$\eta$@ : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (i : I) @$\rightarrow$@ A (_ := i) @$\equiv$@ Eq_uneq (p := Eq_eq (f := A)) (i := i)
-Eq_@$\eta$@ = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ i @$\rightarrow$@
-  case i return A (_ := i) @$\equiv$@ Eq_uneq (p := Eq_eq (f := A)) (i := i)
-  | i0 @$\Rightarrow$@ Eq_refl
-  | i1 @$\Rightarrow$@ Eq_refl
+    Eq_@$\eta$@ : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (i : I)
+                  @$\rightarrow$@ A (_ := i) @$\equiv$@ Eq_uneq (p := Eq_eq (f := A)) (i := i)
+    Eq_@$\eta$@ = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ i @$\rightarrow$@
+      case i return A (_ := i) @$\equiv$@ Eq_uneq (p := Eq_eq (f := A)) (i := i)
+        | i0 @$\Rightarrow$@ Eq_refl
+        | i1 @$\Rightarrow$@ Eq_refl
 \end{minted}
 
 %% NOTE: This is just an extra piece of information that may or may not interest
@@ -3038,8 +3037,8 @@ the dotted line in \autoref{fig:eq-trans}. The proof of this theorem is as
 follows:
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Eq_trans : (x y z: ?t) |$\Rrightarrow$| x |$\equiv$| y |$\rightarrow$| y |$\equiv$| z |$\rightarrow$| x |$\equiv$| z
-Eq_trans x=y y=z = Eq_cast (p := y=z) (f := |$\lambda$| x' |$\rightarrow$| Eq x x') x=y
+    Eq_trans : (x y z : ?t) |$\Rrightarrow$| x |$\equiv$| y |$\rightarrow$| y |$\equiv$| z |$\rightarrow$| x |$\equiv$| z
+    Eq_trans x=y y=z = Eq_cast (p := y=z) (f := |$\lambda$| x' |$\rightarrow$| Eq x x') x=y
 \end{minted}
 
 \begin{figure}
@@ -3096,10 +3095,10 @@ $\oftype{\id{x}}{\id{A}}$ a term of type \fn{C x x (refl x)}. We now state the
 type of the J-rule:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-J : (C : (x y : ?A) @$\rightarrow$@ x @$\equiv$@ y @$\rightarrow$@ Type)
-    @$\Rrightarrow$@ ((x : ?A) @$\rightarrow$@ C x x Eq_refl)
-    @$\rightarrow$@ (x y : ?A) @$\rightarrow$@ (p : x @$\equiv$@ y)
-    @$\rightarrow$@ C x y p
+    J : (C : (x y : ?A) @$\rightarrow$@ x @$\equiv$@ y @$\rightarrow$@ Type)
+        @$\Rrightarrow$@ ((x : ?A) @$\rightarrow$@ C x x Eq_refl)
+        @$\rightarrow$@ (x y : ?A) @$\rightarrow$@ (p : x @$\equiv$@ y)
+        @$\rightarrow$@ C x y p
 \end{minted}
 
 This rule essentially says that to know what to do with an equality between an
@@ -3112,16 +3111,16 @@ usually be derived based on the constructors of the datatype itself. For
 instance, consider the below inductive definition of the Peano natural numbers.
 
 \begin{minted}{agda}
-type Nat
-    | zero
-    | succ Nat
+    type Nat
+        | zero
+        | succ Nat
 \end{minted}
 
 The corresponding elimination principle then takes on the following logical form:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Nat_elim : (P : Nat @$\rightarrow$@ Type) @$\Rrightarrow$@ P zero @$\rightarrow$@ ((n : Nat) @$\rightarrow$@ P n @$\rightarrow$@ P (succ n))
-           @$\rightarrow$@ (n : Nat) @$\rightarrow$@ P n
+    Nat_elim : (P : Nat @$\rightarrow$@ Type) @$\Rrightarrow$@ P zero @$\rightarrow$@ ((n : Nat) @$\rightarrow$@ P n @$\rightarrow$@ P (succ n))
+               @$\rightarrow$@ (n : Nat) @$\rightarrow$@ P n
 \end{minted}
 
 First, we need to define what needs to be done if the natural number we are
@@ -3155,7 +3154,7 @@ we may easily define the J-rule by performing a cast from \fn{P a Eq\_refl} to
 \fn{P b p}:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-J h x y p = Eq_cast (p := eqUnique p) (f := @$\lambda$@ e @$\rightarrow$@ C x e.fst e.snd) (h x)
+    J h x y p = Eq_cast (p := eqUnique p) (f := @$\lambda$@ e @$\rightarrow$@ C x e.fst e.snd) (h x)
 \end{minted}
 
 \section{Hedberg's theorem}\label{subsec:hedberg}
@@ -3188,8 +3187,8 @@ collapsible equality types corresponds to the notion of a \textbf{Set} or 0-type
 in HoTT\cite[Chap~3.1]{HoTTbook}. We represent this using the following proposition.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-isSet : Type @$\rightarrow$@ Type
-isSet A = (x y : A) @$\rightarrow$@ (p q : x @$\equiv$@ y) @$\rightarrow$@ p @$\equiv$@ q
+    isSet : Type @$\rightarrow$@ Type
+    isSet A = (x y : A) @$\rightarrow$@ (p q : x @$\equiv$@ y) @$\rightarrow$@ p @$\equiv$@ q
 \end{minted}
 
 We shall see in a subsequent section that this property plays a substantial role
@@ -3205,8 +3204,8 @@ present the type of the function without going into the details of its
 implementation\footnote{The actual implementation may be found in the attached \fn{samples/hedberg.typer} file}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-dici : (di : (x y : ?A) @$\rightarrow$@ Dec (x @$\equiv$@ y)) @$\rightarrow$@ (a b : ?A) @$\rightarrow$@ (u v : a @$\equiv$@ b)
-       @$\rightarrow$@ u @$\equiv$@ v
+    dici : (di : (x y : ?A) @$\rightarrow$@ Dec (x @$\equiv$@ y)) @$\rightarrow$@ (a b : ?A) @$\rightarrow$@ (u v : a @$\equiv$@ b)
+           @$\rightarrow$@ u @$\equiv$@ v
 \end{minted}
 
 The equality of quotient types is not decidable in general, implying that we
@@ -3290,13 +3289,13 @@ crucial when we start reasoning about operations on rational numbers.
 We start by axiomatising the associativity and commutativity of the addition and multiplication operations.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_+-comm : (x y : Integer) |$\rightarrow$| x + y |$\equiv$| y + x
+    Integer_+-comm : (x y : Integer) |$\rightarrow$| x + y |$\equiv$| y + x
 
-Integer_+-assoc : (x y z : Integer) |$\rightarrow$| x + (y + z) |$\equiv$| (x + y) + z
+    Integer_+-assoc : (x y z : Integer) |$\rightarrow$| x + (y + z) |$\equiv$| (x + y) + z
 
-Integer_*-comm : (x y : Integer) |$\rightarrow$| x * y |$\equiv$| y * x
+    Integer_*-comm : (x y : Integer) |$\rightarrow$| x * y |$\equiv$| y * x
 
-Integer_*-assoc : (x y z : Integer) |$\rightarrow$| x * (y * z) |$\equiv$| (x * y) * z
+    Integer_*-assoc : (x y z : Integer) |$\rightarrow$| x * (y * z) |$\equiv$| (x * y) * z
 \end{minted}
 
 We also want to be able to show that multiplication is distributive with respect
@@ -3305,7 +3304,7 @@ distributivity can be easily proven as a theorem, this is also the case for the
 other axioms that we will describe below.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_*DistL+ : (x y z : Integer) |$\rightarrow$| (x + y) * z |$\equiv$| (x * z) + (y * z)
+    Integer_*DistL+ : (x y z : Integer) |$\rightarrow$| (x + y) * z |$\equiv$| (x * z) + (y * z)
 \end{minted}
 
 The above properties can also be stated for the subtraction operation. We also
@@ -3313,15 +3312,15 @@ want to be able to say that we have additive inverses for all integers and that
 0 is the additive identity.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_+Linv : (x : Integer) |$\rightarrow$| (0 - x) + x |$\equiv$| 0
+    Integer_+Linv : (x : Integer) |$\rightarrow$| (0 - x) + x |$\equiv$| 0
 
-Integer_+Lid : (x : Integer) |$\rightarrow$| 0 + x |$\equiv$| x
+    Integer_+Lid : (x : Integer) |$\rightarrow$| 0 + x |$\equiv$| x
 \end{minted}
 
 Of course, we should also be able to say that 1 is the multiplicative identity.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_*Lid : (x : Integer) |$\rightarrow$| 1 * x |$\equiv$| x
+    Integer_*Lid : (x : Integer) |$\rightarrow$| 1 * x |$\equiv$| x
 \end{minted}
 
 Now that we have all these axioms, we can say that \id{Integer} fulfills the
@@ -3340,7 +3339,7 @@ with respect to multiplication. In other words, multiplying by 0 always yields 0
 as a result.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_*Lzero : (x : Integer) |$\rightarrow$| 0 * x |$\equiv$| 0
+    Integer_*Lzero : (x : Integer) |$\rightarrow$| 0 * x |$\equiv$| 0
 \end{minted}
 
 \subsection*{Integer theorems}\label{subsection:int-theorems}
@@ -3373,23 +3372,23 @@ Integer_*DistR+ x y z =
 Another useful theorem that we can prove states that the product of two non-zero integers is necessarily non-zero.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_0-product : (x y : Integer) |$\rightarrow$| Not (x |$\equiv$| 0) |$\rightarrow$| Not (y |$\equiv$| 0)
-                    |$\rightarrow$| Not (Integer_* x y |$\equiv$| 0)
-Integer_0-product x y x|$\ne$|0 y|$\ne$|0 xy|$\ne$|0 =
-    y|$\ne$|0 (Integer_isIntegral x y xy|$\ne$|0 x|$\ne$|0)
+    Integer_0-product : (x y : Integer) |$\rightarrow$| Not (x |$\equiv$| 0) |$\rightarrow$| Not (y |$\equiv$| 0)
+                        |$\rightarrow$| Not (Integer_* x y |$\equiv$| 0)
+    Integer_0-product x y x|$\ne$|0 y|$\ne$|0 xy|$\ne$|0 =
+        y|$\ne$|0 (Integer_isIntegral x y xy|$\ne$|0 x|$\ne$|0)
 \end{minted}
 
 We will eventually also make use of the below theorem that states that the negation of an integer may be distributed over multiplication. Its `right' counterpart may also be proven in a similar manner.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-Integer_NegateDistL* : (x y : Integer) |$\rightarrow$| 0 - (x * y) |$\equiv$| (0 - x) * y
-Integer_NegateDistL* x y =
-  0 - (x * y)
-  ==< Eq_cong (|$\lambda$| e |$\rightarrow$| e - (x * y))
-              (Eq_comm (Integer_*Lzero y)) >==
-  (0 * y) - (x * y)
-  ==< Eq_comm (Integer_*DistL- 0 x y) >==
-  (0 - x) * y |$\qed$|
+    Integer_NegateDistL* : (x y : Integer) |$\rightarrow$| 0 - (x * y) |$\equiv$| (0 - x) * y
+    Integer_NegateDistL* x y =
+      0 - (x * y)
+      ==< Eq_cong (|$\lambda$| e |$\rightarrow$| e - (x * y))
+                  (Eq_comm (Integer_*Lzero y)) >==
+      (0 * y) - (x * y)
+      ==< Eq_comm (Integer_*DistL- 0 x y) >==
+      (0 - x) * y |$\qed$|
 \end{minted}
 
 We introduced equational reasoning to facilitate the development and reading of
@@ -3402,7 +3401,7 @@ The $\qed$ symbol indicates the end of the equational reasoning. More details
 are given in Section~\ref{section:eqreasoning} of the appendix.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-  x ==< p1 >== i ==< p2 >== j ==< p3 >== k ... ==< pn >== y |$\qed$|
+    x ==< p1 >== i ==< p2 >== j ==< p3 >== k ... ==< pn >== y |$\qed$|
 \end{minted}
 
 \subsection*{Implementation of Rationals}
@@ -3411,8 +3410,8 @@ with an erasable proof that the second integer is non-zero. We decided to
 implement this as an inductive type with a single constructor.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-type @$\mathbb{Z}{\times}\mathbb{Z}{\ne}0$@
-  | inR (@$z_1$@ : Integer) (@$z_2$@ : Integer) (p ::: Not (Eq @$z_2$@ 0))
+    type @$\mathbb{Z}{\times}\mathbb{Z}{\ne}0$@
+      | inR (@$z_1$@ : Integer) (@$z_2$@ : Integer) (p ::: Not (Eq @$z_2$@ 0))
 \end{minted}
 
 The underlying relation takes on the following form which may be proven to be
@@ -3421,16 +3420,16 @@ useful if we wish to prove that the resulting quotient is effective and that
 \id{Rational} is discrete.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-equalQ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ Type
-equalQ p1 p2 = case (p1 , p2)
-    | (inR fst1 snd1, inR fst2 snd2) => fst1 * snd2 @$\equiv$@ snd1 * fst2
+    equalQ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ Type
+    equalQ p1 p2 = case (p1 , p2)
+        | (inR fst1 snd1, inR fst2 snd2) => fst1 * snd2 @$\equiv$@ snd1 * fst2
 \end{minted}
 
 Finally, we can state the definition of the Rationals.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Rational : Type
-Rational = Quotient @$\zpair$@ equalQ
+    Rational : Type
+    Rational = Quotient @$\zpair$@ equalQ
 \end{minted}
 
 Negation is the simplest operation that we can define on the rationals, it is
@@ -3438,9 +3437,9 @@ achieved by simply negating the integer numerator. This is done via the below
 function.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-negate_fst : @$\zpair \rightarrow \zpair$@
-negate_fst x = case x
-    | inR z1 z2 (_ := p) @$\Rightarrow$@ inR (-1 * z1) z2 (_ := p)
+    negate_fst : @$\zpair \rightarrow \zpair$@
+    negate_fst x = case x
+        | inR z1 z2 (_ := p) @$\Rightarrow$@ inR (-1 * z1) z2 (_ := p)
 \end{minted}
 
 We also need to prove that \id{negate\_fst} respects the underlying relation
@@ -3488,14 +3487,14 @@ branch that we may access at Debruijn index 0.
 Finally, the negation operation of rational numbers may be constructed like so:
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
-Rational_negate : Rational @$\rightarrow$@ Rational
-Rational_negate x =
-  qcase (x : @$\zpair$@ / equalQ)
-    | Quotient_in a @$\Rightarrow$@ Quotient_in (R := equalQ) (negate_fst a)
-    | Quotient_eq a a' r @$\Rightarrow$@ Quotient_eq (R := equalQ)
-                                        (a := negate_fst a)
-                                        (a' := negate_fst a')
-                                        (negate_compat a a' r)
+    Rational_negate : Rational @$\rightarrow$@ Rational
+    Rational_negate x =
+      qcase (x : @$\zpair$@ / equalQ)
+        | Quotient_in a @$\Rightarrow$@ Quotient_in (R := equalQ) (negate_fst a)
+        | Quotient_eq a a' r @$\Rightarrow$@ Quotient_eq (R := equalQ)
+                                            (a := negate_fst a)
+                                            (a' := negate_fst a')
+                                            (negate_compat a a' r)
 \end{minted}
 
 We can also define the addition operation on the rationals. As before, we start
@@ -3541,13 +3540,13 @@ underlying relation, and since this is a binary operation, we will have to prove
 it for `both sides'. In other words, we have to produce the below proofs.
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
-@$\mathbb{Q}$+\_feql@ : (a a' b : @$\zpair$@) @$\rightarrow$@ equalQ a a'
-          @$\rightarrow$@ Quotient_in (@$\zpairplus$@ a b) @$\equiv$@ Quotient_in (@$\zpairplus$@ a' b)
-@$\mathbb{Q}$+\_feql@ = ?
+    @$\mathbb{Q}$+\_feql@ : (a a' b : @$\zpair$@) @$\rightarrow$@ equalQ a a'
+              @$\rightarrow$@ Quotient_in (@$\zpairplus$@ a b) @$\equiv$@ Quotient_in (@$\zpairplus$@ a' b)
+    @$\mathbb{Q}$+\_feql@ = ?
 
-@$\mathbb{Q}$+\_feqr@ : (a : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@) @$\rightarrow$@ (b' : @$\zpair$@) @$\rightarrow$@ equalQ b b'
-          @$\rightarrow$@ Quotient_in (@$\zpairplus$@ a b) @$\equiv$@ Quotient_in (@$\zpairplus$@ a b')
-@$\mathbb{Q}$+\_feqr@ = ?
+    @$\mathbb{Q}$+\_feqr@ : (a : @$\zpair$@) @$\rightarrow$@ (b : @$\zpair$@) @$\rightarrow$@ (b' : @$\zpair$@) @$\rightarrow$@ equalQ b b'
+              @$\rightarrow$@ Quotient_in (@$\zpairplus$@ a b) @$\equiv$@ Quotient_in (@$\zpairplus$@ a b')
+    @$\mathbb{Q}$+\_feqr@ = ?
 \end{minted}
 
 The proof of $\mathbb{Q}{+}\_\id{feql}$ is long and uninteresting and thus will
@@ -3557,23 +3556,23 @@ warrant being put here}. However, once this has been proved, its counterpart is
 a trivial corollary by virtue of the commutativity of $\zpairplus$.
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
-@$\mathbb{Q}$+\_feqr@ a b b' p =
-    Eq_trans (@$\zpairplus$-Comm@ a b)
-             (Eq_trans (@$\mathbb{Q}$@+_feql b b' a p) (@$\zpairplus$-Comm@ b' a))
+    @$\mathbb{Q}$+\_feqr@ a b b' p =
+        Eq_trans (@$\zpairplus$-Comm@ a b)
+                 (Eq_trans (@$\mathbb{Q}$@+_feql b b' a p) (@$\zpairplus$-Comm@ b' a))
 \end{minted}
 
 We can now assemble the above to define both the addition and subtraction of
 rationals as follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
-Rational_+ : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational
-Rational_+ a b =
-  Quotient_rec2 (R := equalQ) (S := equalQ)
-                Rational_isSet (@$\lambda$@ x y @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))
-                @$\mathbb{Q}$+\_feql@ @$\mathbb{Q}$+\_feqr@ a b
+    Rational_+ : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational
+    Rational_+ a b =
+      Quotient_rec2 (R := equalQ) (S := equalQ)
+                    Rational_isSet (@$\lambda$@ x y @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))
+                    @$\mathbb{Q}$+\_feql@ @$\mathbb{Q}$+\_feqr@ a b
 
-Rational_- : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational
-Rational_- a b = Rational_+ a (Rational_negate b)
+    Rational_- : Rational @$\rightarrow$@ Rational @$\rightarrow$@ Rational
+    Rational_- a b = Rational_+ a (Rational_negate b)
 \end{minted}
 
 $\id{Quotient\_rec2}$ is a library function that allows us to simultaneously
@@ -3648,8 +3647,8 @@ To that end, we wish to define a relation $\fn{ListPerm l1 l2}$ such that
 a constructor of the following form:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-swapPerm : (x y : A) @$\rightarrow$@ (l : List A)
-           @$\rightarrow$@ ListPerm ?A (cons y (cons x l)) (cons x (cons y l))
+    swapPerm : (x y : A) @$\rightarrow$@ (l : List A)
+               @$\rightarrow$@ ListPerm ?A (cons y (cons x l)) (cons x (cons y l))
 \end{minted}
 
 The relation is symmetric as it is, however, for it to be an equivalence
@@ -3666,17 +3665,17 @@ such that $\fn{ListPerm}$ is closed under the base constructors of the List
 datatype.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-nilPerm : ListPerm ?A nil nil
+    nilPerm : ListPerm ?A nil nil
 
-consPerm : (x : ?A) @$\rightarrow$@ (l1 l2 : List ?A) @$\rightarrow$@ ListPerm ?A l1 l2
-           @$\rightarrow$@ ListPerm ?A (cons x l1) (cons x l2)
+    consPerm : (x : ?A) @$\rightarrow$@ (l1 l2 : List ?A) @$\rightarrow$@ ListPerm ?A l1 l2
+               @$\rightarrow$@ ListPerm ?A (cons x l1) (cons x l2)
 \end{minted}
 
 Finally, the following addition makes the relation transitive:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-transPerm : (l1 l2 l3 : List ?A) @$\rightarrow$@ ListPerm ?A l1 l2 @$\rightarrow$@ ListPerm ?A l2 l3
-            @$\rightarrow$@ ListPerm ?A l1 l3
+    transPerm : (l1 l2 l3 : List ?A) @$\rightarrow$@ ListPerm ?A l1 l2 @$\rightarrow$@ ListPerm ?A l2 l3
+                @$\rightarrow$@ ListPerm ?A l1 l3
 \end{minted}
 
 How the $\fn{ListPerm}$ relation has been presented so far suggests that it
@@ -3685,46 +3684,46 @@ support for GADTs, however, we draw inspiration from\cite{sulzmann2007systemfeq}
 to encode such a GADT as an inductive type with explicit equality proofs.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-type ListPerm (A : Type) (l1 : List A) (l2 : List A) : Type
-  | nilPerm (p1 :: l1 @$\equiv$@ nil) (p2 :: l2 @$\equiv$@ nil)
-  | consPerm (x : A) (l1' : List A) (l2' : List A) (ListPerm A l1' l2')
-             (p1 :: l1 @$\equiv$@ (cons x l1')) (p2 :: l2 @$\equiv$@ (cons x l2'))
-  | swapPerm (x : A) (y : A) (l : List A)
-             (p1 :: l1 @$\equiv$@ (cons x (cons y l)))
-             (p2 :: l2 @$\equiv$@ (cons y (cons x l)))
-  | transPerm (l1' : List A) (l2' : List A) (l3' : List A)
-              (ListPerm A l1' l2') (ListPerm A l2' l3')
-              (p1 :: l1 @$\equiv$@ l1') (p2 :: l2 @$\equiv$@ l3')
+    type ListPerm (A : Type) (l1 : List A) (l2 : List A) : Type
+      | nilPerm (p1 :: l1 @$\equiv$@ nil) (p2 :: l2 @$\equiv$@ nil)
+      | consPerm (x : A) (l1' : List A) (l2' : List A) (ListPerm A l1' l2')
+                 (p1 :: l1 @$\equiv$@ (cons x l1')) (p2 :: l2 @$\equiv$@ (cons x l2'))
+      | swapPerm (x : A) (y : A) (l : List A)
+                 (p1 :: l1 @$\equiv$@ (cons x (cons y l)))
+                 (p2 :: l2 @$\equiv$@ (cons y (cons x l)))
+      | transPerm (l1' : List A) (l2' : List A) (l3' : List A)
+                  (ListPerm A l1' l2') (ListPerm A l2' l3')
+                  (p1 :: l1 @$\equiv$@ l1') (p2 :: l2 @$\equiv$@ l3')
 \end{minted}
 
 With that, we may now define the $\fn{Multiset}$ type former.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Multiset : Type @$\rightarrow$@ Type
-Multiset A = Quotient (List A) (ListPerm A)
+    Multiset : Type @$\rightarrow$@ Type
+    Multiset A = Quotient (List A) (ListPerm A)
 \end{minted}
 
 An empty multiset is simply the canonical projection of the $\fn{nil}$ List into
 the Quotient.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Multiset_empty : Multiset ?A
-Multiset_empty = Quotient_in nil
+    Multiset_empty : Multiset ?A
+    Multiset_empty = Quotient_in nil
 \end{minted}
 
 Insertion is merely the application of the $\fn{cons}$ constructor of List with the help
 of $\fn{consPerm}$ that we previously defined.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Multiset_cons : ?A @$\rightarrow$@ Multiset ?A @$\rightarrow$@ Multiset ?A
-Multiset_cons a s =
-  qcase (s : List A / ListPerm A)
-    | Quotient_in l @$\Rightarrow$@ Quotient_in (R := ListPerm A) (cons a l)
-    | Quotient_eq l l' r @$\Rightarrow$@ Quotient_eq (R := ListPerm A)
-                                        (a := cons a l)
-                                        (a' := cons a l')
-                                        (consPerm a l l' r (_ := Eq_refl)
-                                                           (_ := Eq_refl))
+    Multiset_cons : ?A @$\rightarrow$@ Multiset ?A @$\rightarrow$@ Multiset ?A
+    Multiset_cons a s =
+      qcase (s : List A / ListPerm A)
+        | Quotient_in l @$\Rightarrow$@ Quotient_in (R := ListPerm A) (cons a l)
+        | Quotient_eq l l' r @$\Rightarrow$@ Quotient_eq (R := ListPerm A)
+                                            (a := cons a l)
+                                            (a' := cons a l')
+                                            (consPerm a l l' r (_ := Eq_refl)
+                                                               (_ := Eq_refl))
 \end{minted}
 
 Other useful operations on the Multiset datatype may be defined, such as
@@ -3735,7 +3734,7 @@ determines if a certain term of type $\fn{A}$ is a member of a multiset. Its
 type is as follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Multiset_mem : Discrete ?A @$\rightarrow$@ ?A @$\rightarrow$@ Multiset ?A @$\rightarrow$@ Bool
+    Multiset_mem : Discrete ?A @$\rightarrow$@ ?A @$\rightarrow$@ Multiset ?A @$\rightarrow$@ Bool
 \end{minted}
 
 In order for this function to work, the underlying type $\fn{A}$ must be
@@ -3745,13 +3744,13 @@ element in a given list. We then define a predicate $\fn{isMember}$ such that
 $\fn{isMember a l}$ means that $\fn{a}$ is a member of the list $\fn{l}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-type Any (A : Type) (P : (a : A) @$\rightarrow$@ Type) (l : List A) : Type
-  | here (x : A) (xs : List A) (p ::: P x) (eq ::: l @$\equiv$@ cons x xs)
-  | there (x : A) (xs : List A) (@$\neg$@p ::: Not (P x)) (Any A P xs)
-          (eq ::: l @$\equiv$@ cons x xs)
+    type Any (A : Type) (P : (a : A) @$\rightarrow$@ Type) (l : List A) : Type
+      | here (x : A) (xs : List A) (p ::: P x) (eq ::: l @$\equiv$@ cons x xs)
+      | there (x : A) (xs : List A) (@$\neg$@p ::: Not (P x)) (Any A P xs)
+              (eq ::: l @$\equiv$@ cons x xs)
 
-isMember : ?A @$\rightarrow$@ List ?A @$\rightarrow$@ Type
-isMember = @$\lambda$@ A @$\Rightarrow$@ @$\lambda$@ x l @$\rightarrow$@ Any A (@$\lambda$@ x' @$\rightarrow$@ Eq x x') l
+    isMember : ?A @$\rightarrow$@ List ?A @$\rightarrow$@ Type
+    isMember = @$\lambda$@ A @$\Rightarrow$@ @$\lambda$@ x l @$\rightarrow$@ Any A (@$\lambda$@ x' @$\rightarrow$@ Eq x x') l
 \end{minted}
 
 %% The omitted proofs are uninteresting so far as quotient types are concerned
@@ -3793,8 +3792,8 @@ it has a unique inhabitant. We may define a proposition \id{isProp} that
 captures this idea as proposed in the HoTT book\cite[Chap~3.3]{HoTTbook}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-isProp : (p q : ?P) @$\rightarrow$@ Type
-isProp p q = p @$\equiv$ q
+    isProp : (p q : ?P) @$\rightarrow$@ Type
+    isProp p q = p @$\equiv$@ q
 \end{minted}
 
 Propositional truncation is the truncation of a proposition such that it becomes
@@ -3811,11 +3810,11 @@ are:
 The encoding is simple, we simply define the following type former along with its term former:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-PropTrunc : (P : Type) @$\rightarrow$@ Type
-PropTrunc P = Quotient P (@$\lambda$@ p1 p2 @$\rightarrow$@ Unit)
+    PropTrunc : (P : Type) @$\rightarrow$@ Type
+    PropTrunc P = Quotient P (@$\lambda$@ p1 p2 @$\rightarrow$@ Unit)
 
-inPropTrunc : ?P @$\rightarrow$@ PropTrunc ?P
-inPropTrunc p = Quotient_in (R := @$\lambda$@ p1 p2 @$\rightarrow$@ Unit) p
+    inPropTrunc : ?P @$\rightarrow$@ PropTrunc ?P
+    inPropTrunc p = Quotient_in (R := @$\lambda$@ p1 p2 @$\rightarrow$@ Unit) p
 \end{minted}
 
 The choice of $\id{R}$ here essentially implies that every term of the base type
@@ -3823,27 +3822,27 @@ The choice of $\id{R}$ here essentially implies that every term of the base type
 the following function:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-squash : (x y : PropTrunc ?P) @$\rightarrow$@ x @$\equiv$@ y
-squash x y =
-  let
-    rel : P @$\rightarrow$@ P @$\rightarrow$@ Type
-    rel _ _ = Unit
-  in
-    elimProp2 (R := rel) (S := rel)
-              (P := @$\lambda$@ x y @$\rightarrow$@ Eq x y)
-              (@$\lambda$@ x y @$\rightarrow$@ Quotient_trunc (R := rel) (x := x) (y := y))
-              (@$\lambda$@ a a' @$\rightarrow$@ Quotient_eq (R := rel) (a := a) (a' := a') unit)
-              x y
+    squash : (x y : PropTrunc ?P) @$\rightarrow$@ x @$\equiv$@ y
+    squash x y =
+      let
+        rel : P @$\rightarrow$@ P @$\rightarrow$@ Type
+        rel _ _ = Unit
+      in
+        elimProp2 (R := rel) (S := rel)
+                  (P := @$\lambda$@ x y @$\rightarrow$@ Eq x y)
+                  (@$\lambda$@ x y @$\rightarrow$@ Quotient_trunc (R := rel) (x := x) (y := y))
+                  (@$\lambda$@ a a' @$\rightarrow$@ Quotient_eq (R := rel) (a := a) (a' := a') unit)
+                  x y
 \end{minted}
 
 \id{inPropTrunc} and \id{squash} combined imply that the first property is satisfied. Next, we state the elimination principle of the propositional truncation of some type \id{P}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-propTruncRec : isProp ?P @$\rightarrow$@ (?A @$\rightarrow$@ ?P) @$\rightarrow$@ PropTrunc ?A @$\rightarrow$@ ?P
-propTruncRec prop f a = elimProp (R := @$\lambda$@ _ _ @$\rightarrow$@ Unit)
-                                 (P := @$\lambda$@ _ @$\rightarrow$@ P)
-                                 (@$\lambda$@ _ @$\rightarrow$@ prop)
-                                 f a
+    propTruncRec : isProp ?P @$\rightarrow$@ (?A @$\rightarrow$@ ?P) @$\rightarrow$@ PropTrunc ?A @$\rightarrow$@ ?P
+    propTruncRec prop f a = elimProp (R := @$\lambda$@ _ _ @$\rightarrow$@ Unit)
+                                     (P := @$\lambda$@ _ @$\rightarrow$@ P)
+                                     (@$\lambda$@ _ @$\rightarrow$@ prop)
+                                     f a
 \end{minted}
 
 By partially applying a proof that P is a proposition and a function of type
@@ -3855,19 +3854,19 @@ Nomalised types introduced in \autoref{sec:normalised-types-courtieu} are a
 strict subset of our quotient types, we show how we encode them in our system.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Qnorm : (A : Type) @$\rightarrow$@ (nf : A @$\rightarrow$@ A) @$\rightarrow$@ Type
-Qnorm A nf = Quotient A (@$\lambda$@ x y @$\rightarrow$@ Eq (nf x) (nf y))
+    Qnorm : (A : Type) @$\rightarrow$@ (nf : A @$\rightarrow$@ A) @$\rightarrow$@ Type
+    Qnorm A nf = Quotient A (@$\lambda$@ x y @$\rightarrow$@ Eq (nf x) (nf y))
 
-Qnorm_in : ?A @$\rightarrow$@ Qnorm ?A ?nf
-Qnorm_in a = Quotient_in a
+    Qnorm_in : ?A @$\rightarrow$@ Qnorm ?A ?nf
+    Qnorm_in a = Quotient_in a
 
-Qnorm_elim : Qnorm ?A ?nf @$\rightarrow$@ (?A @$\rightarrow$@ ?B) @$\rightarrow$@ ?B
-Qnorm_elim q f = Quotient_rec (f @$\circ$@ nf)
-                              (p := @$\lambda$@ x y r @$\rightarrow$@ Eq_cong f r)
-                              q
+    Qnorm_elim : Qnorm ?A ?nf @$\rightarrow$@ (?A @$\rightarrow$@ ?B) @$\rightarrow$@ ?B
+    Qnorm_elim q f = Quotient_rec (f @$\circ$@ nf)
+                                  (p := @$\lambda$@ x y r @$\rightarrow$@ Eq_cong f r)
+                                  q
 
-Qnorm_eq : (a a' : ?A) @$\rightarrow$@ Eq (nf a) (nf a') @$\rightarrow$@ Eq (Qnorm_in a) (Qnorm_in a')
-Qnorm_eq a a' eq = Quotient_eq (a := a') (a' = a') eq
+    Qnorm_eq : (a a' : ?A) @$\rightarrow$@ Eq (nf a) (nf a') @$\rightarrow$@ Eq (Qnorm_in a) (Qnorm_in a')
+    Qnorm_eq a a' eq = Quotient_eq (a := a') (a' = a') eq
 \end{minted}
 
 The \id{Qnorm} type former is constructed as a quotient with a relation defined
@@ -4008,11 +4007,11 @@ do is construct a heterogeneous equality between them, and this is precisely
 what the function $\id{castEqToHeq}$ seeks to do.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-castEqToHeq : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0)) @$\Rightarrow$@ (y : A (_ := i1))
-              @$\Rightarrow$@ Eq_cast (p := Eq_eq (f := A)) (f := id) x @$\equiv$@ y
-              @$\rightarrow$@ Heq (t := A) x y
-castEqToHeq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x y @$\Rightarrow$@ @$\lambda$@ p @$\rightarrow$@
-  whiskerRight (A := A) (castIsEq (A := A) x) p
+    castEqToHeq : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0)) @$\Rightarrow$@ (y : A (_ := i1))
+                  @$\Rightarrow$@ Eq_cast (p := Eq_eq (f := A)) (f := id) x @$\equiv$@ y
+                  @$\rightarrow$@ Heq (t := A) x y
+    castEqToHeq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x y @$\Rightarrow$@ @$\lambda$@ p @$\rightarrow$@
+      whiskerRight (A := A) (castIsEq (A := A) x) p
 \end{minted}
 
 First, we construct a heterogeneous equality between $\id{x}$ and $\id{cast\_x}$
@@ -4120,8 +4119,8 @@ proof irrelevance. In Typer, one way of representing this notion is via
 erasability. We introduce a built-in data type that captures this idea.
 
 \begin{minted}{agda}
-type Erased (T : Type)
-  | erased (t ::: T)
+    type Erased (T : Type)
+      | erased (t ::: T)
 \end{minted}
 
 By ensuring that the witness $\id{t}$ of the type $\id{T}$ is erasable, this
@@ -4195,7 +4194,8 @@ trivial. In the setting of Typer, however, propositional extensionality is
 implemented as an axiom with the following type signature:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-propExt : (Erased ?A @$\rightarrow$@ Erased ?B) @$\rightarrow$@ (Erased ?B @$\rightarrow$@ Erased ?A) @$\rightarrow$@ Erased ?A @$\equiv$@ Erased ?B
+propExt : (Erased ?A @$\rightarrow$@ Erased ?B) @$\rightarrow$@ (Erased ?B @$\rightarrow$@ Erased ?A)
+          @$\rightarrow$@ Erased ?A @$\equiv$@ Erased ?B
 \end{minted}
 
 The above is a weaker notion of propositional extensionality compared to what is
@@ -4211,11 +4211,11 @@ the above with a simple example. We define two instances of the unit type which
 are trivially \emph{logically equivalent}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{Agda}
-data Unit1 : Type where
-  unit1 : Unit1
+    data Unit1 : Type where
+      unit1 : Unit1
 
-data Unit2 : Type where
-  unit2 : Unit2
+    data Unit2 : Type where
+      unit2 : Unit2
 \end{minted}
 
 $\Funapp{\id{isProp}}{\id{Unit1}}$ and $\Funapp{\id{isProp}}{\id{Unit2}}$ are
@@ -4239,7 +4239,7 @@ Terms of this sort are not autorised to be used in a proof relevant manner. Its
 version of propositional extensionality has the following form:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{lean}
-axiom propext {a b : Prop} : (a @$\leftrightarrow$@ b) @$\rightarrow$@ a = b
+    axiom propext {a b : Prop} : (a @$\leftrightarrow$@ b) @$\rightarrow$@ a = b
 \end{minted}
 
 This is similar to what we have in Typer, except that proof irrelevance is
@@ -4256,7 +4256,7 @@ witnesses of this binary relation. The type signature of a binary relation has
 the below form:
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-R : (a : ?A) |$\rightarrow$| (a' : ?A) |$\rightarrow$| Type
+    R : (a : ?A) |$\rightarrow$| (a' : ?A) |$\rightarrow$| Type
 \end{minted}
 
 For a quotient to be effective, its underlying relation has to be an equivalence
@@ -4276,10 +4276,10 @@ In the built-in library, we define the following type as a witness that a
 certain relation is indeed an equivalence relation.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-type isEquivRel (A : Type) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type) : Type
-  | equivRel (isRefl : (a : A) @$\rightarrow$@ R a a)
-             (isSym : (a b : A) @$\rightarrow$@ R a b @$\rightarrow$@ R b a)
-             (isTrans : (a b c : A) @$\rightarrow$@ R a b @$\rightarrow$@ R b c @$\rightarrow$@ R a c)
+    type isEquivRel (A : Type) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type) : Type
+      | equivRel (isRefl : (a : A) @$\rightarrow$@ R a a)
+                 (isSym : (a b : A) @$\rightarrow$@ R a b @$\rightarrow$@ R b a)
+                 (isTrans : (a b c : A) @$\rightarrow$@ R a b @$\rightarrow$@ R b c @$\rightarrow$@ R a c)
 \end{minted}
 
 \section{Proof}
@@ -4293,8 +4293,8 @@ the underlying relation must be an equivalence relation.
 For an arbitrary binary relation $\kw{R}$, we can define the following:
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
-ErasedR : (?A |$\rightarrow$| ?A |$\rightarrow$| Type) |$\rightarrow$| ?A |$\rightarrow$| ?A |$\rightarrow$| Type
-ErasedR R a b = Erased (R a b)
+    ErasedR : (?A |$\rightarrow$| ?A |$\rightarrow$| Type) |$\rightarrow$| ?A |$\rightarrow$| ?A |$\rightarrow$| Type
+    ErasedR R a b = Erased (R a b)
 \end{minted}
 
 Now, we state the proof of the effectiveness of quotients in the form of Typer code
@@ -4436,7 +4436,7 @@ using tactics such as the \Coq{}'s \kw{lia} tactic and \Lean{}'s \kw{linarith}
 tactic that are essentially solvers for linear goals over $\mathbb{Z}$. For the
 moment, Typer also lacks the powerful dependent pattern-matching system of
 \Agda{}. This inconvenience is somewhat mitigated by the presence of the
-\fn{\kw{case} $\ldots$ \kw{as} $\ldots$ \kw{return} $\ldots$} construct that is
+\fn{\kw{case}...\kw{return}...} construct that is
 reminiscent of \Coq{}. However, while we are in \kw{case} branches, we lack the
 specialisation of types of other variables in the context that depend on the
 scrutinee. This was an inconvenience that we had to reckon with on numerous
@@ -4474,15 +4474,15 @@ execution time.
 %% as a percentage.
 \begin{table}[]
 \centering
-\begin{tabular}{@{}cccccc@{}}
+\begin{tabular}{@{}ccccccc@{}}
 \toprule
-\multirow{3}{*}{Operation} & \multicolumn{4}{c}{Execution Time (seconds)}                         & \multirow{3}{*}{Overhead (seconds)} \\ \cmidrule(lr){2-5}
-                           & \multicolumn{2}{c}{Average} & \multicolumn{2}{c}{Standard Deviation} &                                     \\ \cmidrule(lr){2-5}
-               & $\zpair$ & Rational & $\zpair$ & Rational &         \\ \midrule
-Negation       & 0.2825   & 0.3872  & 0.0272 & 0.0201  & 0.1047  \\
-Addition       & 0.5268   & 0.8354  & 0.0308 & 0.0415  & 0.3086  \\
-Subtraction    & 0.6899   & 1.1180  & 0.0411 & 0.0286  & 0.4281  \\
-Multiplication & 0.4877   & 0.8000  & 0.0346 & 0.0372  & 0.3123 \\ \bottomrule
+\multirow{3}{*}{Operation} & \multicolumn{4}{c}{Execution Time (seconds)}                         & \multicolumn{2}{c}{Overhead}                   \\ \cmidrule(l){2-7}
+                           & \multicolumn{2}{c}{Average} & \multicolumn{2}{c}{Standard Deviation} & \multirow{2}{*}{seconds} & \multirow{2}{*}{\%} \\
+               & $\zpair$ & Rational & $\zpair$ & Rational &        &      \\ \midrule
+Negation       & 0.2825   & 0.3872   & 0.0272   & 0.0201   & 0.1047 & 37.0 \\
+Addition       & 0.5268   & 0.8354   & 0.0308   & 0.0415   & 0.3086 & 58.6 \\
+Subtraction    & 0.6899   & 1.1180   & 0.0411   & 0.0286   & 0.4281 & 62.1 \\
+Multiplication & 0.4877   & 0.8000   & 0.0346   & 0.0372   & 0.3123 & 64.0 \\ \bottomrule
 \end{tabular}
 \caption{The runtime cost of operations on rational numbers with and without the
   use of quotient types.}\label{tab:rational-benchmark}
@@ -4502,8 +4502,7 @@ $\fn{Rational\_+}$:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
 (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
-  (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@
-                    (@$\zpairplus$@ x y)))
+  (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
                  a b)))
 \end{minted}
 
@@ -4514,30 +4513,34 @@ expression is equivalent to $\zpairplus$.
 \begin{mdframed}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
 (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
-  (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ (@$\zpairplus$@ x y)))
-  a b)))
+  (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
+                 a b)))
 
     @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
 
-Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ (@$\zpairplus$@ x y)))
+Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
 
     @$\rightsquigarrow$@ Inlining of Quotient_rec2
 
 Quotient_rec (@$\lambda$@ (a) @$\rightarrow$@
-    Quotient_rec ((@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ (@$\zpairplus$@ x y))) a))
+    Quotient_rec ((@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))) a))
 
     @$\rightsquigarrow$@ Inlining of Quotient_rec
 
 (@$\lambda$@ (a) @$\rightarrow$@
-    Quotient_rec ((@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ (@$\zpairplus$@ x y))) a))
+    Quotient_rec ((@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))) a))
 
     @$\rightsquigarrow$@ Inlining of Quotient_rec
 
-(@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ (@$\zpairplus$@ x y))) a)
+(@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))) a)
 
     @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
 
-(@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ (@$\zpairplus$@ x y)))
+(@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
+
+    @$\rightsquigarrow$@ Inlining of Quotient_in
+
+(@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ @$\zpairplus$@ x y))
 
     @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
 
@@ -4547,13 +4550,15 @@ Quotient_rec (@$\lambda$@ (a) @$\rightarrow$@
 \caption{Proposed optimisations for \id{Rational\_+}}\label{fig:optim-rational-add}
 \end{figure}
 
-A desirable optimisation is the inlining of \id{Quotient\_rec} and
+A desirable optimisation is the inlining of \id{Quotient\_in}, \id{Quotient\_rec} and
 \id{Quotient\_rec2} as follows:
 
 \begin{itemize}
-  \item{\fn{Quotient\_rec2 f} $\rightsquigarrow$ \fn{Quotient\_rec ($\lambda$ a $\rightarrow$ Quotient\_rec (f a))}}
+  \item{\fn{Quotient\_in e} $\rightsquigarrow$ \id{e}}
 
   \item{\fn{Quotient\_rec f} $\rightsquigarrow$ \id{f}}
+
+  \item{\fn{Quotient\_rec2 f} $\rightsquigarrow$ \fn{Quotient\_rec ($\lambda$ a $\rightarrow$ Quotient\_rec (f a))}}
 \end{itemize}
 
 We also would require a multi-argument version of the $\eta$-reduction rule for
@@ -4566,7 +4571,10 @@ simplify \fn{Rational\_+} to $\zpairplus$ in \autoref{fig:optim-rational-add}.
 This implies that with an appropriate optimisation phase, Elexps containing
 quotient primitives could be simplified to completely neutralise the overhead of
 quotient types. We would also like to point out that as far as optimisations go,
-our propositions are fairly standard, we thus leave them for future work.
+our propositions are fairly standard, we thus leave them for future work. These
+optimisations are indeed rather desirable as we have observed that incurred
+overhead increases the execution time by up to a 64\% in the case of the simple
+operations that we investigated.
 
 We believe that the incurred overhead for these operations should be a constant
 cost based on whether the operation is defined using \id{Quotient\_rec} or
@@ -4575,106 +4583,91 @@ cost based on whether the operation is defined using \id{Quotient\_rec} or
 \id{Quotient\_rec}. \id{Rational\_negate} being a unary function, was the only
 one that was defined using \id{Quotient\_rec}, and thus suffers from the least
 amount of overhead. \id{Rational\_+} and \id{Rational\_*} were both defined
-using \id{Quotient\_rec2}, we observe how the two operations have a similar
-overhead. Since we defined \id{Rational\_-} based on \id{Rational\_+} combined
-with \id{Rational\_negate}, it is well justified that its overhead is similar to
-the combined overhead of the two operations that it was defined on.
+using \id{Quotient\_rec2}, hence we observe how the two operations have a
+similar overhead. Since we defined \id{Rational\_-} based on \id{Rational\_+}
+combined with \id{Rational\_negate}, it is well justified that its overhead is
+similar to the combined overhead of the two operations that it was defined on.
 
 \subsection*{Multiset}
 
 We do a similar set of experiments on our construction of \id{Multiset} with the
 \id{Multiset\_append} and \id{Multiset\_mem} operations.
 
-%% SM: The times are "too small": increase the number of repetitions to
-%% bring it into the 1-2s seconds range.  Same as before, discuss/explain
-%% the large value of the standard deviation.
 \begin{table}[]
 \centering
-\begin{tabular}{@{}cccccc@{}}
+\begin{tabular}{@{}ccccccc@{}}
 \toprule
-\multirow{3}{*}{Operation} & \multicolumn{4}{c}{Execution Time (seconds)} & \multirow{3}{*}{Overhead (seconds)} \\ \cmidrule(lr){2-5}
-       & \multicolumn{2}{c}{Average} & \multicolumn{2}{c}{Standard Deviation} &         \\ \cmidrule(lr){2-5}
-       & List         & Multiset     & List              & Multiset           &         \\ \midrule
-Append & 0.02979      & 0.08366      & 0.01119           & 0.07886            & 0.05387 \\
-Member & 0.06133      & 0.1170       & 0.0406            & 0.0850             & 0.05567 \\ \bottomrule
+\multirow{3}{*}{Operation} & \multicolumn{4}{c}{Execution Time (seconds)}                         & \multicolumn{2}{c}{Overhead}                   \\ \cmidrule(l){2-7}
+                           & \multicolumn{2}{c}{Average} & \multicolumn{2}{c}{Standard Deviation} & \multirow{2}{*}{seconds} & \multirow{2}{*}{\%} \\
+       & List   & Multiset & List   & Multiset &        &      \\ \midrule
+Append & 1.3081 & 1.5472   & 0.0497 & 0.0516   & 0.2390 & 18.3 \\
+Member & 0.8417 & 0.8730   & 0.0278 & 0.0227   & 0.0314 & 3.7  \\ \bottomrule
 \end{tabular}
 \caption{The runtime cost of operations on multisets with and without the use of quotient types.}\label{tab:benchmark-multiset}
 \end{table}
 
 The \id{Multiset\_append} operation was tested by appending multisets containing
-1 integer with 5000 times. The unusual choice of the size of the multisets was
-to avoid the domination of the overhead cost by the runtime of the operation
-itself. For the \id{Multiset\_mem} operation, we ran the membership test with
-5000 integers on a multiset containing 50 integers. For lists, we ran the
-%% SM: Usually 100 repetitions of the test are considered sufficient
-%% to get a good average and SD.  Better increase the time per repetition
-%% instead.
-benchmark using the \id{List\_mem} function that we show below. We ran 2500
-iterations for each experiment and like before, we report the average execution
-time along with the standard deviation.
+25 integers 50000 times. For the \id{Multiset\_mem} operation, we ran the
+membership test with 50000 integers on a multiset containing 10 integers. For
+lists, we ran the benchmark using the \id{List\_mem} function that we show
+below. We ran 100 iterations for each experiment and like before, we report the
+average execution time along with the standard deviation.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-List_mem : Discrete ?A -> ?A -> List ?A -> Bool
-List_mem disc a l = Dec2Bool (isMemberDec disc a l)
+    List_mem : Discrete ?A @$\rightarrow$@ ?A @$\rightarrow$@ List ?A @$\rightarrow$@ Bool
+    List_mem disc a l = Dec2Bool (isMemberDec disc a l)
 \end{minted}
 
+We observe that the average overhead cost of \id{Multiset\_append} is similar to
+the cost incurred \id{Rational\_+} and \id{Rational\_*} as \id{Multiset\_append}
+was defined in a largely similar manner using \id{Quotient\_rec2}. We then
+compare \id{Multiset\_mem} and \id{Rational\_negate} since they were both
+defined using \id{Quotient\_rec}. We observe, however, that the overhead cost of
+\id{Multiset\_mem} is less than \id{Rational\_negate}. We believe that this is
+because unlike \id{Rational\_negate}, \id{Multiset\_mem} does not construct a
+new quotient term as it returns a \id{Boolean}, hence it does not incur the cost
+of invoking the \id{Quotient\_in} primitive. We notice here that when the base
+operations themselves are more expensive, then the incurred overhead cost
+becomes close to negligible.
+
 We also observe that the generated Elexps for \id{Multiset\_append} and
-\id{Multiset\_mem} are devoid of their related proof terms. \id{Quotient\_rec}
-and \id{Quotient\_rec2} both reduce to the application of the lambda passed to
-it on the subsequent arguments.
-%% SM: You should also say something about the benchmark results (e.g.
-%% the fact that the overhead is large, why it's larger or smaller than
-%% for the previous benchmark, ...).
+\id{Multiset\_mem} are devoid of their related proof terms. The same
+optimisations proposed for \id{Rational} also work here, we do not discuss
+\id{Multiset\_append} as its Elexps shares a similar form to \id{Rational\_+}.
+Instead, we show a series of rewrites and reductions to simplify
+\id{Multiset\_mem} to an Elexp that would correspond to the Elexp of
+\id{List\_mem} in \autoref{fig:optim-multiset-mem}.
 
 \begin{figure}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
-(@$\lambda$@ (xs) @$\rightarrow$@
-  (@$\lambda$@ (ys) @$\rightarrow$@
-    (Quotient_rec2 List_append xs ys)))
+(@$\lambda$@ (xs) @$\rightarrow$@ (@$\lambda$@ (ys) @$\rightarrow$@
+  Quotient_rec2 List_append xs ys))
 \end{minted}
 \caption{Elexp of \id{Multiset\_append}}
 \end{figure}
 
 \begin{figure}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
-(@$\lambda$@ (disc) ->
- (@$\lambda$@ (a) ->
-  (@$\lambda$@ (s) ->
-   (Quotient_rec (@$\lambda$@ (l) ->
-                  (Dec2Bool (isMemberDec disc a l))) s))))
+(@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (s) @$\rightarrow$@
+  Quotient_rec (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l))) s))
 \end{minted}
 \caption{Elexp of \id{Multiset\_mem}}
 \end{figure}
 
-The same optimisations proposed for \id{Rational} also work here, we do not
-discuss \id{Multiset\_append} as its Elexps shares a similar form to
-\id{Rational\_+}. Instead, we show a series of rewrites and reductions to
-simplify \id{Multiset\_mem} to an Elexp that would correspond to the Elexp of
-\id{List\_mem} in \autoref{fig:optim-multiset-mem}.
-
 \begin{figure}
 \begin{mdframed}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
-(@$\lambda$@ (disc) ->
- (@$\lambda$@ (a) ->
-  (@$\lambda$@ (s) ->
-   (Quotient_rec (@$\lambda$@ (l) ->
-                  (Dec2Bool (isMemberDec disc a l))) s))))
+(@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (s) @$\rightarrow$@
+  Quotient_rec (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l)) s)))
 
     @$\rightsquigarrow$@ Inlining of Quotient_rec
 
-(@$\lambda$@ (disc) ->
- (@$\lambda$@ (a) ->
-  (@$\lambda$@ (s) ->
-   (@$\lambda$@ (l) ->
-        (Dec2Bool (isMemberDec disc a l))) s)))
+(@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (s) @$\rightarrow$@
+  (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l)) s)))
 
     @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
 
-(@$\lambda$@ (disc) ->
- (@$\lambda$@ (a) ->
-   (@$\lambda$@ (l) ->
-        (Dec2Bool (isMemberDec disc a l)))))
+(@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l))))
 
 \end{minted}
 \end{mdframed}
@@ -5280,11 +5273,6 @@ We define functions \id{f} and \id{g} as inhabitants of the forward and backward
 directions of the equivalence respectively. We prove this equivalence by proving
 that \fn{g} is a quasi-inverse of \fn{f} as defined in~\cite[Chap.
   2]{HoTTbook}. To this end, we define \id{f} and \id{g} as such:
-
-%% SM: I think a "paper proof" would be a better choice than a formal proof
-%% because you use here many constructs that you haven't presented.
-%% IOW, start with g(f(h)), then show how it reduces to (something equivalent
-%% to) h, then same thing for f(g(e)).
 
 \begin{align*}
   & f : (\bI \rightarrow A) \rightarrow \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y} \\
