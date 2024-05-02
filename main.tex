@@ -391,7 +391,37 @@
 
 %% SM: This is still missing.
 
-...sommaire et mots clés en français...
+Ce travail décrit l'introduction des types quotients dans
+Typer\cite{monnier2019typer}, un langage avec des types dépendants. Les types
+quotients permettent aux programmeurs de construire de nouveaux types à base des
+types existants en redéfinissant la notion d'égalité du type de départ.
+Typiquement, cela repose sur des relations d'équivalence définies sur le type de
+base. Les termes qui sont \emph{équivalents} selon la rélation sont donc vus
+comme égaux dans le type quotient résultant. Par exemple, les nombres rationnels
+peuvent être définis comme le quotient des paires d'entiers par une rélation
+d'équivalence basée sur le produit en croix. Pour accueillir l'introduction des
+types quotients dans Typer, on a redéfini et amélioré l'égalité intégré de Typer
+en s'inspirant de la théorie des types cubique qui a introduit le type
+d'intervalle et aussi les assistants de preuve qui l'implémentent. De ce fait,
+la nouvelle égalité de Typer est basé sur les fonctions qui ont comme argument
+notre nouvelle primitive d'intervalle. Une telle égalité est plus puissante et
+expressive, elle se prête bien à la construction des preuves liées aux types
+quotients. Dans ce travail, on s'intéresse également au côté pratique de
+l'utilisation des types quotients dans un langage tel que Typer, à la fois en
+termes d'efficacité d'exécution et de facilité d'utilisation pour les
+développeurs. Les types quotients ne sont pas offerts dans la plupart des
+langages avec des types dépendants principalement parce que leur utilisation
+nous entraîne à des obligations de preuves pénibles. Pour faciliter
+l'utilisation des types quotients, on a fourni une bibliothèque qui simplifie la
+manipulation des types quotients. On a profité de cette nouvelle addition au
+langage pour introduire de nouvelles primitives, telle que les nombres
+rationnels, la troncation propositionnelle, etc. Finalement, ce travail étudie
+égalément le développement des preuves en Typer. À notre connaissance, ceci est
+la première tentative d'écrire une quantité importante de preuves en Typer
+puisque le langage se veut un langage de programmation à usage général. On
+décrit notre expérience et les défis auxquels on a dû faire face en cours de
+route. En outre, on a introduit de nouvelles primitives pour faciliter le
+développement de preuves en Typer.
 
 %%------------------------------------------------- %
 %%              pages iv                            %
@@ -403,8 +433,8 @@
 This work describes the introduction of quotient types to
 Typer\cite{monnier2019typer}, a dependently typed programming language. Quotient
 types allow programmers to construct new types based on existing types by
-redefining the notion of equality for the base type. This is typically based on
-equivalence relations defined on the base type; terms that are \emph{equivalent}
+redefining the notion of equality of the base type. This is typically based on
+equivalence relations defined on the base type. Terms that are \emph{equivalent}
 according to the relation are thus treated as equal in the resulting quotient
 type. For instance, rational numbers may be defined as the quotient of pairs of
 integers under an equivalence relation based on cross-multiplication. To better
@@ -427,6 +457,8 @@ write a substantial amount of proofs using the language since the language is
 primarily intended to be a general-purpose programming language. We describe our
 experience and the challenges faced in the process. Additionally, we introduce
 several constructs to streamline proof development in Typer.
+
+\textbf{Keywords}: dependent types, quotient types, equality types
 
 %%------------------------------------------------- %
 %%        page v --- Table de matieres              %
