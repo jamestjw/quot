@@ -423,6 +423,8 @@ décrit notre expérience et les défis auxquels on a dû faire face en cours de
 route. En outre, on a introduit de nouvelles primitives pour faciliter le
 développement de preuves en Typer.
 
+\textbf{Mots clés}: types dépendants, types quotients, type égalité
+
 %%------------------------------------------------- %
 %%              pages iv                            %
 %%------------------------------------------------- %
@@ -458,7 +460,7 @@ primarily intended to be a general-purpose programming language. We describe our
 experience and the challenges faced in the process. Additionally, we introduce
 several constructs to streamline proof development in Typer.
 
-\textbf{Keywords}: dependent types, quotient types, equality types
+\textbf{Keywords}: dependent types, quotient types, equality type
 
 %%------------------------------------------------- %
 %%        page v --- Table de matieres              %
@@ -1072,11 +1074,15 @@ We make several contributions:
     development of proofs in Typer in the form of macros and axioms. }
 \end{itemize}
 
+%% TODO: Link to a specific tag
+Supplementary material may be found in the author's Gitlab repository
+\url{https://gitlab.com/jamestjw/typer}.
+
 %%------------------------------------------------- %
 %%                Chapters                          %
 %%------------------------------------------------- %
 
-\chapter{Related works}
+\chapter{Related Works}
 
 In this chapter, we present works that are related to ours. We show where we
 drew our inspiration from and we also take this opportunity to give readers a
@@ -3582,9 +3588,8 @@ it for `both sides'. In other words, we have to produce the below proofs.
 \end{minted}
 
 The proof of $\mathbb{Q}{+}\_\id{feql}$ is long and uninteresting and thus will
-not described here\footnote{Interested readers may find the proof at TODO:\ link
-to online repository since the proof itself is not instructive enough to
-warrant being put here}. However, once this has been proved, its counterpart is
+not described here\footnote{Interested readers may find the proof in
+\id{btl/rational.typer}}. However, once this has been proved, its counterpart is
 a trivial corollary by virtue of the commutativity of $\zpairplus$.
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
