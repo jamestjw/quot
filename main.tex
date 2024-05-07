@@ -523,7 +523,7 @@ several constructs to streamline proof development in Typer.
 %% texdoc glossaries
 %%
 
-\chapter*{Liste des sigles et des abréviations}
+\chapter*{List of abbreviations}
  % Option de colonnes: definir \colun ou \coldeux
 %%% Exemple
 %%% \def\colun{\bf} % Première colonne en gras
@@ -602,7 +602,7 @@ known as \emph{propositional equality}.
 %% SM: A bit of motivation for why we care about proofs in programs
 %% would be welcome.
 
-Not only can we write mathematical proofs, but we may also prove properties of
+Not only can we write mathematical proofs, but we may also prove the properties of
 our programs. Proofs exist primarily to convince us of the correctness of our
 programs, it is thus desirable for proofs not to be executed during runtime,
 i.e.\ we only want them to be verified at compile time, or more precisely,
@@ -638,12 +638,12 @@ as long as the program is well-typed. In general, proofs improve the reliability
 of programs by allowing more errors to be detected at compile-time by making use
 of the type system to impose constraints on programs.
 
-By making use of the type system in this manner extensively, we are able obtain
+By making use of the type system in this manner extensively, we are able to obtain
 static guarantees about the behaviour of our programs. A notable example of the
 usage of proofs in real-world programs is the CompCert project that worked on
 the formal verification of a C compiler\cite{Leroy-Compcert-CACM}. Idris, a
 dependently-typed programming language, has \emph{type-driven development} as
-its mantra as it emphasises on the usage of types as a tool for constructing
+its mantra as it emphasises the usage of types as a tool for constructing
 correct programs, particularly to handle state, interactive programs, and
 concurrent programming. Equality proofs, as we shall introduce in the subsequent
 section, are used as the backbone of more sophisticated features that improve
@@ -763,7 +763,7 @@ other.
 
 Now that we have seen how equality proofs may be used in programs, the next
 question that ought to be answered is how are such terms introduced. The one and
-only constructor of te \id{Eq} type is the following:
+only constructor of type \id{Eq} type is the following:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     Eq_refl : (x : ?A) @$\Rrightarrow$@ x @$\equiv$@ x
@@ -899,7 +899,10 @@ more elegant. It also allows us to derive new theorems regarding the equality
 type that are desirable, such as functional extensionality. This flavour of
 equality was first conceived in cubical type theories\cite{bezem2014model} to
 provide a computational interpretation of homotopy type theory
-(HoTT)\cite{HoTTbook}.
+(HoTT)\cite{HoTTbook}. To provide readers with a better intuition of the above,
+concrete examples shall be provided in \autoref{sec:cubical-agda} where we
+discuss Cubical Agda\cite{vezzosi2021cubical}, a cubical extension of the
+\Agda{} proof assistant.
 
 One of the key ideas introduced by HoTT is the univalence axiom which suggests
 that equivalences may be encoded as equalities. This is much like what is done
@@ -910,7 +913,7 @@ equivalences and thus have a computational role. As a general-purpose
 programming language, Typer has no ambitions of supporting univalence. Thus, it
 is desirable for equality proofs in Typer to remain proof irrelevant so that
 they may be erased before runtime, i.e.\ that generated code would not include
-erasabled terms. This is essential so that operations involving the equality
+erasable terms. This is essential so that operations involving the equality
 type may be treated as no-ops during runtime. If all equality proofs may be
 evaluated to reflexivity proofs, then type casts using the \fn{Eq\_cast}
 primitive simply behave like the identity function at runtime as we would merely
@@ -1014,21 +1017,22 @@ is possible to elect a canonical representative for each equivalence class. This
 idea is reminiscent of the \emph{laws} in the Miranda programming
 language\cite{thompson1986laws}. Its algebraic data types may be defined with
 rewrite rules that ensure that its terms are always in normal form. These rules
-are in fact just smart constructors in disguise, we are not able to reason about
-and write proofs about laws. However, the innovation of Miranda is not its smart
-constructors, but rather its introduction of the idea of stating the equivalence
-between terms of the same type. All this to say that ideas related to quotients
-have been introduced to functional programming in its early years, however, they
-did not gain mainstream adoption. Dependently typed languages were also still
-nascent at that time, making it more challenging for quotient types and their
-entailed proof obligations to be aptly integrated into functional languages.
-With the gradual maturing of dependently-typed languages, we believe that it is
-an opportune moment to bring quotients into the picture again. In the rest of
-this thesis, we discuss our experience of introducing quotient types to Typer.
-We first describe the typing and reduction rules of the introduced quotient
-type, and then we discuss the library that we implemented to facilitate their
-usage in Typer. Finally, we illustrate how the quotient type may be used by
-providing examples in the form of code along with commentary.
+are in fact just smart constructors\cite{adams1993functional} in disguise, we
+are not able to reason about and write proofs about laws. However, the
+innovation of Miranda is not its smart constructors, but rather its introduction
+of the idea of stating the equivalence between terms of the same type. All this
+to say that ideas related to quotients have been introduced to functional
+programming in its early years, however, they did not gain mainstream adoption.
+Dependently typed languages were also still nascent at that time, making it more
+challenging for quotient types and their entailed proof obligations to be aptly
+integrated into functional languages. With the gradual maturing of dependently
+typed languages, we believe that it is an opportune moment to bring quotients
+into the picture again. In the rest of this thesis, we discuss our experience of
+introducing quotient types to Typer. We first describe the typing and reduction
+rules of the introduced quotient type, and then we discuss the library that we
+implemented to facilitate their usage in Typer. Finally, we illustrate how the
+quotient type may be used by providing examples in the form of code along with
+commentary.
 
 \section{Contributions}
 
@@ -1242,7 +1246,7 @@ of the list type.
 Courtieu's normalised types\cite{courtieu-normalizedtypes} may be seen as an
 effort to introduce a system that allows us to express a normalisation scheme
 for terms of a certain type to dependent type theory. More specifically,
-it was conceived as an extension to the Calculus of Inductive Constructions
+it was conceived as an extension of the Calculus of Inductive Constructions
 (CIC)\cite{werner-cic}, a dependent type theory that serves as the backbone of
 many modern proof assistants in some shape or form. It turns out that the
 extended calculus may be translated to the CIC itself, implying that desirable
@@ -1357,7 +1361,7 @@ i.e.\ the projection into the quotient, whereas the second function is known as
 %% The surjection into $\kw{Qnorm}$ is simply the construction of a dependent pair
 %% containing a term that has been normalised and a proof of its normalisation.
 %% This is in contrast to the construction that was described previously with
-%% $\kw{Quotient}$ which applied the normalisation upon the elimination of a
+%% $\id{Quotient}$ which applied the normalisation upon the elimination of a
 %% quotient, whereas here, normalisation immediately occurs upon the construction
 %% of a term of type $\kw{Qnorm}$.
 
@@ -1658,7 +1662,7 @@ the quotient of the base type, we would directly work with the base type.
 Suppose that we had a proof of \fn{a R b} where \id{R} is an infix binary
 relation, we would be able to rewrite \id{a} to \id{b} if the context of \id{a}
 in the goal is compatible with the relation. However, every function definition
-that interacts with the setoid needs to be accompanied by a proof that setoid
+that interacts with the setoid needs to be accompanied by proof that setoid
 equivalence is respected. This is in contrast to the ideal situation where such
 coherence proofs are required \emph{only} in the function that eliminates
 quotients, subsequent interaction and composition of this function should be
@@ -1974,7 +1978,7 @@ construct are $\lambda \id{i} \rightarrow \kw{elim}_{\bI}^{Boolean}(\id{true},
 \id{true}, \kw{refl}_{true}, \id{i})$ and $\lambda \id{i} \rightarrow
 \kw{elim}_{\bI}^{A}(\id{false}, \id{false}, \kw{refl}_{\id{false}}, \id{i})$.
 The proof term that is required by the eliminator forces us to map $\ileft$ and
-$\iright$ to two terms that are equal. We would not be able to use the
+$\iright$ to two equal terms. We would not be able to use the
 eliminator to map $\ileft$ and $\iright$ to \id{true} and \id{false}
 respectively as the type \fn{true $\equiv$ false} is uninhabited.
 
@@ -2400,7 +2404,7 @@ invert the path. This is the intuition behind the following proof.
     Eq_comm x y = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| Eq_uneq (p := p) (i := I_not i))
 \end{minted}
 
-\begin{figure}[H]
+\begin{figure}
 \centering
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
 %uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
@@ -2429,7 +2433,7 @@ invert the path. This is the intuition behind the following proof.
 
 \end{tikzpicture}
 
-\caption{A path from x to y along with its inversion}
+\caption{A path from x to y along with its inversion, i.e.\ the commutativity of equality}
 \end{figure}
 
 Compared to the version of \id{Eq\_comm} presented in
@@ -2677,7 +2681,7 @@ Now, we present the typing rules of the primitives introduced above.
                                              {\kw{Type}}}
 \end{prooftree*}
 
-The $\kw{Quotient}$ type former is a function which takes a base type $\id{A}$
+The $\id{Quotient}$ type former is a function which takes a base type $\id{A}$
 along with a relation $\id{R}$ as arguments. At this stage, just like
 in\cite{hofmann1995simple}, we do not require the relation to be an equivalence
 relation, however, our experience tells us that the above requirement is often
@@ -2761,7 +2765,7 @@ proof of the proposition would lead to a contradiction.
 \end{minted}
 
 Here, \id{Void} is the $\mathbb{0}$ type (also known as the empty type or
-bottom), the type with no habitants.
+bottom), the type with no inhabitants.
 
 
 For this example, we reuse the definition of integers given in
@@ -2804,7 +2808,7 @@ define is the following:
 
 This requires the condition that \id{f} be some function of type \fn{A
   $\rightarrow$ A} such that $\forall \id{a} \ . \ \fn{R a (f a)}$ is valid. For
-instance, such a condition would for instance be fulfilled if \id{f} was a
+instance, such a condition would, for instance, be fulfilled if \id{f} was a
 normalisation function on \id{A}. However, the above requirement is not easily
 enforced, not to mention that the $\eta$-rule itself is not necessarily that
 useful to have. Another similar $\eta$-rule that is more easily enforced is the
@@ -3172,10 +3176,10 @@ equality proof, it suffices for us to define what needs to be done for
 reflexivity proofs.
 
 In Typer, the elimination rule for the \id{Eq} type was not provided in the form
-of the J-rule before this work, instead a cast function was provided as
+of the J-rule before this work, instead, a cast function was provided as
 mentioned in a previous section. It is possible to derive \id{Eq\_cast} from the
 J-rule. The natural question that we should now ask ourselves is whether the
-J-rule can be derived from \id{Eq\_cast}, in other words we would like to know
+J-rule can be derived from \id{Eq\_cast}, in other words, we would like to know
 if the two elimination principles are equivalent. It turns out that one way of
 doing it hinges upon whether we can inhabit the following type:
 
@@ -3292,7 +3296,7 @@ of elements of the same type.
 
 Given that the equivalence of rational numbers is captured by a relation, we do
 not need to normalise our rational numbers before or after each computation,
-instead we prove that all of our operations respect the equivalence of rational
+instead, we prove that all of our operations respect the equivalence of rational
 numbers. We hoped that this would give us better runtime efficiency, as opposed
 to more naive implementations. To make this clearer, we illustrate one possible
 naive implementation. To ensure that operations on the base type of the quotient
@@ -3416,7 +3420,9 @@ Another useful theorem that we can prove states that the product of two non-zero
         y|$\ne$|0 (Integer_isIntegral x y xy|$\ne$|0 x|$\ne$|0)
 \end{minted}
 
-We will eventually also make use of the below theorem that states that the negation of an integer may be distributed over multiplication. Its `right' counterpart may also be proven in a similar manner.
+We will eventually also make use of the below theorem that states that the
+negation of an integer may be distributed over multiplication. Its `right'
+counterpart may also be proven in a similar manner.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
     Integer_NegateDistL* : (x y : Integer) |$\rightarrow$| 0 - (x * y) |$\equiv$| (0 - x) * y
@@ -3819,7 +3825,7 @@ Multiset_mem disc a s =
 \end{minted}
 
 Although this has not been done in this work, another operation that one may find
-useful to have counts how many elements of the multiset are equal to
+useful to  count how many elements of the multiset are equal to
 a certain term of type $\fn{A}$.
 
 \section{Propositional Truncation}\label{sec:prop-trunc}
@@ -3926,7 +3932,7 @@ expressions at once. We provide a library that aims to reduce repetitive
 boilerplate in user code.
 
 \subsection*{rec$_2$}\label{sec:rec2}
-We start off by describing \id{Quotient\_rec2}, which serves to eliminate two arbitrary quotient expressions.
+We start by describing \id{Quotient\_rec2}, which serves to eliminate two arbitrary quotient expressions.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 rec2 : (C_isSet : isSet ?C)
@@ -3964,8 +3970,8 @@ rec2 =
 \end{minted}
 
 The function itself does the only logical thing it could do, it uses
-\kw{Quotient\_rec} to eliminate the first quotient, and then it makes another
-nested call to \kw{Quotient\_rec} to eliminate the second one. Essentially, the
+\id{Quotient\_rec} to eliminate the first quotient, and then it makes another
+nested call to \id{Quotient\_rec} to eliminate the second one. Essentially, the
 result of the elimination of the first quotient is a function that takes another
 quotient as an argument and then eliminates that. This is the intuition behind
 the requirement that the output type $\id{C}$ be a $\kw{Set}$. In other words,
@@ -3978,9 +3984,9 @@ $\id{elimProp}$ is a function that simplifies the elimination of a quotient when
 the target type is a mere proposition as was introduced in
 \autoref{sec:prop-trunc}. We will see that the nature of the function \id{f} has
 no bearing on our proof obligations, as they can be discharged in a very
-systematic way by leveraging the fact that output type is a \kw{Prop}. First, we
+systematic way by leveraging the fact that the output type is a \kw{Prop}. First, we
 need to prove a lemma, \id{castEqToHeq}. Suppose that we have a type former
-$\id{A} \colon \id{I} \Rrightarrow \kw{Type}$, two terms \id{x} and \id{y} of
+$\id{A} \colon \id{I} \Rrightarrow \id{Type}$, two terms \id{x} and \id{y} of
 types $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and
 $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ respectively, and a term \id{cast\_x}
 that we obtain by casting \id{x} to $\Funapp{\id{A}}{(\earg{\_}{\iright})}$, we
@@ -4033,7 +4039,7 @@ corresponding types. With our definition of equality, we can construct an
 equality between $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and
 $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ using \id{Eq\_eq}. Now, given that the
 two circles are `equal', intuitively speaking, every point in one circle should
-have a counterpart in the other circle, and this can be obtained transporting a
+have a counterpart in the other circle, and this can be obtained by transporting a
 point along the equality between the two types. Additionally, suppose also that
 we have an equality between $\id{cast\_x}$ and $\id{y}$, this is indicated
 by the path $\id{p}$ between the two points in the diagram. Given that $\id{x}$
@@ -4272,7 +4278,7 @@ extensionality is weaker, as we are constrained to construct an equality proof
 that is not computationally relevant.
 
 Another worthy comparison to make is with \Lean{}, which has a $\kw{Prop}$ sort.
-Terms of this sort are not autorised to be used in a proof relevant manner. Its
+Terms of this sort are not autorised to be used in a proof-relevant manner. Its
 version of propositional extensionality has the following form:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{lean}
@@ -4286,9 +4292,9 @@ enforced differently.
 
 First, we state what we mean when we say \emph{relation} to set the stage for
 the subsequent discussion. For our purposes, we consider binary relations, which
-are type formers that take two arguments of some type $\kw{A}$. Assuming that we
-call the relation $\kw{R}$ and its two arguments $\id{a}$ and $\id{a}'$
-respectively, inhabitants of the type $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ are
+are type formers that take two arguments of some type $\id{A}$. Assuming that we
+call the relation $\id{R}$ and its two arguments $\id{a}$ and $\id{a}'$
+respectively, inhabitants of the type $\Funapp{\id{R}}{\id{a}}{\id{a}'}$ are
 witnesses of this binary relation. The type signature of a binary relation has
 the below form:
 
@@ -4300,13 +4306,13 @@ For a quotient to be effective, its underlying relation has to be an equivalence
 relation, we shall use this property in the proof in the subsequent section.
 Recall that an equivalence relation implies that the relation is reflexive,
 symmetric and transitive. For it to be reflexive, it needs to be the case that
-given an arbitrary $\oftype{\id{a}}{\kw{A}}$, $\Funapp{\kw{R}}{\id{a}}{\id{a}}$
+given an arbitrary $\oftype{\id{a}}{\id{A}}$, $\Funapp{\id{R}}{\id{a}}{\id{a}}$
 must be trivially inhabited. The symmetry of the relation implies that if we are
-given an arbitrary witness of $\Funapp{\kw{R}}{\id{a}}{\id{a}'}$, we need to be
-able to transform that into an inhabitant of $\Funapp{\kw{R}}{\id{a}'}{\id{a}}$.
+given an arbitrary witness of $\Funapp{\id{R}}{\id{a}}{\id{a}'}$, we need to be
+able to transform that into an inhabitant of $\Funapp{\id{R}}{\id{a}'}{\id{a}}$.
 The relation is transitive if we are able to transform witnesses of
-$\Funapp{\kw{R}}{\id{a}}{\id{b}}$ and $\Funapp{\kw{R}}{\id{b}}{\id{c}}$ into
-witnesses of $\Funapp{\kw{R}}{\id{a}}{\id{c}}$\footnote{The equality type
+$\Funapp{\id{R}}{\id{a}}{\id{b}}$ and $\Funapp{\id{R}}{\id{b}}{\id{c}}$ into
+witnesses of $\Funapp{\id{R}}{\id{a}}{\id{c}}$\footnote{The equality type
 fulfills these criteria and is an equivalence relation.}.
 
 In the built-in library, we define the following type as a witness that a
@@ -4320,14 +4326,14 @@ certain relation is indeed an equivalence relation.
 \end{minted}
 
 \section{Proof}
-Given two arbitrary elements $\id{a}$ and $\id{a}'$ of a base type $\kw{A}$, a
+Given two arbitrary elements $\id{a}$ and $\id{a}'$ of a base type $\id{A}$, a
 quotient is said to be effective if given a proof that the projection of $\id{a}$
 and $\id{a}'$ into the quotient are equal, then it must be the case that
-$\Funapp{\kw{R}}{\id{a}}{\id{a}'}$ is true, i.e.\ we are able to find an
+$\Funapp{\id{R}}{\id{a}}{\id{a}'}$ is true, i.e.\ we are able to find an
 inhabitant of it. A sufficient condition for a quotient to be effective is that
 the underlying relation must be an equivalence relation.
 
-For an arbitrary binary relation $\kw{R}$, we can define the following:
+For an arbitrary binary relation $\id{R}$, we can define the following:
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
     ErasedR : (?A |$\rightarrow$| ?A |$\rightarrow$| Type) |$\rightarrow$| ?A |$\rightarrow$| ?A |$\rightarrow$| Type
@@ -4365,25 +4371,25 @@ effective equiv a b eq =
 
 Compared to the more general version of the theorem we stated before, here we
 insist that the quotient we consider be based on the erased version of some
-binary relation $\kw{R}$. And instead of proving that the base relation itself
+binary relation $\id{R}$. And instead of proving that the base relation itself
 holds for some $\id{a}$ and $\id{b}$, we can only show that the erased version
 of this relation holds.
 
 In this proof, we can see that all aspects of the sufficient condition are at
 play. It is mainly used to prove that for arbitrary terms $\id{a}$, $\id{b}$ and
-$\id{c}$ of type $\kw{A}$, if it is the case that if
-$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{b}}{\id{c}})}$ is inhabited, then
-$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ $\iff$
-$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$. Intuitively speaking
+$\id{c}$ of type $\id{A}$, if it is the case that if
+$\Funapp{\id{Erased}}{(\Funapp{\id{R}}{\id{b}}{\id{c}})}$ is inhabited, then
+$\Funapp{\id{Erased}}{(\Funapp{\id{R}}{\id{a}}{\id{b}})}$ $\iff$
+$\Funapp{\id{Erased}}{(\Funapp{\id{R}}{\id{a}}{\id{c}})}$. Intuitively speaking
 this makes a lot of sense,
-$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{b}}{\id{c}})}$ implies that $\id{b}$
+$\Funapp{\id{Erased}}{(\Funapp{\id{R}}{\id{b}}{\id{c}})}$ implies that $\id{b}$
 and $\id{c}$ are in the same equivalence class of the quotient. Hence, if we
 know that $\id{a}$ is in the same equivalence class as $\id{b}$, we should
 naturally be able to infer that $\id{a}$ and $\id{c}$ are also in the same
 equivalence class, and vice versa. Propositional extensionality takes us even
 further, by allowing us to prove that
-$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{b}})}$ and
-$\Funapp{\id{Erased}}{(\Funapp{\kw{R}}{\id{a}}{\id{c}})}$ are equal since they
+$\Funapp{\id{Erased}}{(\Funapp{\id{R}}{\id{a}}{\id{b}})}$ and
+$\Funapp{\id{Erased}}{(\Funapp{\id{R}}{\id{a}}{\id{c}})}$ are equal since they
 are both mere propositions.
 
 \chapter{Evaluation}\label{ch:evaluation}
@@ -4436,7 +4442,7 @@ providing users with the power of quotients.
 
 The introduction of \id{Quotient\_eq} as an axiom also leads to the absence of a
 desirable computational property. Suppose that the following terms \fn{a :\@ A},
-\fn{a' :\@ A}, and \fn{r :\@ R a a'} as well as a function \fn{f : A $\rightarrow$
+\fn{a' :\@ A}, and \fn{r :\@ R a a'} as well as a function \fn{f :\@ A $\rightarrow$
   B} and a proof that it respects the relation \id{R}, i.e.\ \fn{p :\@ (a a' :\@ A)
   $\rightarrow$ R a a' $\rightarrow$ f a $\equiv$ f a'}. Unfortunately, the
 following equality does not hold definitionally \fn{Eq\_cong (Quotient\_rec f (p
@@ -4538,9 +4544,9 @@ nevertheless not completely equal, as we shall see by examining the Elexp
 $\fn{Rational\_+}$:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
-(@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
-  (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
-                 a b)))
+    (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
+      (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
+                     a b)))
 \end{minted}
 
 Through a series of $\eta$-reductions and inlinings, we can see that the above
@@ -4549,39 +4555,39 @@ expression is equivalent to $\zpairplus$.
 \begin{figure}
 \begin{mdframed}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
-(@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
-  (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
-                 a b)))
+    (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (b) @$\rightarrow$@
+      (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
+                     a b)))
 
-    @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
+        @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
 
-Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
+    Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
 
-    @$\rightsquigarrow$@ Inlining of Quotient_rec2
+        @$\rightsquigarrow$@ Inlining of Quotient_rec2
 
-Quotient_rec (@$\lambda$@ (a) @$\rightarrow$@
-    Quotient_rec ((@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))) a))
+    Quotient_rec (@$\lambda$@ (a) @$\rightarrow$@
+        Quotient_rec ((@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))) a))
 
-    @$\rightsquigarrow$@ Inlining of Quotient_rec
+        @$\rightsquigarrow$@ Inlining of Quotient_rec
 
-(@$\lambda$@ (a) @$\rightarrow$@
-    Quotient_rec ((@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))) a))
+    (@$\lambda$@ (a) @$\rightarrow$@
+        Quotient_rec ((@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))) a))
 
-    @$\rightsquigarrow$@ Inlining of Quotient_rec
+        @$\rightsquigarrow$@ Inlining of Quotient_rec
 
-(@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))) a)
+    (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))) a)
 
-    @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
+        @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
 
-(@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
+    (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
 
-    @$\rightsquigarrow$@ Inlining of Quotient_in
+        @$\rightsquigarrow$@ Inlining of Quotient_in
 
-(@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ @$\zpairplus$@ x y))
+    (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ @$\zpairplus$@ x y))
 
-    @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
+        @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
 
-@$\zpairplus$@
+    @$\zpairplus$@
 \end{minted}
 \end{mdframed}
 \caption{Proposed optimisations for \id{Rational\_+}}\label{fig:optim-rational-add}
@@ -4601,7 +4607,9 @@ A desirable optimisation is the inlining of \id{Quotient\_in}, \id{Quotient\_rec
 We also would require a multi-argument version of the $\eta$-reduction rule for
 lambda functions like so:
 
-\fn{($\lambda$ (e$_1$) ($\lambda$ (e$_2$) ... ($\lambda$ (e$_n$) f e$_1$ e$_2$ ... e$_n$))) $\rightsquigarrow$ f}
+\begin{itemize}
+  \item{\fn{($\lambda$ (e$_1$) ($\lambda$ (e$_2$) ... ($\lambda$ (e$_n$) f e$_1$ e$_2$ ... e$_n$))) $\rightsquigarrow$ f}}
+\end{itemize}
 
 With that, we show a possible series of reductions and optimisations that
 simplify \fn{Rational\_+} to $\zpairplus$ in \autoref{fig:optim-rational-add}.
@@ -4677,16 +4685,16 @@ Instead, we show a series of rewrites and reductions to simplify
 
 \begin{figure}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
-(@$\lambda$@ (xs) @$\rightarrow$@ (@$\lambda$@ (ys) @$\rightarrow$@
-  Quotient_rec2 List_append xs ys))
+    (@$\lambda$@ (xs) @$\rightarrow$@ (@$\lambda$@ (ys) @$\rightarrow$@
+      Quotient_rec2 List_append xs ys))
 \end{minted}
 \caption{Elexp of \id{Multiset\_append}}
 \end{figure}
 
 \begin{figure}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
-(@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (s) @$\rightarrow$@
-  Quotient_rec (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l))) s))
+    (@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (s) @$\rightarrow$@
+      Quotient_rec (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l))) s))
 \end{minted}
 \caption{Elexp of \id{Multiset\_mem}}
 \end{figure}
@@ -4694,18 +4702,17 @@ Instead, we show a series of rewrites and reductions to simplify
 \begin{figure}
 \begin{mdframed}
 \begin{minted}[escapeinside=@@,mathescape=true]{scheme}
-(@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (s) @$\rightarrow$@
-  Quotient_rec (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l)) s)))
+    (@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (s) @$\rightarrow$@
+      Quotient_rec (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l)) s)))
 
-    @$\rightsquigarrow$@ Inlining of Quotient_rec
+        @$\rightsquigarrow$@ Inlining of Quotient_rec
 
-(@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (s) @$\rightarrow$@
-  (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l)) s)))
+    (@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (s) @$\rightarrow$@
+      (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l)) s)))
 
-    @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
+        @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
 
-(@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l))))
-
+    (@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l))))
 \end{minted}
 \end{mdframed}
 \caption{Proposed optimisations for \id{Multiset\_mem}}\label{fig:optim-multiset-mem}
@@ -4739,7 +4746,7 @@ readers are familiar with programming and/or type theory, one could think of
 categories as types, objects as terms of a particular type, and morphisms as
 functions. Every object has an identity arrow that relates it to itself.
 
-\begin{figure}[H]
+\begin{figure}
 \centering
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
 %uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
@@ -4787,9 +4794,13 @@ functions. Every object has an identity arrow that relates it to itself.
 \caption{Example of a category A with objects x, y and z with a morphism f that goes from x to y}
 \end{figure}
 
-At the heart of category theory, we have the notion of composition. Suppose that we have an arrow from A to B, and another arrow from B to C, then there is necessarily another arrow that goes directly from A to C. We call this the composition of the first two arrows. This is of course analogous to function composition in programming.
+At the heart of category theory, we have the notion of composition. Suppose that
+we have an arrow from A to B, and another arrow from B to C, then there is
+necessarily another arrow that goes directly from A to C as we show in
+\autoref{fig:cat-theory-composition}. We call this the composition of the first
+two arrows. This is of course analogous to function composition in programming.
 
-\begin{figure}[H]
+\begin{figure}
 \centering
 
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
@@ -4828,21 +4839,21 @@ At the heart of category theory, we have the notion of composition. Suppose that
 
 \end{tikzpicture}
 
-\caption{The composition of two morphisms f and g. The identity arrows are not explicitly shown as we can take their existence for granted.}
+\caption{The composition of two morphisms f and g. The identity arrows are not explicitly shown as we can take their existence for granted.}\label{fig:cat-theory-composition}
 
 \end{figure}
 
 To conclude our short introduction to category theory, we would like to present
 the category-theoretic equivalent of a ubiquitous construct in type theory,
 i.e.\ products (also known as tuples). One should be familiar with the notion of
-products being defined as pairs of elements, however in category theory, we have
-to define such objects in terms of its morphisms that relate it to other
+products being defined as pairs of elements, however, in category theory, we have
+to define such objects in terms of their morphisms that relate them to other
 objects. If some object C were to be the product of objects A and B, then we
 require that it has two morphisms that behave as the first and second
 projections out of the product. In other words, we require the two morphisms
 $\id{p} : \id{C} \rightarrow \id{A}$ and $\id{q} : \id{C} \rightarrow \id{B}$.
 
-\begin{figure}[H]
+\begin{figure}
   \centering
 
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
@@ -4879,19 +4890,17 @@ $\id{p} : \id{C} \rightarrow \id{A}$ and $\id{q} : \id{C} \rightarrow \id{B}$.
 \end{figure}
 
 However, we notice that this is far too general of a definition since it is
-likely that many objects fulfil these criteria. Here, we
-introduce the notion of a universal property which allows us to identify
-\emph{the best product}. The best product is the one that is not too general,
-and yet not too restrictive, it is \emph{just right}. More formally, the product
-of $\id{A}$ and $\id{B}$ is an object $\id{A} \times \id{B}$ with the morphisms
-$\pi_1 : \id{A} \times \id{B} \rightarrow A$ and $\pi_2 : \id{A} \times \id{B}
-\rightarrow B$. Additionally, for any other object $\id{C}$ with morphisms
-$\id{p} : \id{C} \rightarrow \id{A}$ and $\id{q} : \id{C} \rightarrow \id{B}$,
-there exists a unique morphism $\id{f}$ such that $\id{p} = \pi_1 \circ \id{f}$
-and $\id{q} = \pi_2 \circ \id{f}$. In other words, we require that the following
-diagram commute:
+likely that many objects fulfil these criteria. Here, we introduce the notion of
+a universal property which allows us to identify \emph{the best product}. The
+best product is the one that is not too general, and yet not too restrictive, it
+is \emph{just right}. More formally, the product of $A$ and $B$ is an object $A
+\times B$ with the morphisms $\pi_1 : A \times B \rightarrow A$ and $\pi_2 : A
+\times B \rightarrow B$. Additionally, for any other object $C$ with morphisms
+$p : C \rightarrow A$ and $q : C \rightarrow B$, there exists a unique morphism
+$f$ such that $p = \pi_1 \circ f$ and $q = \pi_2 \circ f$. In other words, we
+require that the diagram in \autoref{fig:ump-product} commute.
 
-\begin{figure}[H]
+\begin{figure}
 \centering
 
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
@@ -4942,18 +4951,18 @@ diagram commute:
 
 \end{tikzpicture}
 
-\caption{Universal mapping property of the product}
+\caption{Universal mapping property of the product}\label{fig:ump-product}
 
 \end{figure}
 
-Another way of saying the above is that $\id{h}$ factorises $\id{p}$ and
-$\id{q}$. The universal product, if it exists, is unique up to isomorphism.
-Products are not guaranteed to exist in every category. In the category of sets,
-the universal product is none other than the Cartesian product.
+Another way of saying the above is that $h$ factorises $p$ and $q$. The
+universal product, if it exists, is unique up to isomorphism. Products are not
+guaranteed to exist in every category. In the category of sets, the universal
+product is none other than the Cartesian product.
 
 \section{Coequaliser}\label{sec:coequaliser}
 We now introduce the notion of a coequaliser. We shall see later that
-$\kw{Quotient}$ acts indeed as a coequaliser, or rather coequalisers are
+$\id{Quotient}$ acts indeed as a coequaliser, or rather coequalisers are
 generalisation of quotients. For two arrows $\oftype{f, g}{A \rightarrow B}$, a
 coequaliser is an arrow $\oftype{q}{B \rightarrow Q}$ such that $qf = qg$ (we
 use juxtaposition to imply composition). The universal property of the
@@ -5009,15 +5018,22 @@ $f$ and $g$.
 
 \end{figure}
 
-\textbf{Proposition} In any category, if $\oftype{q}{B \rightarrow Q}$ is a coequaliser of a pair of arrows $\oftype{f, \ g}{A \rightarrow B}$, then $q$ is an epimorphism.
+\begin{prop}
+In any category, if $\oftype{q}{B \rightarrow Q}$ is a coequaliser of a pair of
+arrows $\oftype{f, \ g}{A \rightarrow B}$, then $q$ is an epimorphism.
+\end{prop}
 
-Proof.
-
+\begin{proof}
 We first state the definition of an epimorphism. An epimorphism is a morphism $\oftype{f}{X \rightarrow Y}$ such that for all objects C and morphisms $\oftype{g_1, g_2}{Y \rightarrow Z}$, if $g_1f = g_2f$ then $g_1 = g_2$.
 
-Now, we consider the below diagram
+Now, we consider \autoref{fig:coequaliser-f-g} in which $q$ is the coequaliser of $f$ and
+$g$. Supposing that $xq = yq$, we need to show that $x = y$. We have that $z =
+xq = yq$, implying that $zf = xqf = xqg = zg$. By the universal property of the
+coequaliser, there exists a unique $u$ such that $z = uq$. Since $z = xq$ and $z
+= yq$, it must be the case that $u = x = y$. Hence, $q$ is epic.
+\end{proof}
 
-\begin{figure}[H]
+\begin{figure}
   \centering
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
 %uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
@@ -5063,52 +5079,54 @@ Now, we consider the below diagram
 \draw (399.83,151) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {y};
 
 \end{tikzpicture}
+\caption{Coequaliser diagram of morphisms $f$ and $g$}\label{fig:coequaliser-f-g}
 \end{figure}
 
-in which $q$ is the coequaliser of $f$ and $g$. Supposing that $xq = yq$, we need to show that $x = y$. We have that $z = xq = yq$, implying that $zf = xqf = xqg = zg$. By the universal property of the coequaliser, there exists a unique $u$ such that $z = uq$. Since $z = xq$ and $z = yq$, it must be the case that $u = x = y$. Hence, $q$ is epic.
+
 
 Suppose that $R$ is a pair of some set X that is related by some equivalence
 relation, such that there are morphisms $\oftype{\pi_1, \pi_2}{R \rightarrow X}$
 that act as projections out of the pair. Then, the surjection into the quotient,
 $\oftype{q}{X \rightarrow X/R}$ is an coequaliser of $\pi_1$ and $\pi_2$. Its
-counterpart in Typer is the function $\kw{Quotient\_in}$. Since the coequaliser
-is epic, this implies that $\kw{Quotient\_in}$ is surjective, as can be proven
+counterpart in Typer is the function $\id{Quotient\_in}$. Since the coequaliser
+is epic, this implies that $\id{Quotient\_in}$ is surjective, as can be proven
 within Typer. When we say that a function $\oftype{f}{X \rightarrow Y}$ is
 surjective, we are essentially saying that $\forall y \in Y. \ \exists x \in X.
 \ f(x) = y$. Note that we should represent this by a weak sum, i.e.\ we do not
 require a concrete witness of $x$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-type SurjectiveQuotientProof (A : Type) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
-                             (x : Quotient A R) : Type
-   | surjectiveQuotientProof (a : A) (Eq (Quotient_in (R := R) a) x);
+    type SurjectiveQuotientProof (A : Type) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
+                                 (x : Quotient A R) : Type
+       | surjectiveQuotientProof (a : A) (Eq (Quotient_in (R := R) a) x)
 \end{minted}
 
 We define the above type, intending to return the propositional truncation of it
-as a proof of the surjectivity of $\kw{Quotient\_in}$. The proof goes as
+as a proof of the surjectivity of $\id{Quotient\_in}$. The proof goes as
 follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Quotient_in_surjective : (A : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
-                         @$\Rrightarrow$@ (x : Quotient A R)
-                         @$\rightarrow$@ PropTrunc (SurjectiveQuotientProof A R x)
-Quotient_in_surjective = @$\lambda$@ A R @$\Rrightarrow$@
-  elimProp (@$\lambda$@ x @$\rightarrow$@ squash (P := SurjectiveQuotientProof A R x))
-           (@$\lambda$@ a @$\rightarrow$@ inPropTrunc (surjectiveQuotientProof a Eq_refl))
+    Quotient_in_surjective : (A : Type) @$\Rrightarrow$@ (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
+                             @$\Rrightarrow$@ (x : Quotient A R)
+                             @$\rightarrow$@ PropTrunc (SurjectiveQuotientProof A R x)
+    Quotient_in_surjective = @$\lambda$@ A R @$\Rrightarrow$@
+      elimProp (@$\lambda$@ x @$\rightarrow$@ squash (P := SurjectiveQuotientProof A R x))
+               (@$\lambda$@ a @$\rightarrow$@ inPropTrunc (surjectiveQuotientProof a Eq_refl))
 \end{minted}
 
 Additionally, if we have an $\oftype{f}{X \rightarrow Y}$ such that it respects
 the underlying equivalence relation, i.e. $f \circ \pi_1 = f \circ \pi_2$, then
-there exists a unique function $\oftype{\overline{f}}{X/R \rightarrow Y}$. For
-$x \in X$, we have that $f(x) = \overline{f}(q(x))$. The equivalent of
-$\overline{f}$ in Typer is the function
-$\Funapp{\id{Quotient\_elim}}{f}{(\earg{p}{p})}$ where $p$ is an appropriate
-proof that $f$ respects the relation. This also justifies the reduction rule of
-\id{Quotient\_elim} which says that the application of \id{Quotient\_elim} to
-some function \id{f} and an surjection of some term \id{x} into the quotient
-should reduce to the direct application of \id{f} to \id{x}.
+there exists a unique function $\oftype{\overline{f}}{X/R \rightarrow Y}$ as
+illustrated in \autoref{fig:coequaliser-quotient}. For $x \in X$, we have that
+$f(x) = \overline{f}(q(x))$. The equivalent of $\overline{f}$ in Typer is the
+function $\Funapp{\id{Quotient\_elim}}{f}{(\earg{p}{p})}$ where $p$ is an
+appropriate proof that $f$ respects the relation. This also justifies the
+reduction rule of \id{Quotient\_elim} which says that the application of
+\id{Quotient\_elim} to some function \id{f} and an surjection of some term
+\id{x} into the quotient should reduce to the direct application of \id{f} to
+\id{x}.
 
-\begin{figure}[H]
+\begin{figure}
   \centering
 
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
@@ -5150,18 +5168,19 @@ should reduce to the direct application of \id{f} to \id{x}.
 \draw (400.5,170.17) node [anchor=north west][inner sep=0.75pt]  [font=\footnotesize] [align=left] {$\overline{f}$};
 
 \end{tikzpicture}
+\caption{Coequaliser diagram of \id{Quotient}}\label{fig:coequaliser-quotient}
 
 \end{figure}
 
-We can also phrase the universal property of $\kw{Quotient}$ in a type-theoretic
+We can also phrase the universal property of $\id{Quotient}$ in a type-theoretic
 way as follows:
 
 \begin{align*}
   & (X/R \rightarrow Y) \simeq \Sigma \ (X \rightarrow Y) \ (\lambda \ f \rightarrow (x \ y : X) \rightarrow \Funapp{R}{x}{y} \rightarrow \Funapp{f}{x} \equiv \Funapp{f}{y}) \\
 \end{align*}
 
-This property says that a map between the quotient \fn{X/R} to some type \id{Y}
-is equivalent to some function of type \fn{X $\rightarrow$ Y} accompanied with a
+This property says that a map between the quotient $X / R$ to some type $Y$ is
+equivalent to some function of type $X \rightarrow Y$ accompanied by a
 proof that the function respects the quotient. This may be proven within Typer
 itself, the proof is provided in \autoref{app:ump-quot} of the appendix.
 
@@ -5186,7 +5205,7 @@ shortcomings are the lack of tactics and the specialisation of types in case
 branches. Although our quotients have their limitations, they still offer
 sufficient expressivity to programmers to construct most quotients that are
 interesting as far as general programming tasks are concerned. With Typer's
-quotients, we have constructed illustrative examples in the form of the rational
+quotients, we have constructed illustrative examples in the form of rational
 numbers and multisets. For future work, one may think of constructing other
 interesting examples such as the representation of terms of the lambda calculus
 such that the $\alpha$-equivalence and the $\eta$-equivalence of terms are
@@ -5235,23 +5254,24 @@ property of equality proofs. This function carries out a single step of
 equational reasoning.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-step-@$\equiv$@ : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ (z : ?A) @$\rightarrow$@ Eq x y @$\rightarrow$@ Eq y z @$\rightarrow$@ Eq x z
-step-@$\equiv$@ _ p q = Eq_trans p q
+    step-@$\equiv$@ : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ (z : ?A) @$\rightarrow$@ Eq x y @$\rightarrow$@ Eq y z @$\rightarrow$@ Eq x z
+    step-@$\equiv$@ _ p q = Eq_trans p q
 \end{minted}
 
 Next, we require a second function to conclude a chain of equational reasoning.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-qed : (x : ?A) @$\rightarrow$@ Eq x x
-qed x = Eq_refl
+    qed : (x : ?A) @$\rightarrow$@ Eq x x
+    qed x = Eq_refl
 \end{minted}
 
 To make it all come together, we wrap the above functions with some syntactic
 sugar.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-_==<_>==_ = step-@$\equiv$@
-_@$\qed$@ = qed
+    _==<_>==_ = step-@$\equiv$@
+
+    _@$\qed$@ = qed
 \end{minted}
 
 \verb|_==<_>==_| can be seen as a mixfix operator, whereas \_$\qed$ is a postfix
@@ -5260,43 +5280,43 @@ operator.
 When we write the following
 
 \begin{lstlisting}
-  x
-  ==< p >==
-  y
-  ==< ... >==
-  .
-  .
-  .
-  ==< ... >==
-  z $\qed$
+    x
+    ==< p >==
+    y
+    ==< ... >==
+    .
+    .
+    .
+    ==< ... >==
+    z $\qed$
 \end{lstlisting}
 
 We require that $\id{p}$ be a proof of equality between $\id{x}$ and $\id{y}$, and this can be chained \latinphrase{ad infinitum}. The expression in its entirety is a proof of equality between $\id{x}$ and $\id{z}$. The usage of this is best illustrated via a simple example:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-example : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ (z : ?A) @$\rightarrow$@ (w : ?A)
-          @$\rightarrow$@ (p : Eq x y) @$\rightarrow$@ (q : Eq y z) @$\rightarrow$@ (r : Eq z w) @$\rightarrow$@ Eq x w
-example x y z w p q r =
-  x ==< p >==
-  y ==< q >==
-  z ==< r >==
-  w @$\qed$@
+    example : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ (z : ?A) @$\rightarrow$@ (w : ?A)
+              @$\rightarrow$@ (p : x @$\equiv$@ y) @$\rightarrow$@ (q : y @$\equiv$@ z) @$\rightarrow$@ (r : z @$\equiv$@ w) @$\rightarrow$@ x @$\equiv$@ w
+    example x y z w p q r =
+      x ==< p >==
+      y ==< q >==
+      z ==< r >==
+      w @$\qed$@
 \end{minted}
 
 For a more involved example, we rewrite the proof of \verb|Integer_*DistR+| that was shown in Section~\ref{subsection:int-theorems} by using equational reasoning.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-Integer_*DistR+ : (x y z : Integer) @$\rightarrow$@ x * (y + z) @$\equiv$@ (x * y) + (x * z)
-Integer_*DistR+ x y z =
-  Integer_* x (Integer_+ y z)
-  ==< Integer_*-comm x (Integer_+ y z) >==
-  Integer_* (Integer_+ y z) x
-  ==< Integer_*DistL+ y z x >==
-  Integer_+ (Integer_* y x) (Integer_* z x)
-  ==< Eq_cong (flip Integer_+ (Integer_* z x)) (Integer_*-comm y x) >==
-  Integer_+ (Integer_* x y) (Integer_* z x)
-  ==< Eq_cong (Integer_+ (Integer_* x y)) (Integer_*-comm z x) >==
-  Integer_+ (Integer_* x y) (Integer_* x z) @$\qed$@
+    Integer_*DistR+ : (x y z : Integer) @$\rightarrow$@ x * (y + z) @$\equiv$@ (x * y) + (x * z)
+    Integer_*DistR+ x y z =
+      Integer_* x (Integer_+ y z)
+      ==< Integer_*-comm x (Integer_+ y z) >==
+      Integer_* (Integer_+ y z) x
+      ==< Integer_*DistL+ y z x >==
+      Integer_+ (Integer_* y x) (Integer_* z x)
+      ==< Eq_cong (flip Integer_+ (Integer_* z x)) (Integer_*-comm y x) >==
+      Integer_+ (Integer_* x y) (Integer_* z x)
+      ==< Eq_cong (Integer_+ (Integer_* x y)) (Integer_*-comm z x) >==
+      Integer_+ (Integer_* x y) (Integer_* x z) @$\qed$@
 \end{minted}
 
 \chapter{Other proofs}\label{app:other-proofs}
@@ -5490,7 +5510,7 @@ dependent pairs are equal. The proof of this lemma is as follows:
          @$\rightarrow$@ (p : u.fst @$\equiv$@ v.fst) @$\rightarrow$@ u @$\equiv$@ v
 @$\Sigma$@@$\equiv$@prop propB u v p =
   let
-    h : Heq (t := lambda i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
+    h : Heq (t := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
             u.snd (Eq_cast (p := p) (f := B) u.snd)
     h = Heq_eq (t := @$\lambda$@ i @$\Rrightarrow$@ B (Eq_uneq (p := p) (i := i)))
                (f := @$\lambda$@ i @$\Rrightarrow$@
@@ -5603,7 +5623,7 @@ Quotient_eta2 q =
 \section{UMP of Quotients}\label{app:ump-quot}
 
 In order to prove that the universal property of quotients is indeed respected by our
-implementation of quotients types in Typer, we need to prove the following:
+implementation of quotient types in Typer, we need to prove the following:
 
 \begin{align*}
   & (X/R \rightarrow Y) \simeq \Sigma \ (X \rightarrow Y) \ (\lambda \ f \rightarrow (x \ y : X) \rightarrow \Funapp{R}{x}{y} \rightarrow \Funapp{f}{x} \equiv \Funapp{f}{y}) \\
@@ -5617,11 +5637,11 @@ of the base type that are related under the relation are \emph{equal} after
 their surjection into the quotient.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-e : (Quotient ?A ?R @$\rightarrow$@ ?B)
-    @$\rightarrow$@ Sigma (?A @$\rightarrow$@ ?B)
-             (@$\lambda$@ g @$\rightarrow$@ (a a' : ?A) @$\rightarrow$@ ?R a a' @$\rightarrow$@ g a @$\equiv$@ g a')
-e f = sigma (@$\lambda$@ x @$\rightarrow$@ f (Quotient_in (R := R) x))
-            (@$\lambda$@ x y r @$\rightarrow$@ Eq_cong f (Quotient_eq (R := R) r))
+    e : (Quotient ?A ?R @$\rightarrow$@ ?B)
+        @$\rightarrow$@ Sigma (?A @$\rightarrow$@ ?B)
+                 (@$\lambda$@ g @$\rightarrow$@ (a a' : ?A) @$\rightarrow$@ ?R a a' @$\rightarrow$@ g a @$\equiv$@ g a')
+    e f = sigma (@$\lambda$@ x @$\rightarrow$@ f (Quotient_in (R := R) x))
+                (@$\lambda$@ x y r @$\rightarrow$@ Eq_cong f (Quotient_eq (R := R) r))
 \end{minted}
 
 As for the reverse direction, we are required to construct a map from
@@ -5632,10 +5652,10 @@ and may be regarded as a trivial right inverse to the pre-composition with
 \id{Quotient\_in}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-e' : Sigma (?A @$\rightarrow$@ ?B)
-           (@$\lambda$@ g @$\rightarrow$@ (a a' : ?A) @$\rightarrow$@ R a a' @$\rightarrow$@ Eq (g a) (g a'))
-     @$\rightarrow$@ (Quotient ?A ?R @$\rightarrow$@ ?B)
-e' s = Quotient_rec (R := R) s.fst (p := s.snd)
+    e' : Sigma (?A @$\rightarrow$@ ?B)
+               (@$\lambda$@ g @$\rightarrow$@ (a a' : ?A) @$\rightarrow$@ R a a' @$\rightarrow$@ g a @$\equiv$@ g a')
+         @$\rightarrow$@ (Quotient ?A ?R @$\rightarrow$@ ?B)
+    e' s = Quotient_rec (R := R) s.fst (p := s.snd)
 \end{minted}
 
 Now it remains to prove that \id{e} and \id{e'} are both left and right inverses
@@ -5651,7 +5671,7 @@ e'e=id isSetB f =
         @$\rightarrow$@ e' (R := R) (e f) x @$\equiv$@ f x
     p x f =
       elimProp (R := R)
-               (P := @$\lambda$@ x @$\rightarrow$@ Eq (e' (R := R) (e f) x) (f x))
+               (P := @$\lambda$@ x @$\rightarrow$@ e' (R := R) (e f) x @$\equiv$@ f x)
                (@$\lambda$@ x @$\rightarrow$@ isSetB (e' (R := R) (e f) x) (f x))
                (@$\lambda$@ x @$\rightarrow$@ Eq_refl (x := f (Quotient_in (R := R) x)))
                x
@@ -5789,7 +5809,7 @@ treating functions out of the interval themselves as equality proofs. This
 reduces \id{sq} to the following expression:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-sq = @$\lambda$@ i @$\Rrightarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p (I_meet i j)
+    sq = @$\lambda$@ i @$\Rrightarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p (I_meet i j)
 \end{minted}
 
 Recalling the dimensions of the squares, on the left side of the square, the
@@ -5799,45 +5819,45 @@ path on $\fn{a}$ by using the reduction rules of $\fn{I\_meet}$ defined in
 \autoref{subsubsec:interval-meet}:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-@$\lambda$@ j @$\Rrightarrow$@ p (I_meet @$i_0$@ j)
-@$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p @$i_0$@
-@$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ a
-@$\rightsquigarrow$@ Eq_refl (_ := a)
+    @$\lambda$@ j @$\Rrightarrow$@ p (I_meet @$i_0$@ j)
+    @$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p @$i_0$@
+    @$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ a
+    @$\rightsquigarrow$@ Eq_refl (_ := a)
 \end{minted}
 
 For the bottom side, we fix $\fn{j}$ to be $i_0$ to obtain the below expression,
 which is once again a constant path on $\fn{a}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-@$\lambda$@ i @$\Rrightarrow$@ p (I_meet i @$i_0$@)
-@$\rightsquigarrow$@ @$\lambda$@ i @$\Rrightarrow$@ p @$i_0$@
-@$\rightsquigarrow$@ Eq_refl (_ := a)
+    @$\lambda$@ i @$\Rrightarrow$@ p (I_meet i @$i_0$@)
+    @$\rightsquigarrow$@ @$\lambda$@ i @$\Rrightarrow$@ p @$i_0$@
+    @$\rightsquigarrow$@ Eq_refl (_ := a)
 \end{minted}
 
 The right side requires us to fix $\fn{i}$ to be $i_1$, giving us the below
 expression which simply reduces to $\fn{p}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-@$\lambda$@ j @$\Rrightarrow$@ p (I_meet @$i_1$@ j)
-@$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p j
-@$\rightsquigarrow$@ p
+    @$\lambda$@ j @$\Rrightarrow$@ p (I_meet @$i_1$@ j)
+    @$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p j
+    @$\rightsquigarrow$@ p
 \end{minted}
 
 By fixing $\fn{j}$ to be $i_1$, we get the expression that corresponds to the top side, which also reduces to $\fn{p}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-@$\lambda$@ i @$\Rrightarrow$@ p (I_meet i @$i_1$@)
-@$\rightsquigarrow$@ @$\lambda$@ i @$\Rrightarrow$@ p i
-@$\rightsquigarrow$@ p
+    @$\lambda$@ i @$\Rrightarrow$@ p (I_meet i @$i_1$@)
+    @$\rightsquigarrow$@ @$\lambda$@ i @$\Rrightarrow$@ p i
+    @$\rightsquigarrow$@ p
 \end{minted}
 
 With that, we may complete the definition of \id{eqUnique} mentioned in
 \autoref{subsec:j-rule}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-eqUnique a b p = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@
-                          < Eq_uneq (p := p) (i := i),
-                            Heq_uneq (p := sq) (i := i) >)
+    eqUnique a b p = Eq_eq (f := @$\lambda$@ i @$\Rrightarrow$@
+                              < Eq_uneq (p := p) (i := i),
+                                Heq_uneq (p := sq) (i := i) >)
 \end{minted}
 
 
