@@ -2265,7 +2265,7 @@ The function is implemented in Typer as a primitive with the following type
 signature:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ A (_ := i0) @$\rightarrow$@ (r : I) @$\Rrightarrow$@ A (_ := r)
+    I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ A (_ := @$\ileft$@) @$\rightarrow$@ (r : I) @$\Rrightarrow$@ A (_ := r)
 \end{minted}
 
 Its implementation is simple in that its runtime behaviour involves returning
@@ -2285,13 +2285,13 @@ that are not necessarily definitionally equal. The heterogeneous equality type
 has the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    Heq : (t : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ t (_ := i0) @$\rightarrow$@ t (_ := i1) @$\rightarrow$@ Type
+    Heq : (t : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ t (_ := @$\ileft$@) @$\rightarrow$@ t (_ := @$\iright$@) @$\rightarrow$@ Type
 \end{minted}
 
 As we have previously proven, \fn{I $\Rrightarrow$ Type} is equivalent to an
 equality between two terms. Although we say that \fn{Heq} allows us to equate
-two terms of different types, in reality, the two types \fn{t (\_ := i0)} and
-\fn{t (\_ := i1)} have to be provably equal. \id{Heq\_eq}, the constructor of
+two terms of different types, in reality, the two types \fn{t (\_ := $\ileft$)} and
+\fn{t (\_ := $\iright$)} have to be provably equal. \id{Heq\_eq}, the constructor of
 \id{Heq} also leverages the property of erasable functions out of $\bI$ to
 accept an argument of that form as a witness of the equality being constructed.
 
@@ -2300,7 +2300,7 @@ accept an argument of that form as a witness of the equality being constructed.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     Heq_eq : (t : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (f : (i : I) @$\Rrightarrow$@ t (_ := i))
-             @$\Rrightarrow$@ Heq (f (_ := i0)) (f (_ := i1))
+             @$\Rrightarrow$@ Heq (f (_ := @$\ileft$@)) (f (_ := @$\iright$@))
 \end{minted}
 
 The elimination of equality types merely does the opposite of the introduction
@@ -2312,7 +2312,7 @@ equality.
 %%                     => (p : Heq x y) ≡> (i : I) ≡> t (_ := i)
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     Heq_uneq : (t : I @$\Rrightarrow$@ Type)
-               @$\Rrightarrow$@ (x : t (_ := i0)) @$\Rightarrow$@ (y : t (_ := i1))
+               @$\Rrightarrow$@ (x : t (_ := @$\ileft$@)) @$\Rightarrow$@ (y : t (_ := @$\iright$@))
                @$\Rightarrow$@ (p : Heq x y) @$\Rrightarrow$@ (i : I) @$\Rrightarrow$@ t (_ := i)
 \end{minted}
 
@@ -2463,7 +2463,7 @@ illustrate below.
 \end{minted}
 
 We note that the above proof makes use of the $\eta$-equivalence of functions,
-i.e. $\lambda \id{x} \rightarrow \Funapp{\id{f}}{\id{x}} \equiv \id{f}$.
+i.e. $(\lambda \id{x} \rightarrow \Funapp{\id{f}}{\id{x}}) = \id{f}$.
 
 %% NOTE: Skipping this because I would already have mentioned it while
 %% introducing Cubical Agda in an earlier chapter
@@ -2546,9 +2546,9 @@ simplified in a system with a cubical equality.
     Eq_cong g p = Eq_eq (f := |$\lambda$| i |$\Rrightarrow$| g (Eq_uneq (p := p) (i := i)))
 \end{minted}
 
-To construct a proof of \fn{Eq (f x) (f y)}, we apply the \id{Eq\_eq}
-constructor to a function that returns \fn{f x} when called with $\ileft$ and
-\fn{f y} when called with $\iright$. We construct this function by
+To construct a proof of \fn{g x $\equiv$ g y}, we apply the \id{Eq\_eq}
+constructor to a function that returns \fn{g x} when called with $\ileft$ and
+\fn{g y} when called with $\iright$. We construct this function by
 deconstructing the proof \id{p} using \id{Eq\_uneq} followed by applying it to
 the function \id{g}. Conceptually speaking we are simply placing a call to
 \id{g} `inside' the equality proof \id{p}. By the $\eta$-equivalence of the
@@ -2646,7 +2646,7 @@ the first.} with \fn{R$_Z$ = $\lambda$ <a , b> <c , d> $\rightarrow$ a + d
 syntax \fn{Quotient\_in R$_Z$ <0 , 0>}. We can also construct a proof that the
 pair \fn{<1 , 1>} would also correspond to the integer 0 by using the fact that
 natural number addition is commutative like so: \fn{Quotient\_eq (Nat+\_comm 0
-  1) : Quotient\_in R$_Z$ <0 , 0> $\equiv$ Quotient\_in R$_Z$ <1 , 1>}. Finally,
+  1) :\@ Quotient\_in R$_Z$ <0 , 0> $\equiv$ Quotient\_in R$_Z$ <1 , 1>}. Finally,
 we may want to eliminate an integer \id{z} by negating it, for brevity, we omit
 the full coherence proof term \id{p}, yielding the following term:
 \fn{Quotient\_elim ($\lambda$ <a , b> $\rightarrow$ Quotient\_in R$_Z$ <b , a>)
@@ -2787,8 +2787,9 @@ necessarily of the \textbf{same} type.
 We present the computation rule for the elimination of quotients.
 
 \begin{prooftree*}
-   \infer0{\Funapp{\id{Quotient\_elim}}{\id{f}}{\id{p}}{(\Funapp{\id{Quotient\_in}}{\id{R}}{\id{a}})}
-             \rightsquigarrow \Funapp{\id{f}}{\id{a}}}
+   \infer0{\id{Quotient\_elim} \ \ \id{f} \ \ \id{p}
+     \ \ (\id{Quotient\_in} \ \ \id{R} \ \ \id{a}) \rightsquigarrow
+     \Funapp{\id{f}}{\id{a}}}
 \end{prooftree*}
 
 We note that during \id{Quotient} elimination, the proof that the eliminator
@@ -2803,7 +2804,7 @@ which ones would actually be useful. One instance of it that we could possibly
 define is the following:
 
 \begin{align*}
-  & \Funapp{\id{Quotient\_in}}{(\Funapp{\fn{Quotient\_elim}}{\id{f}}{\id{h}}{\id{q}})} \rightsquigarrow{} \id{q} \\
+  & \id{Quotient\_in} \ \ (\Funapp{\fn{Quotient\_elim}}{\id{f}}{\id{h}}{\id{q}}) \rightsquigarrow{} \id{q} \\
 \end{align*}
 
 This requires the condition that \id{f} be some function of type \fn{A
@@ -2815,7 +2816,7 @@ useful to have. Another similar $\eta$-rule that is more easily enforced is the
 following:
 
 \begin{align*}
-  & \fn{Quotient\_elim} \ \id{Quotient\_in} \ (\lambda \ \id{a} \ \id{a'} \ \id{r} \rightarrow \Funapp{\id{Quotient\_eq}}{\id{r}}) \ \id{q} \rightsquigarrow{} \id{q} \\
+  & \fn{Quotient\_elim} \ \  \id{Quotient\_in} \ \ (\lambda \ \id{a} \ \id{a'} \ \id{r} \rightarrow \Funapp{\id{Quotient\_eq}}{\id{r}}) \ \id{q} \rightsquigarrow{} \id{q} \\
 \end{align*}
 
 This rule says that if the elimination of a quotiented term \id{q} simply
@@ -2823,7 +2824,7 @@ applies the projection into the quotient under the same relation, then the
 entire elimination may be seen as a no-op on \id{q}. Such a rule makes a great
 deal of sense, however we believe that it is of limited practical utility. We
 show, however, that these $\eta$-equivalences may be proven propositionally in
-\autoref{app:quotient-eta}.
+\autoref{app:quotient-eta} of the appendix.
 
 \subsection{Implementation}
 
@@ -2870,13 +2871,26 @@ Quotient_elim : (P : Quotient ?A ?R |$\rightarrow$| Type)
                 |$\Rrightarrow$| (q : Quotient ?A ?R) |$\rightarrow$| P q
 \end{minted}
 
-As mentioned in the previous section, the appropriate $\beta$-reduction rule is
-added for the eliminator. When $\id{Quotient\_elim}$ is passed a term of the
-form $\Funapp{\id{Quotient\_in}}{\id{a}}$, the entire $\id{Quotient\_elim}$ term
+The \id{Quotient\_elim} is implemented as a primitive with the appropriate
+$\beta$-reduction rule mentioned in the previous section. When
+$\id{Quotient\_elim}$ is passed a term of the form
+$\Funapp{\id{Quotient\_in}}{\id{a}}$, the entire $\id{Quotient\_elim}$ term
 reduces to just $\Funapp{\id{f}}{\id{a}}$, ignoring the coherence proof that is
 passed to the function as it acts simply as a form of static information. Since
 the proof itself is computationally irrelevant, it is made to be an erasable
 argument.
+
+
+The non-dependent eliminator, \id{Quotient\_rec}, is merely a special case of
+\id{Quotient\_elim} where \id{P} is a constant type family. Hence, we define
+\id{Quotient\_rec} in terms of \id{Quotient\_elim} as follows:
+
+\begin{minted}[escapeinside=||,mathescape=true]{agda}
+Quotient_rec : (f : ?A |$\rightarrow$| ?B)
+               |$\rightarrow$| (p : (a a' : ?A) |$\rightarrow$| ?R a a' |$\rightarrow$| f a |$\equiv$| f a')
+               |$\Rrightarrow$| Quotient ?A ?R |$\rightarrow$| ?B
+Quotient_rec f q = Quotient_elim (R := R) (P := |$\lambda$| _ |$\rightarrow$| B) f (p := p) q
+\end{minted}
 
 \subsection{Syntactic sugar}
 
@@ -2928,7 +2942,7 @@ of type \id{B $\rightarrow$ C} to produce functions of type \id{A $\rightarrow$
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     PointwiseEq : (A : ?) @$\Rightarrow$@ (B : ?) @$\Rightarrow$@ (A @$\rightarrow$@ B) @$\rightarrow$@ (A @$\rightarrow$@ B) @$\rightarrow$@ Type
-    PointwiseEq f g = (x : A) @$\rightarrow$@ Eq (f x) (g x)
+    PointwiseEq f g = (x : A) @$\rightarrow$@ f x @$\equiv$@ g x
 
     e1 : Quotient (?A @$\rightarrow$@ ?B) PointwiseEq @$\rightarrow$@ (?B @$\rightarrow$@ ?C) @$\rightarrow$@ ?A @$\rightarrow$@ ?C
     e1 q g a = qcase (q : (A @$\rightarrow$@ B) / PointwiseEq)
@@ -3021,16 +3035,16 @@ this property is not restricted to reflexivity, it may be generalised to
 arbitrary equality proofs by using the special property of \id{I\_transp}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-castIsEq : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0))
+castIsEq : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := @$\ileft$@))
            @$\rightarrow$@ Heq (t := A) x (Eq_cast (p := Eq_eq (f := A)) (f := id) x)
 castIsEq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x @$\rightarrow$@
   let
-    p : I_transp (A := A) x (r := i1) @$\equiv$@ Eq_cast (p := Eq_eq (f := A)) (f := id) x
+    p : I_transp (A := A) x (r := @$\iright$@) @$\equiv$@ Eq_cast (p := Eq_eq (f := A)) (f := id) x
     p = Eq_eq (f := @$\lambda$@ j @$\Rrightarrow$@
                     I_transp (A := @$\lambda$@ i @$\Rrightarrow$@ Eq_uneq (p := Eq_@$\eta$@ (A := A) i) (i := j))
-                             x (r := i1))
+                             x (r := @$\iright$@))
 
-   h : Heq (t := A) x (I_transp (A := A) x (r := i1))
+   h : Heq (t := A) x (I_transp (A := A) x (r := @$\iright$@))
    h = Heq_eq (t := A)
               (f := @$\lambda$@ i @$\Rrightarrow$@ I_transp (A := A) x (r := i))
   in
@@ -3038,7 +3052,7 @@ castIsEq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x @$\rightarrow$@
 \end{minted}
 
 
-\fn{I_transp (A := A) x (r := i1)} and \fn{Eq_cast (p := Eq_eq (f := A)) (f :=
+\fn{I_transp (A := A) x (r := $\iright$)} and \fn{Eq_cast (p := Eq_eq (f := A)) (f :=
   id) x} are not definitionally equal since the $\eta$-equivalence \fn{A (_ :=
   i)) $\equiv$ (Eq_uneq (p := Eq_eq (f := A)) (i := i))} does not hold
 definitionally. Hence, we prove the $\eta$-equivalence propositionally and use
@@ -3049,8 +3063,8 @@ it to complete our proof.
                   @$\rightarrow$@ A (_ := i) @$\equiv$@ Eq_uneq (p := Eq_eq (f := A)) (i := i)
     Eq_@$\eta$@ = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ i @$\rightarrow$@
       case i return A (_ := i) @$\equiv$@ Eq_uneq (p := Eq_eq (f := A)) (i := i)
-        | i0 @$\Rightarrow$@ Eq_refl
-        | i1 @$\Rightarrow$@ Eq_refl
+        | @$\ileft$@ @$\Rightarrow$@ Eq_refl
+        | @$\iright$@ @$\Rightarrow$@ Eq_refl
 \end{minted}
 
 %% NOTE: This is just an extra piece of information that may or may not interest
@@ -3080,7 +3094,7 @@ follows:
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
     Eq_trans : (x y z : ?t) |$\Rrightarrow$| x |$\equiv$| y |$\rightarrow$| y |$\equiv$| z |$\rightarrow$| x |$\equiv$| z
-    Eq_trans x=y y=z = Eq_cast (p := y=z) (f := |$\lambda$| x' |$\rightarrow$| Eq x x') x=y
+    Eq_trans x=y y=z = Eq_cast (p := y=z) (f := |$\lambda$| x' |$\rightarrow$| x @$\equiv$@ x') x=y
 \end{minted}
 
 \begin{figure}
@@ -3184,7 +3198,7 @@ if the two elimination principles are equivalent. It turns out that one way of
 doing it hinges upon whether we can inhabit the following type:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-eqUnique : (a b : ?A) @$\rightarrow$@ (p : Eq a b) @$\rightarrow$@ Eq (t := @$\Sigma_{a':A}. a \equiv a'$@) <a, Eq_refl>  <b, p>
+eqUnique : (a b : ?A) @$\rightarrow$@ (p : a @$\equiv$@ b) @$\rightarrow$@ Eq (t := @$\Sigma_{a':A}. a \equiv a'$@) <a, Eq_refl>  <b, p>
 \end{minted}
 
 This can be seen as a justification of the J-rule, by fixing one endpoint of an
@@ -3455,7 +3469,7 @@ implement this as an inductive type with a single constructor.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     type @$\mathbb{Z}{\times}\mathbb{Z}{\ne}0$@
-      | inR (@$z_1$@ : Integer) (@$z_2$@ : Integer) (p ::: Not (Eq @$z_2$@ 0))
+      | inR (@$z_1$@ : Integer) (@$z_2$@ : Integer) (p ::: Not (@$z_2$@ @$\equiv$@ 0))
 \end{minted}
 
 The underlying relation takes on the following form which may be proven to be
@@ -3495,13 +3509,13 @@ negate_compat a b r =
   case a return (equalQ (negate_fst a) (negate_fst b))
     | inR fst1 snd1 (_ := p1) @$\Rightarrow$@
       let
-        branch=a : Eq (inR fst1 snd1 (_ := p1)) a
+        branch=a : inR fst1 snd1 (_ := p1) @$\equiv$@ a
         branch=a = ##DeBruijn 0
       in
         case b return equalQ (negate_fst (inR fst1 snd1 (_ := p1))) (negate_fst b)
           | inR fst2 snd2 (_ := p2) @$\Rightarrow$@
             let
-              branch=b : Eq (inR fst2 snd2 (_ := p2)) b
+              branch=b : inR fst2 snd2 (_ := p2) @$\equiv$@ b
               branch=b = ##DeBruijn 0
               r' : equalQ (inR fst1 snd1 (_ := p1)) (inR fst2 snd2 (_ := p2))
               r' = Eq_cast (f := @$\lambda$@ b' @$\rightarrow$@ equalQ (inR fst1 snd1 (_ := p1)) b')
@@ -3657,8 +3671,7 @@ Rational_+Linv : (q : Rational) @$\rightarrow$@ Rational_+ (Rational_negate q) q
 Rational_+Linv q =
   Quotient_elimProp (R := equalQ)
                     (P := @$\lambda$@ q @$\rightarrow$@
-                            Eq (Rational_+ (Rational_negate q) q)
-                               Rational_0)
+                            Rational_+ (Rational_negate q) q @$\equiv$@ Rational_0)
                     (@$\lambda$@ q @$\rightarrow$@
                         Rational_isSet (Rational_+ (Rational_negate q) q)
                                        Rational_0)
@@ -3793,7 +3806,7 @@ $\fn{isMember a l}$ means that $\fn{a}$ is a member of the list $\fn{l}$.
               (eq ::: l @$\equiv$@ cons x xs)
 
     isMember : ?A @$\rightarrow$@ List ?A @$\rightarrow$@ Type
-    isMember = @$\lambda$@ A @$\Rightarrow$@ @$\lambda$@ x l @$\rightarrow$@ Any A (@$\lambda$@ x' @$\rightarrow$@ Eq x x') l
+    isMember = @$\lambda$@ A @$\Rightarrow$@ @$\lambda$@ x l @$\rightarrow$@ Any A (@$\lambda$@ x' @$\rightarrow$@ x @$\equiv$@ x') l
 \end{minted}
 
 %% The omitted proofs are uninteresting so far as quotient types are concerned
@@ -3872,7 +3885,7 @@ the following function:
         rel _ _ = Unit
       in
         elimProp2 (R := rel) (S := rel)
-                  (P := @$\lambda$@ x y @$\rightarrow$@ Eq x y)
+                  (P := @$\lambda$@ x y @$\rightarrow$@ x @$\equiv$@ y)
                   (@$\lambda$@ x y @$\rightarrow$@ Quotient_trunc (R := rel) (x := x) (y := y))
                   (@$\lambda$@ a a' @$\rightarrow$@ Quotient_eq (R := rel) (a := a) (a' := a') unit)
                   x y
@@ -3898,7 +3911,7 @@ strict subset of our quotient types, we show how we encode them in our system.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     Qnorm : (A : Type) @$\rightarrow$@ (nf : A @$\rightarrow$@ A) @$\rightarrow$@ Type
-    Qnorm A nf = Quotient A (@$\lambda$@ x y @$\rightarrow$@ Eq (nf x) (nf y))
+    Qnorm A nf = Quotient A (@$\lambda$@ x y @$\rightarrow$@ nf x @$\equiv$@ nf y)
 
     Qnorm_in : ?A @$\rightarrow$@ Qnorm ?A ?nf
     Qnorm_in a = Quotient_in a
@@ -3908,7 +3921,7 @@ strict subset of our quotient types, we show how we encode them in our system.
                                   (p := @$\lambda$@ x y r @$\rightarrow$@ Eq_cong f r)
                                   q
 
-    Qnorm_eq : (a a' : ?A) @$\rightarrow$@ Eq (nf a) (nf a') @$\rightarrow$@ Eq (Qnorm_in a) (Qnorm_in a')
+    Qnorm_eq : (a a' : ?A) @$\rightarrow$@ nf a @$\equiv$@ nf a' @$\rightarrow$@ Qnorm_in a @$\equiv$@ Qnorm_in a'
     Qnorm_eq a a' eq = Quotient_eq (a := a') (a' = a') eq
 \end{minted}
 
@@ -3948,20 +3961,20 @@ rec2 =
           Quotient_rec (R := S) (f a) (p := feqr a) b)
         (p := @$\lambda$@ a a' r @$\rightarrow$@
           let
-            eqf : (b : B) @$\rightarrow$@ Eq (f a b) (f a' b)
+            eqf : (b : B) @$\rightarrow$@ f a b @$\equiv$@ f a' b
             eqf b = feql a a' b r
             p : (x : Quotient B S) @$\rightarrow$@
-                isProp (Eq (Quotient_rec (f a) (p := feqr a) x)
-                           (Quotient_rec (f a') (p := feqr a') x))
+                isProp (Quotient_rec (f a) (p := feqr a) x
+                        @$\equiv$@ Quotient_rec (f a') (p := feqr a') x)
             p x = C_isSet (Quotient_rec (f a) (p := feqr a) x)
                           (Quotient_rec (f a') (p := feqr a') x)
             compat : (x : Quotient B S) @$\rightarrow$@
-                     (Eq (Quotient_rec (f a) (p := feqr a) x)
-                         (Quotient_rec (f a') (p := feqr a') x))
+                     Quotient_rec (f a) (p := feqr a) x
+                     @$\equiv$@ Quotient_rec (f a') (p := feqr a') x
             compat x = elimProp (R := S)
                                 (P := @$\lambda$@ x @$\rightarrow$@
-                                  (Eq (Quotient_rec (f a) (p := feqr a) x)
-                                      (Quotient_rec (f a') (p := feqr a') x)))
+                                  Quotient_rec (f a) (p := feqr a) x
+                                    @$\equiv$@ Quotient_rec (f a') (p := feqr a') x)
                                 p eqf x
           in
             Eq_funext (f := Quotient_rec (f a) (p := feqr a))
@@ -4050,7 +4063,7 @@ do is construct a heterogeneous equality between them, and this is precisely
 what the function $\id{castEqToHeq}$ seeks to do.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    castEqToHeq : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := i0)) @$\Rightarrow$@ (y : A (_ := i1))
+    castEqToHeq : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (x : A (_ := @$\ileft$@)) @$\Rightarrow$@ (y : A (_ := @$\iright$@))
                   @$\Rightarrow$@ Eq_cast (p := Eq_eq (f := A)) (f := id) x @$\equiv$@ y
                   @$\rightarrow$@ Heq (t := A) x y
     castEqToHeq = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ x y @$\Rightarrow$@ @$\lambda$@ p @$\rightarrow$@
@@ -4059,9 +4072,9 @@ what the function $\id{castEqToHeq}$ seeks to do.
 
 First, we construct a heterogeneous equality between $\id{x}$ and $\id{cast\_x}$
 using the \id{castIsEq} lemma that we prove in \autoref{app:cast-is-eq}. Then,
-we use the \id{whiskerRight} lemma described in \autoref{app:whiskering} to
-concatenate the above proof with \id{p} to produce a proof of heterogeneous
-equality between \id{x} and \id{y}.
+we use the \id{whiskerRight} lemma described in \autoref{app:whiskering} of the
+appendix to concatenate the above proof with \id{p} to produce a proof of
+heterogeneous equality between \id{x} and \id{y}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 elimProp : (P : Quotient ?A ?R @$\rightarrow$@ Type)
@@ -4101,7 +4114,7 @@ elimProp2 prop f =
 
 We make use of \id{isProp$\Pi$}, a lemma that states that the property of being
 a mere proposition is closed under the $\Pi$ type former. A proof of this is
-provided in Appendix~\ref{app:closure-mp-pi}.
+provided in \autoref{app:closure-mp-pi} of the appendix.
 
 \section{Functional Extensionality}\label{sec:quot-implies-funext}
 
@@ -4262,20 +4275,20 @@ are trivially \emph{logically equivalent}.
 \end{minted}
 
 $\Funapp{\id{isProp}}{\id{Unit1}}$ and $\Funapp{\id{isProp}}{\id{Unit2}}$ are
-trivially true, as is the case for all $\mathbb{1}$-types. $\id{Unit1}
-\rightarrow \id{Unit2}$ and $\id{Unit2} \rightarrow \id{Unit1}$ are also
-inhabited. Propositional extensionality thus gives us a proof of $\id{Unit1}
-\equiv \id{Unit2}$. This implies that we should be able to use said proof to
-transport $\id{unit1}$ to $\id{unit2}$, but since the two terms do not have the
-same runtime representation, this simply cannot be a no-op. This is in stark
-contrast to the version of propositional extensional that we are proposing in
-Typer that only accepts types that are boxed in the $\id{Erased}$ type. We would
-have no qualms about having a proof of equality between
-$\Funapp{\id{Erased}}{\id{Unit1}}$ and $\Funapp{\id{Erased}}{\id{Unit2}}$ as
-terms of these two types would essentially have the same runtime representation.
-It is also for this precise reason that our version of propositional
-extensionality is weaker, as we are constrained to construct an equality proof
-that is not computationally relevant.
+trivially true, as is the case for all $\mathbb{1}$-types\footnote{Types with
+exactly one inhabitant.}. $\id{Unit1} \rightarrow \id{Unit2}$ and $\id{Unit2}
+\rightarrow \id{Unit1}$ are also inhabited. Propositional extensionality thus
+gives us a proof of $\id{Unit1} \equiv \id{Unit2}$. This implies that we should
+be able to use said proof to transport $\id{unit1}$ to $\id{unit2}$, but since
+the two terms do not have the same runtime representation, this simply cannot be
+a no-op. This is in stark contrast to the version of propositional extensional
+that we are proposing in Typer that only accepts types that are boxed in the
+$\id{Erased}$ type. We would have no qualms about having a proof of equality
+between $\Funapp{\id{Erased}}{\id{Unit1}}$ and
+$\Funapp{\id{Erased}}{\id{Unit2}}$ as terms of these two types would essentially
+have the same runtime representation. It is also for this precise reason that
+our version of propositional extensionality is weaker, as we are constrained to
+construct an equality proof that is not computationally relevant.
 
 Another worthy comparison to make is with \Lean{}, which has a $\kw{Prop}$ sort.
 Terms of this sort are not autorised to be used in a proof-relevant manner. Its
@@ -4664,16 +4677,17 @@ average execution time along with the standard deviation.
 \end{minted}
 
 We observe that the average overhead cost of \id{Multiset\_append} is similar to
-the cost incurred \id{Rational\_+} and \id{Rational\_*} as \id{Multiset\_append}
-was defined in a largely similar manner using \id{Quotient\_rec2}. We then
-compare \id{Multiset\_mem} and \id{Rational\_negate} since they were both
-defined using \id{Quotient\_rec}. We observe, however, that the overhead cost of
-\id{Multiset\_mem} is less than \id{Rational\_negate}. We believe that this is
-because unlike \id{Rational\_negate}, \id{Multiset\_mem} does not construct a
-new quotient term as it returns a \id{Boolean}, hence it does not incur the cost
-of invoking the \id{Quotient\_in} primitive. We notice here that when the base
-operations themselves are more expensive, then the incurred overhead cost
-becomes close to negligible.
+the cost incurred by \id{Rational\_+} and \id{Rational\_*} as
+\id{Multiset\_append} was defined in a largely similar manner using
+\id{Quotient\_rec2}. We then compare \id{Multiset\_mem} and
+\id{Rational\_negate} since they were both defined using \id{Quotient\_rec}. We
+observe, however, that the overhead cost of \id{Multiset\_mem} is less than
+\id{Rational\_negate}. We believe that this is because unlike
+\id{Rational\_negate}, \id{Multiset\_mem} does not construct a new quotient term
+as it returns a \id{Boolean}, hence it does not incur the cost of invoking the
+\id{Quotient\_in} primitive. We notice here that when the base operations
+themselves are more expensive, then the incurred overhead cost becomes close to
+negligible.
 
 We also observe that the generated Elexps for \id{Multiset\_append} and
 \id{Multiset\_mem} are devoid of their related proof terms. The same
@@ -5098,7 +5112,7 @@ require a concrete witness of $x$.
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     type SurjectiveQuotientProof (A : Type) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type)
                                  (x : Quotient A R) : Type
-       | surjectiveQuotientProof (a : A) (Eq (Quotient_in (R := R) a) x)
+       | surjectiveQuotientProof (a : A) (Quotient_in (R := R) a @$\equiv$@ x)
 \end{minted}
 
 We define the above type, intending to return the propositional truncation of it
@@ -5254,14 +5268,14 @@ property of equality proofs. This function carries out a single step of
 equational reasoning.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    step-@$\equiv$@ : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ (z : ?A) @$\rightarrow$@ Eq x y @$\rightarrow$@ Eq y z @$\rightarrow$@ Eq x z
+    step-@$\equiv$@ : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ (z : ?A) @$\rightarrow$@ x @$\equiv$@ y @$\rightarrow$@ y @$\equiv$@  z @$\rightarrow$@ x @$\equiv$@ z
     step-@$\equiv$@ _ p q = Eq_trans p q
 \end{minted}
 
 Next, we require a second function to conclude a chain of equational reasoning.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    qed : (x : ?A) @$\rightarrow$@ Eq x x
+    qed : (x : ?A) @$\rightarrow$@ x @$\equiv$@  x
     qed x = Eq_refl
 \end{minted}
 
@@ -5457,7 +5471,7 @@ homogeneous equality proof between \id{a1} and \id{a2}, then we can construct a
 heterogeneous equality proof between \id{a0} and \id{a2} as follows:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-whiskerRight : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (a0 : A (_ := i0)) @$\Rightarrow$@ (a1 a2 : A (_ := i1))
+whiskerRight : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (a0 : A (_ := @$\ileft$@)) @$\Rightarrow$@ (a1 a2 : A (_ := @$\iright$@))
                @$\Rightarrow$@ Heq a0 a1 @$\rightarrow$@ a1 @$\equiv$@ a2 @$\rightarrow$@ Heq a0 a2
 whiskerRight = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ a0 a1 a2 @$\Rightarrow$@ @$\lambda$@ p1 p2 @$\rightarrow$@
   Eq_cast (p := p2) (f := @$\lambda$@ x @$\rightarrow$@ Heq (t := A) a0 x) p1
