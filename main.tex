@@ -347,14 +347,14 @@
 %% \orientation{mathématiques de l'ingénieur} et
 %% \orientation{mathématiques appliquées}
 
-\president{Nom du président du jury}
+\president{Frédéric Dupont-Dupuis}
 
-\directeur{Nom du directeur de recherche}
+\directeur{Stefan Monnier}
 
 %%\codirecteur{Nom du 1er codirecteur}         % s'il y a lieu
 %%\codirecteurs{Nom du 2e codirecteur}         % s'il y a lieu
 
-\membrejury{Nom du membre de jury}
+\membrejury{Marc Feeley}
 
 %%\examinateur{Nom de l'examinateur externe}   %obligatoire pour la these
 
@@ -497,10 +497,10 @@ several constructs to streamline proof development in Typer.
 \phantomsection  % Crée une section invisible (utile pour les hyperliens)
 \listoftables
 
-%%  % LISTE DES FIGURES
-%% \cleardoublepage
-%% \phantomsection
-%% \listoffigures
+ % LISTE DES FIGURES
+\cleardoublepage
+\phantomsection
+\listoffigures
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% LISTE DES SIGLES ET ABRÉVIATION %
@@ -543,6 +543,7 @@ several constructs to streamline proof development in Typer.
   UIP & Uniqueness of Identity Proofs\\
   HIT & Higher Inductive Type\\
   SMT & Satisfiability Modulo Theory\\
+  CIC & Calculus of Inductive Constructions\\
 \end{twocolumnlist}
 %% L'environnement <threecolumnlist> existe aussi pour trois colonnes.
 
@@ -814,9 +815,10 @@ In the case where \id{m} is \fn{succ n}, we make a recursive call to
   $\equiv$ n}, this is equivalent to invoking the induction hypothesis. By
 congruence of equality, we construct a proof that \fn{succ (n + zero) $\equiv$
   succ n}. By definition of \id{\_+\_}, \fn{succ n + zero} is actually equal to
-\fn{succ (n + zero)}, meaning that we have exactly what we require. The
-\id{Nat+\_succ} lemma may be proven in the exact same way, hence we shall not
-elaborate on it.
+\fn{succ (n + zero)}, meaning that we have exactly what we require since
+\fn{succ (n + zero) $\equiv$ succ n} is definitionally equal to \fn{succ n +
+  zero $\equiv$ succ n}. The \id{Nat+\_succ} lemma may be proven in the exact
+same way, hence we shall not elaborate on it.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     Nat+_comm : (m n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m
@@ -866,7 +868,7 @@ following type.
     Heq_refl : (x : ?A) @$\Rrightarrow$@ Heq x x
 \end{minted}
 
-In subsequent sections, we discuss the introduction of heterogeneous equality to
+In subsequent chapters, we discuss the introduction of heterogeneous equality to
 Typer and its role in the elimination of quotients.
 
 %% SM: I recommend you test-run this paragraph(subsection) by passing it to
@@ -1080,7 +1082,7 @@ We make several contributions:
 
 %% TODO: Link to a specific tag
 Supplementary material may be found in the author's Gitlab repository
-\url{https://gitlab.com/jamestjw/typer}.
+\url{https://gitlab.com/jamestjw/typer/-/tree/quot-types-v1.0.0}.
 
 %%------------------------------------------------- %
 %%                Chapters                          %
@@ -1199,21 +1201,20 @@ Depending on the context, a term of type \fn{Pair x y} may be treated as a term
 of type \fn{Pair a} or of \fn{UnorderedPair a} due to subtyping, i.e.\ the
 quotient of a base type is a subtype of the base type. Suppose that we would
 like to eliminate a term of type \fn{UnorderedPair a}, unsurprisingly we start
-off by defining a function \fn{f ${\colon}{\colon}$ Pair a -> b}\footnote{\fn{a
-  ${\colon}{\colon}$ A} is the syntax used in Haskell to say that the term
-\id{a} has type \id{A}.}. If \id{f} respects the equations introduced by
-\fn{UnorderedPair a}, then Quotient Haskell would allow us to treat \id{f} as a
-function of type \fn{f ${\colon}{\colon}$ UnorderedPair a -> b}, more
-specifically it would allow \id{f} to be \emph{refined} over unordered pairs. In
-some cases, such proofs may even be automatically discharged by the SMT solver.
-For instance, if we were dealing with pairs of integers and \id{f} was simply
-the integer addition operation, then such a proof would be automatically
-fulfilled. This highlights the advantages of the integration of quotients into a
-system with refinement types as a big class of mundane proofs may simply be
-automated away. In the case where the required proof is not trivial enough to be
-constructed automatically, the user would then be allowed to provide a manual
-proof. We refer interested readers to the original work for more details on
-this.
+off by defining a function \fn{f ::\@ Pair a -> b}\footnote{\fn{a ::\@ A} is the
+syntax used in Haskell to say that the term \id{a} has type \id{A}.}. If \id{f}
+respects the equations introduced by \fn{UnorderedPair a}, then Quotient Haskell
+would allow us to treat \id{f} as a function of type \fn{f ::\@ UnorderedPair a
+  -> b}, more specifically it would allow \id{f} to be \emph{refined} over
+unordered pairs. In some cases, such proofs may even be automatically discharged
+by the SMT solver. For instance, if we were dealing with pairs of integers and
+\id{f} was simply the integer addition operation, then such a proof would be
+automatically fulfilled. This highlights the advantages of the integration of
+quotients into a system with refinement types as a big class of mundane proofs
+may simply be automated away. In the case where the required proof is not
+trivial enough to be constructed automatically, the user would then be allowed
+to provide a manual proof. We refer interested readers to the original work for
+more details on this.
 
 %% From the point of view of general programming tasks, these quotients are as
 %% expressive as the HITs of Cubical Agda.
@@ -1441,8 +1442,8 @@ a function \id{f:I $\rightarrow$ A} such that \fn{f i0} is equal to \id{x} and
 equality.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-refl : {A : Set @$\ell$@} {x : A} @$\rightarrow$@ x @$\equiv$@ x
-refl {x = a} = @$\lambda$@ i @$\rightarrow$@ a
+    refl : {A : Set @$\ell$@} {x : A} @$\rightarrow$@ x @$\equiv$@ x
+    refl {x = a} = @$\lambda$@ i @$\rightarrow$@ a
 \end{minted}
 
 \fn{\{x = a\}} is how we tell \Agda{} that we would like to bind the implicit
@@ -1838,7 +1839,7 @@ type \id{A} are equal, a type family \fn{f :\@ A $\rightarrow$ Type} and
 gives us a function that maps \fn{f x} to \fn{f y}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    Eq_cast : (x y : ?A) @$\Rrightarrow$@ (p : Eq x y) @$\Rrightarrow$@ (f : ?A -> Type) @$\Rrightarrow$@ f x @$\rightarrow$@ f y
+    Eq_cast : (x y : ?A) @$\Rrightarrow$@ (p : Eq x y) @$\Rrightarrow$@ (f : ?A @$\rightarrow$@ Type) @$\Rrightarrow$@ f x @$\rightarrow$@ f y
 \end{minted}
 
 It has the following reduction rule:
@@ -3060,7 +3061,7 @@ it to complete our proof.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     Eq_@$\eta$@ : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ (i : I)
-                  @$\rightarrow$@ A (_ := i) @$\equiv$@ Eq_uneq (p := Eq_eq (f := A)) (i := i)
+           @$\rightarrow$@ A (_ := i) @$\equiv$@ Eq_uneq (p := Eq_eq (f := A)) (i := i)
     Eq_@$\eta$@ = @$\lambda$@ A @$\Rrightarrow$@ @$\lambda$@ i @$\rightarrow$@
       case i return A (_ := i) @$\equiv$@ Eq_uneq (p := Eq_eq (f := A)) (i := i)
         | @$\ileft$@ @$\Rightarrow$@ Eq_refl
@@ -3408,7 +3409,7 @@ Integer_+Rid : (x : Integer) |$\rightarrow$| x + 0 |$\equiv$| x
 Integer_+Rid x = Eq_trans (Integer_+-comm x 0) (Integer_+Lid x)
 
 Integer_+Rinv : (x : Integer) |$\rightarrow$| x + (0 - x) |$\equiv$| 0
-Integer_+Rinv x = Eq_trans (Integer_+-comm x (Integer_- 0 x))
+Integer_+Rinv x = Eq_trans (Integer_+-comm x (0 - x))
                            (Integer_+Linv x)
 
 Integer_*Rid : (x : Integer) |$\rightarrow$| x * 1 |$\equiv$| x
@@ -3480,7 +3481,7 @@ useful if we wish to prove that the resulting quotient is effective and that
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     equalQ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ Type
     equalQ p1 p2 = case (p1 , p2)
-        | (inR fst1 snd1, inR fst2 snd2) => fst1 * snd2 @$\equiv$@ snd1 * fst2
+        | (inR fst1 snd1, inR fst2 snd2) @$\Rightarrow$@ fst1 * snd2 @$\equiv$@ snd1 * fst2
 \end{minted}
 
 Finally, we can state the definition of the Rationals.
@@ -3562,7 +3563,7 @@ off by defining a function that operates on expressions of the base type.
 @$\zpairplus$@ : @$\zpair$@ @$\rightarrow$@ @$\zpair$@ @$\rightarrow$@ @$\zpair$@
 @$\zpairplus$@ a b =
   case (a , b)
-    | (inR x1 y1 (_ := p1) , inR x2 y2 (_ := p2)) =>
+    | (inR x1 y1 (_ := p1) , inR x2 y2 (_ := p2)) @$\Rightarrow$@
       inR ((x1 * y2) + (x2 * y1)) (y1 * y2) (_ := Integer_0-product y1 y2 p1 p2)
 \end{minted}
 
@@ -3825,8 +3826,8 @@ Multiset_mem disc a s =
   let
     Dec2Bool : Decidable ?A @$\rightarrow$@ Bool
     Dec2Bool d = case d
-      | yes => true
-      | no => false
+      | yes @$\Rightarrow$@ true
+      | no @$\Rightarrow$@ false
 
     compat : (l1 l2 : List A) @$\rightarrow$@ ListPerm A l1 l2
              @$\rightarrow$@ Dec2Bool (isMemberDec disc a l1) @$\equiv$@ Dec2Bool (isMemberDec disc a l2)
@@ -3927,13 +3928,13 @@ strict subset of our quotient types, we show how we encode them in our system.
 
 The \id{Qnorm} type former is constructed as a quotient with a relation defined
 by the equality of normalised terms. The construction of a term of type
-\id{Qnorm A nf} is simply a surjection into the quotient. The elimination
+\id{Qnorm A nf} is simply a projection into the quotient. The elimination
 principle simply applies the function \id{f} after normalising the term of the
 base type. Note that we use \fn{_$\circ$_} operator to represent function
 composition. The user is not required to provide additional coherence proofs as
 we immediately appeal to the congruence property of equality. We can also
 construct \id{Qnorm\_eq}, a proof that terms that share the same normal form are
-necessarily equal after their surjection into the quotient. We mention however
+necessarily equal after their projection into the quotient. We mention however
 that this may only be proven propositionally, as opposed to Courtieu's system
 where such an equality would hold judgementally.
 
@@ -3948,12 +3949,12 @@ boilerplate in user code.
 We start by describing \id{Quotient\_rec2}, which serves to eliminate two arbitrary quotient expressions.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-rec2 : (C_isSet : isSet ?C)
+Quotient_rec2 : (C_isSet : isSet ?C)
        @$\Rrightarrow$@ (f : ?A @$\rightarrow$@ ?B @$\rightarrow$@ ?C)
        @$\rightarrow$@ ((a b : ?A) @$\rightarrow$@ (c : ?B) @$\rightarrow$@ ?R a b @$\rightarrow$@ f a c @$\equiv$@ f b c)
        @$\Rrightarrow$@ ((a : ?A) @$\rightarrow$@ (b c: ?B) @$\rightarrow$@ ?S b c @$\rightarrow$@ f a b  @$\equiv$@ f a c)
        @$\Rrightarrow$@ Quotient ?A ?R @$\rightarrow$@ Quotient ?B ?S @$\rightarrow$@ ?C
-rec2 =
+Quotient_rec2 =
   @$\lambda$@ A B C R S C_isSet @$\Rrightarrow$@
     @$\lambda$@ f @$\rightarrow$@ @$\lambda$@ feql feqr @$\Rrightarrow$@
       Quotient_rec (R := R)
@@ -5100,7 +5101,7 @@ coequaliser, there exists a unique $u$ such that $z = uq$. Since $z = xq$ and $z
 
 Suppose that $R$ is a pair of some set X that is related by some equivalence
 relation, such that there are morphisms $\oftype{\pi_1, \pi_2}{R \rightarrow X}$
-that act as projections out of the pair. Then, the surjection into the quotient,
+that act as projections out of the pair. Then, the projection into the quotient,
 $\oftype{q}{X \rightarrow X/R}$ is an coequaliser of $\pi_1$ and $\pi_2$. Its
 counterpart in Typer is the function $\id{Quotient\_in}$. Since the coequaliser
 is epic, this implies that $\id{Quotient\_in}$ is surjective, as can be proven
@@ -5136,7 +5137,7 @@ $f(x) = \overline{f}(q(x))$. The equivalent of $\overline{f}$ in Typer is the
 function $\Funapp{\id{Quotient\_elim}}{f}{(\earg{p}{p})}$ where $p$ is an
 appropriate proof that $f$ respects the relation. This also justifies the
 reduction rule of \id{Quotient\_elim} which says that the application of
-\id{Quotient\_elim} to some function \id{f} and an surjection of some term
+\id{Quotient\_elim} to some function \id{f} and an projection of some term
 \id{x} into the quotient should reduce to the direct application of \id{f} to
 \id{x}.
 
@@ -5322,15 +5323,15 @@ For a more involved example, we rewrite the proof of \verb|Integer_*DistR+| that
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     Integer_*DistR+ : (x y z : Integer) @$\rightarrow$@ x * (y + z) @$\equiv$@ (x * y) + (x * z)
     Integer_*DistR+ x y z =
-      Integer_* x (Integer_+ y z)
-      ==< Integer_*-comm x (Integer_+ y z) >==
-      Integer_* (Integer_+ y z) x
+      x * (y + z)
+      ==< Integer_*-comm x (y + z) >==
+      (y + z) * x
       ==< Integer_*DistL+ y z x >==
-      Integer_+ (Integer_* y x) (Integer_* z x)
-      ==< Eq_cong (flip Integer_+ (Integer_* z x)) (Integer_*-comm y x) >==
-      Integer_+ (Integer_* x y) (Integer_* z x)
-      ==< Eq_cong (Integer_+ (Integer_* x y)) (Integer_*-comm z x) >==
-      Integer_+ (Integer_* x y) (Integer_* x z) @$\qed$@
+      (y * x) + (z * x)
+      ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ e + (z * x)) (Integer_*-comm y x) >==
+      (x * y) + (z * x)
+      ==< Eq_cong (@$\lambda$@ e @$\rightarrow$@ (x * y) + e) (Integer_*-comm z x) >==
+      (x * y) + (x * z) @$\qed$@
 \end{minted}
 
 \chapter{Other proofs}\label{app:other-proofs}
@@ -5400,7 +5401,7 @@ with the following computation rules:
 \begin{align*}
   & \kw{elimd}_{\bI}^{C}(M, N, P, \ileft) \rightsquigarrow{} M \\
   & \kw{elimd}_{\bI}^{C}(M, N, P, \iright) \rightsquigarrow{} N \\
-  & \kw{congd}_{\kw{elimd}_{\bI}^{C}(M, N, P)}(\id{seg}) \rightsquigarrow{} P
+  & \kw{congd}_{\kw{elimd}_{\bI}^{C}(M, N, P)}(seg) \rightsquigarrow{} P
 \end{align*}
 
 
@@ -5493,13 +5494,16 @@ type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
   | sigma (fst : A) (snd : B fst);
 \end{minted}
 
-$\eta$-equivalence does not hold definitionally for the \id{Sigma} type, however
-it may be proven propositionally:
+The $\braket{\_, \_}$ notation that we have been using thus far is represented
+by the \id{sigma} constructor, for instance, the construction of the dependent
+pair $\braket{a, b}$ is done by invoking the constructor like so: \fn{sigma a
+  b}. $\eta$-equivalence does not hold definitionally for the \id{Sigma} type,
+however it may be proven propositionally:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Sigma_@$\eta$@ : (p : Sigma ?A ?P) @$\rightarrow$@ p @$\equiv$@ sigma (B := ?P) p.fst p.snd
 Sigma_@$\eta$@ p = case p
-    | sigma x y =>
+    | sigma x y @$\Rightarrow$@
         let
           sigmaxy = sigma (B := P) x y
 
@@ -5645,10 +5649,10 @@ implementation of quotient types in Typer, we need to prove the following:
 
 To construct the forward direction of this equivalence, the function of type
 \fn{A $\rightarrow$ B} may be formed by pre-composing the function \fn{f:
-  Quotient A R $\rightarrow$ B} with a surjection into the quotient. The
+  Quotient A R $\rightarrow$ B} with a projection into the quotient. The
 coherence property follows naturally as a consequence of the fact that elements
 of the base type that are related under the relation are \emph{equal} after
-their surjection into the quotient.
+their projection into the quotient.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     e : (Quotient ?A ?R @$\rightarrow$@ ?B)
@@ -5929,49 +5933,6 @@ previous section.
 
 \end{tikzpicture}
 \end{center}
-
-\chapter{Les différentes parties et leur ordre d'apparition}
-
-%% TODO: Don't forget to ultimately remove this!
-
-J'ajoute ici les différentes parties d'un mémoire ou d'une thèse ainsi
-que leur ordre d'apparition tel que décrit dans le guide de
-présentation des mémoires et des thèses de la Faculté des études
-supérieures.  Pour plus d'information, consultez le guide sur le site
-web de la facutlé (www.fes.umontreal.ca).
-
-\newcount\colnum
-\colnum=1
-\def\i{\number\colnum. \global\advance\colnum by 1\ignorespaces}
-\begin{table}[p]
-  \begin{center}
-    \begin{tabular}{|l|l|r|}\hline
-       \noindent\hfil
-         \textbf{\strut Ordre des éléments constitutifs du mémoire ou de la thèse}
-         \hfil\span\omit\span\omit\\\hline % \span\omit pour couvrir plus d'une
-                                           % case sans utiliser le package multirow ou autre
-      \i &  La page de titre & obligatoire\\\hline
-      \i &  La page d'identification des membres du jury & obligatoire\\\hline
-      \i &  Le résumé en français et les mots clés français\kern3em& obligatoires\\\hline
-      \i &  Le résumé en anglais et les mots clés anglais & obligatoires\\\hline
-      \i &  Le résumé dans une autre langue que l'anglais & obligatoire \\
-         &  ou le français (si le document est écrit dans &\\
-         &  une autre langue que l'anglais ou le français)&\\\hline
-      \i &  Le résumé de vulgarisation& facultatif\\\hline
-      \i &  La table des matières, la liste des tableaux,& obligatoires\\
-         &   la liste des figures ou autre &\\\hline
-      \i &  La liste des sigles et des abréviations& obligatoire\\\hline
-      \i &  La dédicace& facultative\\\hline
-      \i &  Les remerciements & facultatifs\\\hline
-      \i &  L'avant-propos & facultatif\\\hline
-      \i &  Le corps de l'ouvrage& obligatoire\\\hline
-      \i &  Les index& facultatif\\\hline
-      \i &  Les références bibliographiques & obligatoires\\\hline
-      \i &  Les annexes & facultatifs\\\hline
-      \i &  Les documents spéciaux & facultatifs\\\hline
-    \end{tabular}
-  \end{center}
-\end{table}
 
 \end{document}
 
