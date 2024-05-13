@@ -1043,7 +1043,7 @@ We make several contributions:
 \begin{itemize}
   \item{First, we introduce a notion of heterogeneous equality based on the
     Interval type by drawing inspiration from cubical type theory
-    (\hyperref[ch:cubical-equality]{Section~\ref*{ch:cubical-equality}}).
+    (\hyperref[sec:cubical-equality]{Section~\ref*{sec:cubical-equality}}).
     Heterogeneous equality makes it possible to identify terms of different
     types\footnote{To identify A and B is to claim that they are equal.}. }
 
@@ -1781,7 +1781,7 @@ The third argument of \kw{cast} is a witness that the two types are equal. Since
 \id{B} on the inversion of the equality proof \id{e}, in other words, this is
 the application of the congruence property of equality.
 
-\chapter{Cubical Equality and Quotient Types}\label{ch:cubical-equality}
+\chapter{Cubical Equality and Quotient Types}
 %% SM: It's probably a good place to talk about (as a kind of self-reflection)
 %% the fact that your thesis on "quotient types in Typer" talks almost
 %% more about equalities than about quotients.
@@ -1790,7 +1790,7 @@ This chapter starts by presenting cubical equality along with our adaption of it
 to Typer. We then build on that to discuss how we implemented quotient types in
 Typer.
 
-\section{Cubical Equality}
+\section{Cubical Equality}\label{sec:cubical-equality}
 
 We first present the existing version of Typer's equality type before presenting
 our implementation of cubical equality in Typer. This is done notably to
@@ -2976,8 +2976,7 @@ constructing an equality proof, we simply specify what the given map for the
             | Quotient_eq f f' r i @$\Rightarrow$@ g (Eq_uneq (p := r a) (i := i))
 \end{minted}
 
-More elaborate examples of usages of this macro are given in subsequent
-sections.
+More examples of usages of this macro are given in subsequent sections.
 
 \chapter{Equality Theorems}\label{ch:eq-theorems}
 In addition to the examples given in \autoref{subsec:eq-examples}, we derive
@@ -3095,7 +3094,7 @@ follows:
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
     Eq_trans : (x y z : ?t) |$\Rrightarrow$| x |$\equiv$| y |$\rightarrow$| y |$\equiv$| z |$\rightarrow$| x |$\equiv$| z
-    Eq_trans x=y y=z = Eq_cast (p := y=z) (f := |$\lambda$| x' |$\rightarrow$| x @$\equiv$@ x') x=y
+    Eq_trans x=y y=z = Eq_cast (p := y=z) (f := |$\lambda$| x' |$\rightarrow$| x |$\equiv$| x') x=y
 \end{minted}
 
 \begin{figure}
@@ -3148,8 +3147,8 @@ proof that they are equal, i.e.\ of type \fn{x $\equiv$ y}. If we have a proof
 term \id{p} that witnesses the equality of two arbitrary terms \id{a} and \id{b}
 of type \id{A}, and we wish to produce a term of type \fn{C a b p}, then the
 J-rule says that it suffices for us to provide a means of producing for all
-$\oftype{\id{x}}{\id{A}}$ a term of type \fn{C x x (refl x)}. We now state the
-type of the J-rule:
+\fn{x :\@ A} a term of type \fn{C x x (refl x)}. We now state the type of the
+J-rule:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     J : (C : (x y : ?A) @$\rightarrow$@ x @$\equiv$@ y @$\rightarrow$@ Type)
@@ -3161,7 +3160,7 @@ type of the J-rule:
 This rule essentially says that to know what to do with an equality between an
 arbitrary \id{x} and \id{y}, we merely need to know how to handle the case where
 we are dealing with a reflexivity proof. Now, given the fact that the
-reflexivity constructor is the only constructor of the \id{Eq} type, one might
+reflexivity constructor is the only constructor of the \id{Eq} type, one would
 think that the above elimination principle is well justified. Recall that the
 elimination principle of strictly positive types\cite{abbott2005containers} can
 usually be derived based on the constructors of the datatype itself. For
@@ -3211,7 +3210,7 @@ we may easily define the J-rule by performing a cast from \fn{P a Eq\_refl} to
 \fn{P b p}:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    J h x y p = Eq_cast (p := eqUnique p) (f := @$\lambda$@ e @$\rightarrow$@ C x e.fst e.snd) (h x)
+    J h x y p = Eq_cast (p := eqUnique p) (f := @$\lambda$@ <b, p> @$\rightarrow$@ C x b p) (h x)
 \end{minted}
 
 \section{Hedberg's theorem}\label{subsec:hedberg}
@@ -3225,7 +3224,7 @@ or no, if they are indeed equal, we could interest ourselves in what ways
 exactly are they equal. This is in contrast to other systems where the
 Uniqueness of Identity Proofs principle (UIP) applies to all types. Notably,
 this is true of systems that admit axiom K\cite{streicher1993investigations}
-that states all equality proofs are equal to the reflexivity proof, and by
+that states that all equality proofs are equal to the reflexivity proof, and by
 extension all proofs of the same equality are equal. In the remainder of this
 section, we show that UIP is a property that is true for a certain class of
 types in Typer.
@@ -3240,8 +3239,9 @@ types. If we say that a type has decidable equality, this implies that for any
 two terms of this type, we can decide whether or not they are equal. On top of
 that, if the type has collapsed equality types, then for any pair of terms of
 this type, any two proofs that they are equal are also equal. The notion of
-collapsible equality types corresponds to the notion of a \textbf{Set} or 0-type
-in HoTT\cite[Chap~3.1]{HoTTbook}. We represent this using the following proposition.
+collapsible equality types corresponds to the notion of a \textbf{Set} or
+homotopy 0-type in HoTT\cite[Chap~3.1]{HoTTbook}. We represent this using the
+following proposition.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     isSet : Type @$\rightarrow$@ Type
@@ -3258,7 +3258,9 @@ types.
 
 In this work, we provide a proof of this theorem in the form of Typer code. We
 present the type of the function without going into the details of its
-implementation\footnote{The actual implementation may be found in the attached \fn{samples/hedberg.typer} file}.
+implementation\footnote{The actual implementation may be found in the
+\href{https://gitlab.com/jamestjw/typer/-/blob/quot-types-v1.0.0/samples/hedberg.typer}{\id{samples/hedberg.typer}}
+file}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     dici : (di : (x y : ?A) @$\rightarrow$@ Dec (x @$\equiv$@ y)) @$\rightarrow$@ (a b : ?A) @$\rightarrow$@ (u v : a @$\equiv$@ b)
@@ -3297,10 +3299,12 @@ The first option is as follows:
 A pair $\braket{z , n}$ represents the rational number $\frac{z}{n + 1}$, this
 trick allows us to ensure that the denominator is non-zero.
 
-The second option is similar to the first:
+The second option is similar to the first\footnote{We employ some abuse of
+notation by destructuring n-anary tuples using the $\braket{x_1, \ldots,
+  x_n}$ syntax.}:
 
 \begin{align*}
-  & \mathbb{Q} \ \coloneqq \Sigma_{\oftype{(x, y)}{\mathbb{Z} \times \mathbb{Z}}} . y \ne 0 / \sim_{\mathbb{Q}} \\
+  & \mathbb{Q} \ \coloneqq \Sigma_{\oftype{\braket{x, y}}{\mathbb{Z} \times \mathbb{Z}}} . y \ne 0\; / \sim_{\mathbb{Q}} \\
   & \braket{x_1 , y_1, \_} \sim_{\mathbb{Q}} \braket{x_2 , y_2, \_} \ \coloneqq x_1 * y_2 \equiv y_1 * x_2
 \end{align*}
 
@@ -3610,8 +3614,9 @@ it for `both sides'. In other words, we have to produce the below proofs.
 
 The proof of $\mathbb{Q}{+}\_\id{feql}$ is long and uninteresting and thus will
 not described here\footnote{Interested readers may find the proof in
-\id{btl/rational.typer}}. However, once this has been proved, its counterpart is
-a trivial corollary by virtue of the commutativity of $\zpairplus$.
+\href{https://gitlab.com/jamestjw/typer/-/blob/quot-types-v1.0.0/btl/rational.typer}{\id{btl/rational.typer}}}.
+However, once this has been proved, its counterpart is a trivial corollary by
+virtue of the commutativity of $\zpairplus$.
 
 \begin{minted}[escapeinside=@@,mathescape=true,samepage]{agda}
     @$\mathbb{Q}$+\_feqr@ a b b' p =
@@ -3685,10 +3690,11 @@ Rational_+Rinv q = Eq_trans (Rational_+-Comm q (Rational_negate q))
 \end{minted}
 
 For brevity, we do not describe the proofs for multiplication as they can be
-carried out similarly as above. As a sanity check of the validity of
-our construction of the rational numbers, we provided proofs of other
-interesting properties of \id{Rational} in the actual file, proving that it does
-indeed satisfy the characteristics of a \emph{ring}.
+carried out similarly as above. As a sanity check of the validity of our
+construction of the rational numbers, we provided proofs of other interesting
+properties of \id{Rational} in the
+\href{https://gitlab.com/jamestjw/typer/-/blob/quot-types-v1.0.0/btl/rational.typer}{\id{btl/rational.typer}}
+file, proving that it does indeed satisfy the characteristics of a \emph{ring}.
 
 \section{Multiset}\label{sec:multiset}
 
@@ -3814,8 +3820,10 @@ $\fn{isMember a l}$ means that $\fn{a}$ is a member of the list $\fn{l}$.
 We need to prove a lemma that says that if $\fn{isMember a $l_1$}$ is valid,
 then for some other $\fn{$l_2$}$ that is a permutation of $\fn{$l_1$}$,
 $\fn{isMember a $l_2$}$ is also valid, we omit this proof. Next, we just need to
-define $\fn{isMemberDec}$, whose details we shall once again omit. Finally, we
-may proceed to define $\fn{Multiset\_mem}$.
+define $\fn{isMemberDec}$, whose details we shall once again omit, we refer
+readers to the
+\href{https://gitlab.com/jamestjw/typer/-/blob/quot-types-v1.0.0/btl/multiset.typer}{\id{btl/multiset.typer}}
+file for more details. Finally, we may proceed to define $\fn{Multiset\_mem}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 isMemberDec : Discrete ?A @$\rightarrow$@ (a : ?A) @$\rightarrow$@ (l : List ?A) @$\rightarrow$@ Decidable (isMember a l)
@@ -3824,7 +3832,7 @@ isMemberDec = ...
 Multiset_mem : Discrete ?A @$\rightarrow$@ ?A @$\rightarrow$@ Multiset ?A @$\rightarrow$@ Bool
 Multiset_mem disc a s =
   let
-    Dec2Bool : Decidable ?A @$\rightarrow$@ Bool
+    Dec2Bool : Decidable ?A @$\rightarrow$@ Boolean
     Dec2Bool d = case d
       | yes @$\Rightarrow$@ true
       | no @$\Rightarrow$@ false
@@ -3875,8 +3883,8 @@ The encoding is simple, we simply define the following type former along with it
 \end{minted}
 
 The choice of $\id{R}$ here essentially implies that every term of the base type
-\id{P} shall be equated in the resulting quotient type. This is witnessed by
-the following function:
+\id{P} shall be equated in the resulting quotient type as the \id{Unit} type is
+trivially inhabited. This is witnessed by the following function:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     squash : (x y : PropTrunc ?P) @$\rightarrow$@ x @$\equiv$@ y
@@ -3950,16 +3958,15 @@ We start by describing \id{Quotient\_rec2}, which serves to eliminate two arbitr
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Quotient_rec2 : (C_isSet : isSet ?C)
-       @$\Rrightarrow$@ (f : ?A @$\rightarrow$@ ?B @$\rightarrow$@ ?C)
-       @$\rightarrow$@ ((a b : ?A) @$\rightarrow$@ (c : ?B) @$\rightarrow$@ ?R a b @$\rightarrow$@ f a c @$\equiv$@ f b c)
-       @$\Rrightarrow$@ ((a : ?A) @$\rightarrow$@ (b c: ?B) @$\rightarrow$@ ?S b c @$\rightarrow$@ f a b  @$\equiv$@ f a c)
-       @$\Rrightarrow$@ Quotient ?A ?R @$\rightarrow$@ Quotient ?B ?S @$\rightarrow$@ ?C
+                @$\Rrightarrow$@ (f : ?A @$\rightarrow$@ ?B @$\rightarrow$@ ?C)
+                @$\rightarrow$@ ((a b : ?A) @$\rightarrow$@ (c : ?B) @$\rightarrow$@ ?R a b @$\rightarrow$@ f a c @$\equiv$@ f b c)
+                @$\Rrightarrow$@ ((a : ?A) @$\rightarrow$@ (b c: ?B) @$\rightarrow$@ ?S b c @$\rightarrow$@ f a b  @$\equiv$@ f a c)
+                @$\Rrightarrow$@ Quotient ?A ?R @$\rightarrow$@ Quotient ?B ?S @$\rightarrow$@ ?C
 Quotient_rec2 =
   @$\lambda$@ A B C R S C_isSet @$\Rrightarrow$@
     @$\lambda$@ f @$\rightarrow$@ @$\lambda$@ feql feqr @$\Rrightarrow$@
       Quotient_rec (R := R)
-        (@$\lambda$@ a @$\rightarrow$@ @$\lambda$@ b @$\rightarrow$@
-          Quotient_rec (R := S) (f a) (p := feqr a) b)
+        (@$\lambda$@ a b @$\rightarrow$@ Quotient_rec (R := S) (f a) (p := feqr a) b)
         (p := @$\lambda$@ a a' r @$\rightarrow$@
           let
             eqf : (b : B) @$\rightarrow$@ f a b @$\equiv$@ f a' b
@@ -3998,9 +4005,9 @@ $\id{elimProp}$ is a function that simplifies the elimination of a quotient when
 the target type is a mere proposition as was introduced in
 \autoref{sec:prop-trunc}. We will see that the nature of the function \id{f} has
 no bearing on our proof obligations, as they can be discharged in a very
-systematic way by leveraging the fact that the output type is a \kw{Prop}. First, we
-need to prove a lemma, \id{castEqToHeq}. Suppose that we have a type former
-$\id{A} \colon \id{I} \Rrightarrow \id{Type}$, two terms \id{x} and \id{y} of
+systematic way by leveraging the fact that the output type is a \kw{Prop}.
+First, we need to prove a lemma, \id{castEqToHeq}. Suppose that we have a type
+former \fn{A :\@ I $\Rrightarrow$ Type}, two terms \id{x} and \id{y} of
 types $\Funapp{\id{A}}{(\earg{\_}{\ileft})}$ and
 $\Funapp{\id{A}}{(\earg{\_}{\iright})}$ respectively, and a term \id{cast\_x}
 that we obtain by casting \id{x} to $\Funapp{\id{A}}{(\earg{\_}{\iright})}$, we
@@ -4518,14 +4525,14 @@ Since the operations on rational numbers are essentially wrappers around
 operations on the base type $\zpair$, our benchmark simply compares the
 execution time of operations on $\zpair$ with their $\fn{Rational}$
 counterparts\footnote{The code for this may be found in the
-$\fn{rational\_benchmark.typer}$ file.}. We examine the runtime
-cost\footnote{The tests were executed on the author's 2018 Macbook Pro with a
-quadcore 2.3GHz Intel Core i5 processor with 8GB of RAM.} of executing the
-functions $\fn{Rational\_negate}$, $\fn{Rational\_+}$, $\fn{Rational\_-}$ and
-$\fn{Rational\_*}$ on 50000 pairs of rational numbers with 100 iterations. We
-then report the average execution time over the 100 iterations along with the
-standard deviation. The overhead is defined to be the difference in the average
-execution time.
+\href{https://gitlab.com/jamestjw/typer/-/blob/quot-types-v1.0.0/samples/rational_benchmark.typer}{\id{samples/rational\_benchmark.typer}}
+file.}. We examine the runtime cost\footnote{The tests were executed on the
+author's 2018 Macbook Pro with a quadcore 2.3GHz Intel Core i5 processor with
+8GB of RAM.} of executing the functions $\fn{Rational\_negate}$,
+$\fn{Rational\_+}$, $\fn{Rational\_-}$ and $\fn{Rational\_*}$ on 50000 pairs of
+rational numbers with 100 iterations. We then report the average execution time
+over the 100 iterations along with the standard deviation. The overhead is
+defined to be the difference in the average execution time.
 
 %% SM: Personally I find the overhead to make more sense when expressed
 %% as a percentage.
@@ -5519,7 +5526,7 @@ Sigma_@$\eta$@ p = case p
 \end{minted}
 
 We also define a lemma, \id{$\Sigma${}$\equiv${}Prop}, which states that to
-prove that two terms of type \fn{Sigma A B} are equal, if \fn{$\Pi_{x \colon A}$ isProp
+prove that two terms of type \fn{Sigma A B} are equal, if \fn{$\Pi_{x : A}$ isProp
   (B x)} is true, then it suffices to show that the first projection of the two
 dependent pairs are equal. The proof of this lemma is as follows:
 
