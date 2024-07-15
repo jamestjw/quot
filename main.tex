@@ -607,7 +607,7 @@ showcase some of its distinctive features. Readers that are familiar with other
 functional languages such as Haskell, ML, and Lisp should find Typer's syntax
 quite familiar.
 
-\subsection{Functions and Inductive Types}
+\subsection{Functions and Inductive Types}\label{subsec:intro-fn-ind-types}
 As a functional programming language, the first thing that
 deserves introduction is the notion of functions in Typer. Here is how we might
 define a function \id{Int\_clamp} that clamps an input integer to a certain
@@ -642,8 +642,11 @@ preceding expression.
 
 In reality, all multi-argument functions in Typer are single-argument functions
 that return another function that will be called with the subsequent arguments.
-This is known as \emph{currying}. This notably makes the partial application of 
-functions possible as we demonstrate in the below example.
+This is consistent with the fact that \id{$\rightarrow$} is right associative,
+implying that the type of \id{Int_clamp} may be read as \id{Int $\rightarrow$
+(Int $\rightarrow$ (Int $\rightarrow$ Int))}. This is known as \emph{currying}.
+This notably makes the partial application of functions possible as we
+demonstrate in the below example.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     unit_clamp : Int @$\rightarrow$@ Int
@@ -756,8 +759,9 @@ using the following type:
 Just like implicit arguments, Typer will also try to infer erasable arguments
 whenever possible. We may also explicitly provide implicit or erasable
 arguments to a function call using named arguments, this is useful when type
-inference fails to infer the right term. This can be done using the \id{:=}
-syntax, we demonstrate this by explicitly passing the type \id{Int} to
+inference fails to infer the right term. This can be done using the \fn{(x :=
+y)} syntax that instantiates the argument \id{x} with the term \id{y} . We
+demonstrate this by explicitly passing the type \id{Int} to
 \id{List_head_default}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
@@ -788,10 +792,10 @@ integer and returns it unchanged if it is positive, otherwise it is converted
 to a string.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-maybe_convert_to_string : (i : Int) @$\rightarrow$@ (case i > 0 | true @$Rightarrow$@ Int | false @$Rightarrow$@ String)
+maybe_convert_to_string : (i : Int) @$\rightarrow$@ (case i > 0 | true @$\Rightarrow$@ Int | false @$\Rightarrow$@ String)
 maybe_convert_to_string i = case i > 0
-  | true @$Rightarrow$@ i
-  | false @$Rightarrow$@ Int->String i
+  | true @$\Rightarrow$@ i
+  | false @$\Rightarrow$@ Int->String i
 \end{minted}
 
 The return type of this function varies depends on the integer argument \id{i}.
@@ -896,16 +900,20 @@ Just like $\id{arrayGet}$, $\id{Eq}$ is a function. However, instead of
 returning values, it returns types. Since this type of function constructs
 types, it is also known as a type former. $\id{Eq}$ takes as arguments a type
 $\id{A}$ and two terms $\id{x}$ and $\id{y}$ of type $\id{A}$. Whenever we have
-two or more consecutive parameters of the same type, we use the shorthand
+two or more consecutive named parameters of the same type, we use the shorthand
 notation \fn{(x y :\@ A)} instead of the more verbose \fn{(x :\@ A)
-  $\rightarrow$ (y :\@ A)}. The usage of $\Rrightarrow$ indicates that the
-parameter $\id{A}$ is implicit and erasable, this is explained in greater detail
-in \autoref{sec:eq-justification}. Recall that types may be seen as
+$\rightarrow$ (y :\@ A)}. The usage of $\Rrightarrow$ indicates that the
+parameter $\id{A}$ is implicit and erasable, this is explained in greater
+detail in \autoref{subsec:intro-fn-ind-types}. Recall that types may be seen as
 propositions, the type \fn{Eq x y} is thus a proposition that $\fn{x}$ and
-$\fn{y}$ are equal, and its terms are proofs of this proposition. For aesthetic
-purposes, we shall use the operator $\equiv$ to represent the \id{Eq} type
-throughout the rest of this work, i.e.\ we write \fn{Eq x y} as \fn{x $\equiv$
-  y}.
+$\fn{y}$ are equal, and its terms are proofs of this proposition. More
+specifically, we refer to this as the \emph{propositional equality} between
+\id{x} and \id{y}. The type-checker is unable to automatically prove that two
+terms are propositionally equal, the responsibility of finding a proof of it
+lies on the programmer. The type-checker simply verifies that the given proof
+is valid. For aesthetic purposes, we shall use the operator $\equiv$ to
+represent the \id{Eq} type throughout the rest of this work, i.e.\ we write
+\fn{Eq x y} as \fn{x $\equiv$ y}.
 
 We could then construct the type that stipulates that the addition of natural
 numbers is commutative by using the $\id{Eq}$ type former.
@@ -914,13 +922,51 @@ numbers is commutative by using the $\id{Eq}$ type former.
      Nat+_comm : (m n : Nat) @$\rightarrow$@ m + n @$\equiv$@ n + m
 \end{minted}
 
-$\fn{Nat+\_comm}$ takes 2 natural numbers $\fn{m}$ and $\fn{n}$ as arguments and
-returns a proof that \fn{m + n $\equiv$ n + m}. \fn{m + n $\equiv$ n + m} is
-merely a type and can be seen as a statement of the proposition that \fn{m + n}
-and \fn{n + m} are equal. To prove that the proposition is true, we would need
-to construct a term of this type. Such a term may be seen as a proof object that
-witnesses the validity of the proposition. We defer the proof of this to a later
-part of this section after we finish describing the equality type.
+$\fn{Nat+\_comm}$ takes 2 natural numbers $\fn{m}$ and $\fn{n}$ as arguments
+and returns a proof that \fn{m + n $\equiv$ n + m}. \fn{m + n $\equiv$ n + m}
+is merely a type and can be seen as a statement of the proposition that \fn{m +
+n} and \fn{n + m} are equal. To prove that the proposition is true, we would
+need to construct a term of this type. Such a term may be seen as a proof
+object that witnesses the validity of the proposition. To humans, the fact that
+\fn{m + n} and \fn{n + m} are the same is something trivial and is often taken
+for granted. In general, the type checker of a dependently typed language would
+not immediately consider the above types equal without further evidence. To
+elaborate on this, consider a typical definition of the addition operation on
+natural numbers:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+    _+_ : Nat @$\rightarrow$@ Nat @$\rightarrow$@ Nat
+    _+_ x y = case x
+      | zero @$\Rightarrow$@ y
+      | succ x' @$\Rightarrow$@ succ (x' + y)
+\end{minted}
+
+The function is defined by case analysis on its first argument. The expressions
+\fn{m + n} and \fn{n + m} would expand to the following expressions,
+respectively.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+    case m
+      | zero @$\Rightarrow$@ n
+      | succ x' @$\Rightarrow$@ succ (x' + n)
+
+
+    case n
+      | zero @$\Rightarrow$@ m
+      | succ x' @$\Rightarrow$@ succ (x' + m)
+\end{minted}
+
+Without knowing the concrete values of \id{m} and \id{n}, neither of the above
+expressions can be further reduced. Hence, this implies that \id{m} and \id{n}
+are not \emph{definitionally equal}. Definitional equality is how Typer
+determines if two terms are \emph{convertible}, it does so by expanding
+definitions and performing reductions whenever possible. For instance, Typer
+would consider that \id{3 + 2} and \id{5} are definitionally equal\footnote{We
+  employed some abuse of notation here to avoid having to represent the natural
+number literals by a chain of applications of \id{succ}}. Although \fn{m + n}
+and \fn{n + m} are not definitionally equal, they may be proven to be
+propositionally equal, we defer this to a later part of this section after we
+finish describing the equality type.
 
 To see how such a proof may be utilised, suppose we have a type of
 length-indexed vectors:
@@ -937,57 +983,35 @@ checks that verify that our program is well-behaved since functions are able to
 impose constraints based on the length of vectors. However, this is not without
 its disadvantages as programmers are now burdened with the responsibility of
 proving at various points during the program that their vectors have the `right
-length'. To humans, the fact that \fn{Vector A (m + n)} and \fn{Vector A (n +
-  m)} are the same is something trivial and is often taken for granted. In
-general, the type checker of a dependently typed language would not immediately
-consider the above types equal without further evidence. Hence, one would not be
-able to pass a vector of the first type to a function that expects a vector of
-the latter type. Suppose we have a zip function that parallelly iterates over 2
-vectors, it could reasonably expect both input vectors to have the \emph{same}
-length. Hence, the zipping of a \fn{Vector A (m + n)} and a \fn{Vector A (n +
-  m)} would not type-check. Below is a typical definition of the addition
-operation on natural numbers:
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    _+_ : Nat @$\rightarrow$@ Nat @$\rightarrow$@ Nat
-    _+_ x y = case x
-      | zero @$\Rightarrow$@ y
-      | succ x' @$\Rightarrow$@ succ (x' + y)
-\end{minted}
-
-The function is defined by case analysis on its first argument, it is thus not
-immediate that for arbitrary natural numbers \fn{m} and \fn{n}, the terms \fn{m
-  + n} and \fn{n + m} would evaluate to the same thing. Hence, if a programmer
-wishes to use a term of type \fn{Vector A (n + m)} in place of one of type
-\fn{Vector A (m + n)}, he would be required to state and prove the propositional
-equality \fn{Vector A (m + n) $\equiv$ Vector A (n + m)}. Once we have such a
-proof, we may then use it to cast vectors between those two types. This is
-achieved by defining a function like the one below:
+length'. Since the commutativity of addition for natural numbers is not a
+definitional equality, \fn{Vector A (m + n)} and \fn{Vector A (n + m)} are not
+definitionally equal either. Hence, one would not be able to pass a vector of
+the first type to a function that expects a vector of the latter type. Suppose
+we have a zip function that parallelly iterates over 2 vectors, it could
+reasonably expect both input vectors to have the \textbf{same} length. Hence,
+the zipping of a \fn{Vector A (m + n)} and a \fn{Vector A (n + m)} would not
+type-check. If a programmer wishes to use a term of type \fn{Vector A (n + m)}
+in place of one of type \fn{Vector A (m + n)}, he would be required to state
+and prove the propositional equality \fn{Vector A (m + n) $\equiv$ Vector A (n
++ m)}. Once we have such a proof, we may then use it to cast vectors between
+those two types. This is achieved by defining a function like the one below:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     Vlength_comm+ : (m n : Nat) @$\Rrightarrow$@ Vector ?A (m + n) @$\rightarrow$@ Vector ?A (n + m)
     Vlength_comm+ m n v = Eq_cast (p := Nat+_comm m n) (f := Vector A) v
 \end{minted}
 
-The \id{?A} notation when used in a type allows us to say that we want the
-variable \id{A} to be defined as an implicit argument of the function, allowing
-us to write more succinct types. In this case, the type signature is expanded to
-\fn{(A :\@ Type) $\Rrightarrow$ (m n :\@ Nat) $\Rrightarrow$ Vector A
-  (m + n) $\rightarrow$ Vector A (n + m)}. \fn{Vlength\_comm+} is a function
-that converts a vector of type \fn{Vector A (m + n)} to one of type \fn{Vector A
-  (n + m)}. When calling a function, we might want to explicitly instantiate an
-implicit argument, we do so using the \fn{(x := y)} notation that instantiates
-the implicit argument \id{x} with the term \id{y}. By making use of a proof of
-\id{Nat+\_comm}, i.e.\ that \fn{m + n $\equiv$ n + m}, we can perform type
-casting on a vector of type \fn{Vector A (m + n)} to produce a vector of the
-desired type. If we had a data type of matrices indexed by their dimensions, the
-cast operation might also be necessary to ensure the appropriate alignment of
-dimensions when working with a function that calculates matrix products. The
-equality type satisfies Leibniz's principle of the indiscernibility of
-identicals, i.e.\ two identical things may be substituted for one another.
-\fn{Eq\_cast} is thus a witness of the fact that if two terms are equal, then if
-a predicate is true of the first term, it is necessarily also true for the
-other.
+\fn{Vlength\_comm+} converts a vector of type \fn{Vector A (m + n)} to one of
+type \fn{Vector A (n + m)}. By making use of a proof of \id{Nat+\_comm}, i.e.\
+that \fn{m + n $\equiv$ n + m}, we can perform type casting on a vector of type
+\fn{Vector A (m + n)} to produce a vector of the desired type. If we had a data
+type of matrices indexed by their dimensions, the cast operation might also be
+necessary to ensure the appropriate alignment of dimensions when working with a
+function that calculates matrix products. The equality type satisfies Leibniz's
+principle of the indiscernibility of identicals, i.e.\ two identical things may
+be substituted for one another. \fn{Eq\_cast} is thus a witness of the fact
+that if two terms are equal, then if a predicate is true of the first term, it
+is necessarily also true for the other.
 
 Now that we have seen how equality proofs may be used in programs, the next
 question that ought to be answered is how are such terms introduced. The one and
@@ -1023,10 +1047,26 @@ commutativity of addition.
 should be equal to \id{m} itself. To construct such a proof, we perform case
 analysis on \id{m} and handle each branch separately. When the return type of
 the case analysis depends on the scrutinee, we use the \kw{case...return...}
-construct that ensures that the branches are well-typed. Consider the case where
-\id{m} is \id{zero}, then based on the definition of \id{\_+\_}, \fn{zero +
-  zero} is equal to \id{zero}, allowing us to trivially use \id{Eq\_refl} to
-complete the proof.
+construct that ensures that the branches are well-typed. Consider the case
+where \id{m} is \id{zero}, \fn{zero + zero} may be expanded to the following
+based on the definition of \id{_+_}:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+    case zero
+      | zero @$\Rightarrow$@ zero
+      | succ x' @$\Rightarrow$@ succ (x' + zero)
+\end{minted}
+
+Now that the scrutinee is a concrete value, we may proceed to reduce this
+expression to \id{zero}. Since \fn{zero + zero} reduces to \id{zero}, the two
+expressions are thus definitionally equal. Recall that in the \id{zero} branch
+of \id{Nat+_zero}, we are required to produce a proof of \fn{zero + zero
+$\equiv$ zero}. We do so by using \id{Eq\_refl} with the argument \id{x}
+implicitly initialised to \fn{zero + zero} to give us a proof that \fn{zero +
+zero $\equiv$ zero + zero}. Since \fn{zero + zero} (on the right of the
+precedent equals sign) is definitionally equal to \id{zero}, the type of the
+proof constructed with \id{Eq\_refl} is also definitionally equal and is
+convertible to the required type.
 
 The congruence of equality dictates that applying a function to equal values
 yields equal values. More concretely, if we have a proof that \id{x} and \id{y}
