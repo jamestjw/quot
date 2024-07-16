@@ -1147,14 +1147,24 @@ Typer and its role in the elimination of quotients.
 %% sections instead.
 \subsection*{Cubical Equality}
 
-Recent advances in type theory inspired by topology propose a different approach
-to represent equality proofs by modeling them as functions whose argument is of
-the \emph{interval} type, i.e.\ functions of the type \fn{I $\rightarrow$ A}
-given that \id{I} represents the interval type and \id{A} is an arbitrary other
-type. We refer to the above hereafter as functions out of the unit interval. The
-interval may be seen as a special type that is similar to the Boolean type with
-the special property that both its endpoints should be indistinguishable. In
-this alternative formulation of equality proofs, equality is viewed as a
+Recent advances in type theory inspired by topology propose a different
+approach to represent equality proofs by modeling them as functions whose
+argument is of the \emph{interval} type, i.e.\ functions of the type \fn{I
+$\rightarrow$ A} given that \id{I} represents the interval type and \id{A} is
+an arbitrary other type. We refer to the above hereafter as functions out of
+the unit interval. The interval may be seen as a special type that is similar
+to the Boolean type with the special property that both constructors should be
+indistinguishable. For now, readers are encouraged to think of the type as
+modelled by the following inductive type where \id{$i_0$} and \id{$i_1$} are
+the two endpoints of the interval that we wish to be indistinguishable.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+    type I
+      | @$i_0$@
+      | @$i_1$@
+\end{minted}
+
+In this alternative formulation of equality proofs, equality is viewed as a
 continuous path along the unit interval that connects two equal terms.
 %% The return value of such functions is not allowed to directly depend on the
 %% value of the interval argument. For instance, the function may not do a case
@@ -1495,19 +1505,38 @@ of term constructors and equation constructors.
 
 The fact that the original term constructors of the base type may be used to
 construct terms of a quotient type allows Quotient Haskell to support an
-interesting feature that allows us to take the quotient of an already quotiented
-type. This is in contrast to Cubical Agda which does not allow the
+interesting feature that allows us to take the quotient of an already
+quotiented type. This is in contrast to Cubical Agda which does not allow the
 \latinphrase{a posteriori} addition of equation constructors to an inductive
 type, as we shall see in a subsequent section. The paper illustrates this by
 defining a family of data types known as the Boom
 hierarchy\cite{meertens1986algorithmics} which is made of trees, lists, bags,
 and sets. The hierarchy stems from the fact that each type is defined on top of
 the type that is below it in the hierarchy. For instance, lists are constructed
-by quotienting trees, bags are defined by quotienting lists, and so on. When we
+by quotienting trees, bags are defined by quotienting lists, and so on. We only
+show the definitions of \id{Tree} and \id{List} to show what this might look
+like.
+
+\begin{minted}{haskell}
+    data Tree a = Empty | Leaf a | Join (Tree a) (Tree a)
+
+    data List a
+      = Tree a
+      |/ idl :: x:List a -> Join Empty x == x
+      |/ idr :: x:List a -> Join x Empty == x
+      |/ assoc :: x:List a -> y:List a -> z:List a -> Join (Join x y) z == Join x (Join y z)
+\end{minted}
+
+To view a tree as a list, we require \id{Empty} to be the left and right unit
+with respect to \id{Join}, we also require \id{Join} to be associative. When we
 define such a hierarchy of quotients, the subtyping relationship that relates
 them also enables code reuse. For instance, a function that takes a list as an
-argument could also be called with a tree as it could be regarded as a supertype
-of the list type.
+argument could also be called with a tree as it could be regarded as a subtype
+of the list type. This is reasonable as a function that is meant to deal with
+lists is merely a function that works with trees that ignores joins with the
+empty tree and also respects the associativity of joins. Such a function would
+naturally also work on a plain \id{Tree} that does not impose the above
+restrictions.
 
 \section{Normalised Types}\label{sec:normalised-types-courtieu}
 
@@ -1678,38 +1707,40 @@ assistant which serves to provide computational meaning to HoTT. This work is
 of particular interest to us because of two of its prominent features, cubical
 equality and higher inductive types (HITs).
 
-\subsection{Equality}
-The thing that makes the type theory cubical is its notion of equality that is
-represented by functions out of an interval type, i.e.\ of type \fn{I
-  $\rightarrow$ A}. More specifically, such equality types are known as
-\emph{paths} in the literature, an interpretation inspired by homotopy theory.
-If an equality between two terms is seen as a path, then we may construct an
-equality between two paths to produce a square. This process may be iterated to
-produce cubes, hypercubes, etc, justifying the name of the type theory. Cubical
-Agda introduced the interval type as a primitive with two endpoints \fn{i0
-  :\@ I} and \fn{i1 :\@ I}. Unlike normal types, we are not allowed to
-observe the difference between \id{i0} and \id{i1}. This implies that among
-other things, pattern matching on an interval variable is disallowed. The type
-of homogeneous equality is represented by $\equiv$ with the following type:
+\subsection{Equality} The thing that makes the type theory cubical is its
+notion of equality that is represented by functions out of an interval type,
+i.e.\ of type \fn{I $\rightarrow$ A}. More specifically, such equality types
+are known as \emph{paths} in the literature, an interpretation inspired by
+homotopy theory. If an equality between two terms is seen as a path, then we
+may construct an equality between two paths to produce a square. This process
+may be iterated to produce cubes, hypercubes, etc, justifying the name of the
+type theory. Cubical Agda introduced the interval type as a primitive with two
+endpoints \fn{i0 :\@ I} and \fn{i1 :\@ I}. Unlike normal types, we are not
+allowed to observe the difference between \id{i0} and \id{i1}. This implies
+that among other things, pattern matching on an interval variable is
+disallowed. The type of homogeneous equality is represented by $\equiv$ with
+the following type\footnote{Universe polymorphism of this functions is elided
+to simplify the presentation.}:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    _@$\equiv$@_ : {A : Set @$\ell$@} @$\rightarrow$@ A @$\rightarrow$@ A @$\rightarrow$@ Set @$\ell$@
+    _@$\equiv$@_ : {A : Set} @$\rightarrow$@ A @$\rightarrow$@ A @$\rightarrow$@ Set
 \end{minted}
 
 Readers that are not familiar with \Agda{} are reminded that \fn{\_$\equiv$\_}
-means that $\equiv$ is an infix operator\footnote{The underscores indicate where
-the arguments should go, in this case, there should be an argument before and
-after the $\equiv$ operator. Subsequently, we shall use the same convention when
-introducing operators.}. We mention as well that parameters that are within
-braces are implicit, i.e.\ to be inferred. So if we have two terms \id{x} and
-\id{y} of type \id{A}, the type representing a path between the two terms is
-\fn{x $\equiv$ y}. In order to construct such an equality, we need to construct
-a function \id{f:I $\rightarrow$ A} such that \fn{f i0} is equal to \id{x} and
+means that $\equiv$ is an infix operator\footnote{The underscores indicate
+  where the arguments should go, in this case, there should be an argument
+  before and after the $\equiv$ operator. Subsequently, we shall use the same
+convention when introducing operators.}. We mention as well that parameters
+that are within braces are implicit, i.e.\ to be inferred. \id{Set} in Agda is
+analogous to Typer's \id{Type}. So if we have two terms \id{x} and \id{y} of
+type \id{A}, the type representing a path between the two terms is \fn{x
+$\equiv$ y}. In order to construct such an equality, we need to construct a
+function \id{f:I $\rightarrow$ A} such that \fn{f i0} is equal to \id{x} and
 \fn{f i1} is equal to \id{y}. For example, we construct the reflexive proof of
 equality.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    refl : {A : Set @$\ell$@} {x : A} @$\rightarrow$@ x @$\equiv$@ x
+    refl : {A : Set} {x : A} @$\rightarrow$@ x @$\equiv$@ x
     refl {x = a} = @$\lambda$@ i @$\rightarrow$@ a
 \end{minted}
 
@@ -1725,7 +1756,7 @@ indeed nothing more than a typical function in Agda, we could move the argument
 function arguments.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    refl : {A : Set @$\ell$@} {x : A} @$\rightarrow$@ x @$\equiv$@ x
+    refl : {A : Set} {x : A} @$\rightarrow$@ x @$\equiv$@ x
     refl {x = a} i = a
 \end{minted}
 
@@ -1783,17 +1814,18 @@ it implies that \fn{$\lambda$ x $\rightarrow$ f x} is definitionally equal to
 Higher inductive types (HITs) are a generalisation of inductive types that has
 been popularised by homotopy type theory\cite{HoTTbook}. Aside from the usual
 term constructors of inductive types, HITs allow the definition of equality
-constructors, i.e.\ equalities between terms of the inductive type. So far, this
-is no different from QITs that we presented in a previous section. What sets
-HITs apart from QITs is that HITs allow us to define equalities between
-equalities, also known as \emph{higher paths}. In other words, HITs may be seen
-as a generalisation of QITs. HITs provide us with an expressive and convenient
-way of defining quotients. For instance, we could define the type of integers
-that we previously saw\footnote{This definition could have benefited from
-another constructor that produces a proof that all equality proofs between two
-integers are themselves equal. This is known as the set truncation of the type.
-We decided not to do it however as higher paths are not immediately relevant to
-our work}.
+constructors, i.e.\ equalities between terms of the inductive type. So far,
+this is no different from QITs, i.e. the class of quotient types introduced by
+Quotient Haskell as was presented in \autoref{sec:related-qit}. What sets HITs
+apart from QITs is that HITs allow us to define equalities between equalities,
+also known as \emph{higher paths}. In other words, HITs may be seen as a
+generalisation of QITs. HITs provide us with an expressive and convenient way
+of defining quotients. For instance, we could define the type of integers that
+we previously saw\footnote{This definition could have benefited from another
+constructor that produces a proof that all equality proofs between two
+integers are themselves equal. This is known as the set truncation of the
+type. We decided not to do it however as higher paths are not immediately
+relevant to our work}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     data Int : Type where
@@ -1906,15 +1938,24 @@ cast \fn{h x1 y1} to the required type.
 
 \section{Setoid Rewriting}
 
-Quotient types are not provided as a primitive in the \Coq{} proof assistant. To
-explain how quotient types are emulated in \Coq{}, we briefly introduce the
-rewriting mechanism of \Coq{}. Every construction is congruent with respect to
-the equality type, hence rewrites using the equality type may be carried out in
-any context. For instance, if we have a certain proof goal that requires us to
-produce a term of type \fn{m + n $\le$ n + m} and we have proof that \fn{m + n
-  $\equiv$ n + m}, we may use the \kw{rewrite} tactic in \Coq{} to rewrite the
-goal such that it becomes \fn{n + m $\le$ n + m}. The simplified goal may thus
-be easily proven using the reflexivity property of $\le$.
+Quotient types are not provided as a primitive in the \Coq{} proof assistant.
+To explain how quotient types are emulated in \Coq{}, we briefly introduce the
+rewriting mechanism of \Coq{}, implemented in the form of the \kw{rewrite}
+tactic. Instead of constructing a proof term from scratch by hand to prove a
+theorem as we have seen so far, tactics allow us to transform the goal, i.e.
+what we need to show to prove a theorem, into smaller or easier to prove
+subgoals. For instance, if we had \fn{A $\wedge$ B} as a goal to prove, we
+could use a tactic to split it into 2 subgoals, i.e. \id{A} and \id{B},
+allowing to prove them separately. Tactics also allow us to manipulate
+hypotheses. Suppose instead that we have the hypothesis that \fn{A $\wedge$ B}
+is true, we may use a tactic to split it into two separate hypotheses. If we
+have a certain proof goal that requires us to produce a term of type \fn{m + n
+$\le$ n + m} and we have proof that \fn{m + n $\equiv$ n + m}, we may use the
+\kw{rewrite} tactic in to rewrite the goal such that it becomes \fn{n + m $\le$
+n + m}. The simplified goal may thus be easily proven using the reflexivity
+property of $\le$. Every construction is congruent with respect to the equality
+type, hence rewrites using the equality type may be carried out in any context,
+however, this is not true of setoid rewriting as we shall discuss below.
 
 Plain rewriting allows rewriting with \emph{equal} terms, generalised
 rewriting\cite{sozeau2009new, coq-gen-rewriting} on the other hand enables
@@ -2271,14 +2312,15 @@ Now, we formally state the theorem that we are interested in.
 The following type is inhabited:
 
 \begin{align}
-  & \bI \rightarrow A \ \simeq \ \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}\nonumber
+  % & \bI \rightarrow A \ \simeq \ \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}\nonumber
+  & \bI \rightarrow A \ \ \simeq \ \ \sum\limits_{(\oftype{x}{A})} \sum\limits_{(\oftype{y}{A})} \eqtype{x}{y}\nonumber
 \end{align}
 
 \end{theo}
 
-$\Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} . \eqtype{x}{y}$ may be seen as
-a triplet containing two terms of type \id{A} along with a proof of their
-equality. We provide a proof of the above in
+$\sum\limits_{(\oftype{x}{A})} \sum\limits_{(\oftype{y}{A})}
+\eqtype{x}{y}\nonumber$ may be seen as a triplet containing two terms of type
+\id{A} along with a proof of their equality. We provide a proof of the above in
 Appendix~\ref{app:proof-i->a-equiv}. By establishing the above equivalence, we
 no longer require the \fn{_$\equiv$_} type former that we assume we had in
 \autoref{sec:interval-introduction} as we may represent the equality type using
@@ -3134,7 +3176,7 @@ projections of two related terms.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
 Quotient_elim : (P : Quotient ?A ?R |$\rightarrow$| Type)
-                |$\Rrightarrow$| ((a : ?A) |$\rightarrow$| P (Quotient_in a))
+                |$\Rrightarrow$| (f : (a : ?A) |$\rightarrow$| P (Quotient_in a))
                 |$\rightarrow$| ((a a' : ?A) |$\rightarrow$| ?R a a' |$\rightarrow$| Heq (f a) (f a'))
                 |$\Rrightarrow$| (q : Quotient ?A ?R) |$\rightarrow$| P q
 \end{minted}
