@@ -445,7 +445,7 @@ Typer's new equality type is based on functions that have our new interval
 primitive as an argument. Such an equality type is more powerful and expressive,
 it notably lends itself well to the writing of proofs related to quotient types.
 In this work, we also investigate the practicality of the usage of quotient
-types in a language such as Typer, both in terms of runtime efficiency and
+types in a language such as Typer, both in terms of run-time efficiency and
 developer-friendliness. Quotient types do not exist in most modern dependently
 typed languages, principally because their usage entails burdensome proof
 obligations. To facilitate the usage of quotient types, we provide a library
@@ -725,7 +725,7 @@ like so:
 \end{minted}
 
 The fact that we need to pass the argument \id{Int} to the function seems
-suboptimal, especially since it is not required during runtime. Typer supports
+suboptimal, especially since it is not required during run time. Typer supports
 implicit arguments, allowing such arguments to be inferred from the context and
 implicitly passed to the function. To indicate that a certain argument is
 implicit, we need to use $\Rightarrow$ instead of the typical $\rightarrow$ in
@@ -748,7 +748,7 @@ arguments}. Such arguments are classified as \emph{irrelevant} and are erased
 after type checking, thus they may not be used in a non-relevant context. As a
 result, such arguments are guaranteed to be absent in the generated code after
 compilation. In the rest of this work, we will often make proof terms erasable
-as they are not required at runtime. We use $\Rrightarrow$ to indicate that a
+as they are not required at run time. We use $\Rrightarrow$ to indicate that a
 certain argument is erasable. Hence, we may redeclare \id{List_hd_default}
 using the following type:
 
@@ -837,9 +837,9 @@ In Typer and in dependently typed languages in general, not only can we write
 mathematical proofs in the form of code, but we may also prove the properties
 of our programs to convince ourselves of their correctness. That being the only
 purpose of proofs, it is thus desirable for them not to be executed during
-runtime, i.e.\ we only want them to be verified at compile time, or more
+run time, i.e.\ we only want them to be verified at compile time, or more
 precisely, during type-checking. This allows us to prove that our programs have
-the right behaviour without incurring an additional runtime cost. In Typer,
+the right behaviour without incurring an additional run-time cost. In Typer,
 this is mainly achieved by making proofs as erasable as described in the primer
 to Typer.
 
@@ -864,8 +864,8 @@ This is another instance of a dependent type as $\fn{i < length a}$ depends on
 the terms $\fn{i}$ and $\fn{length a}$. When the function is called with all
 three arguments, it then returns something of type $\fn{A}$ --- the element of
 the array that we are trying to retrieve. This gives us a guarantee that array
-accesses will never lead to a runtime error. Additionally, this could also
-allow us to skip runtime bounds-checking as the index is necessarily valid as
+accesses will never lead to a run-time error. Additionally, this could also
+allow us to skip run-time bounds-checking as the index is necessarily valid as
 long as the program is well-typed. In general, proofs improve the reliability
 of programs by allowing more errors to be detected at compile-time by making
 use of the type system to impose constraints on programs.
@@ -1024,7 +1024,7 @@ only constructor of type \id{Eq} type is the following:
 Given a term \id{x} of an arbitrary type \id{A}, we can trivially construct the
 proof that \id{x} is equal to itself. This is known as the reflexive proof of
 equality. At first sight, it does not seem like this constructor would be
-capable of much, but it turns out that this is precisely what we require the
+capable of much, but it turns out that this is precisely what we require to
 complete the previously mentioned \id{Nat+\_comm} proof. We first define two
 lemmas \id{Nat+\_zero} and \id{Nat+\_succ} that we ultimately use to prove the
 commutativity of addition.
@@ -1186,18 +1186,18 @@ discuss Cubical Agda\cite{vezzosi2021cubical}, a cubical extension of the
 One of the key ideas introduced by HoTT is the univalence axiom which suggests
 that equivalences may be encoded as equalities. This is much like what is done
 in informal mathematics where objects with equivalent structures are just taken
-to be the ``the same''. It is thus crucial that equality proofs are not
+to be ``the same''. It is thus crucial that equality proofs are not
 irrelevant in a HoTT setting, as their equalities could be constructed based on
 equivalences and thus have a computational role. As a general-purpose
 programming language, Typer has no ambitions of supporting univalence. Thus, it
 is desirable for equality proofs in Typer to remain proof irrelevant so that
-they may be erased before runtime, i.e.\ that generated code would not include
+they may be erased before run time, i.e.\ that generated code would not include
 erasable terms. This is essential so that operations involving the equality
-type may be treated as no-ops during runtime. If all equality proofs may be
+type may be treated as no-ops during run time. If all equality proofs may be
 evaluated to reflexivity proofs, then type casts using the \fn{Eq\_cast}
-primitive simply behave like the identity function at runtime as we would merely
+primitive simply behave like the identity function at run time as we would merely
 need to cast a term to its own type. This is in stark contrast to equalities
-that are equivalences, a cast at runtime would involve applying the underlying
+that are equivalences, a cast at run time would involve applying the underlying
 function of the equivalence, i.e.\ casting involves computation. In our work, we
 carefully adapt the cubical equality type to Typer to reap the benefits of
 having a more powerful equality type, all while preserving our equality type's
@@ -1341,7 +1341,7 @@ We make several contributions:
     (\hyperref[ch:quot-examples]{Chapter~\ref*{ch:quot-examples}}). This work
     explores the usability and user-friendliness of quotient types in
     programming tasks through the construction of examples of possible use cases
-    of quotients. We also investigate the runtime overhead of the utilisation of
+    of quotients. We also investigate the run-time overhead of the utilisation of
     quotient types
     (\hyperref[sec:quot-benchmark]{Section~\ref*{sec:quot-benchmark}}).}
 
@@ -1387,7 +1387,7 @@ definition of the integer data type.
 \end{minted}
 
 Such a definition gives rise to many redundant terms, each integer has an
-infinite amount of representations. For instance, the integer \id{Zero} may also
+infinite number of representations. For instance, the integer \id{Zero} may also
 be represented as \fn{Succ (Pred Zero)}, \fn{Pred (Succ Zero)}, etc. This is
 where laws come into play, since the composition of \id{Succ} with \id{Pred}
 should be equal to the identity function, we define the following laws:
@@ -1442,7 +1442,7 @@ checker for refinement types in Haskell. Refinement types are types equipped
 with predicates that must be respected by all elements of the refined type, this
 is also known as predicate subtyping. In Liquid Haskell, this is represented
 using the set comprehension notation. For instance, a refined type that
-represents the type of positive integers is \fn{\{ i :\@ Int | i >= 0 \}}.
+represents the type of non-negative integers is \fn{\{ i :\@ Int | i >= 0 \}}.
 Such types may be used to annotate the arguments and return types of functions
 so that we can define the pre-conditions and post-conditions of functions. The
 type checker then makes use of the extra information to verify that function
@@ -2094,9 +2094,9 @@ the application of the congruence property of equality.
 %% the fact that your thesis on "quotient types in Typer" talks almost
 %% more about equalities than about quotients.
 
-This chapter starts by presenting cubical equality along with our adaption of it
-to Typer. We then build on that to discuss how we implemented quotient types in
-Typer.
+This chapter starts by presenting cubical equality along with our adaptation of
+it to Typer. We then build on that to discuss how we implemented quotient types
+in Typer.
 
 \section{Cubical Equality}\label{sec:cubical-equality}
 
@@ -2334,7 +2334,7 @@ is enforced by the elimination principle of the $\bI$ that ensures that \id{seg}
 is respected. An alternate way of enforcing this is by using functions with
 erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a type with two distinct
 constructors that take no arguments, such as the \id{Boolean} type. An argument
-that is marked as erasable has no computational role during runtime. Within the
+that is marked as erasable has no computational role during run time. Within the
 function body, such an argument may only be used in an \emph{erasable} manner,
 for instance, it may be used in the computation of an expression that is passed
 as an erasable argument to yet another function. In other words, we can first
@@ -2578,7 +2578,7 @@ signature:
     I_transp : (A : I @$\Rrightarrow$@ Type) @$\Rrightarrow$@ A (_ := @$\ileft$@) @$\rightarrow$@ (r : I) @$\Rrightarrow$@ A (_ := r)
 \end{minted}
 
-Its implementation is simple in that its runtime behaviour involves returning
+Its implementation is simple in that its run-time behaviour involves returning
 the argument $\id{a}$ untouched.
 
 \subsection{Equality type}\label{sec:identity}
@@ -3609,7 +3609,7 @@ A pair $\braket{z , n}$ represents the rational number $\frac{z}{n + 1}$, this
 trick allows us to ensure that the denominator is non-zero.
 
 The second option is similar to the first\footnote{We employ some abuse of
-notation by destructuring n-anary tuples using the $\braket{x_1, \ldots,
+notation by destructuring n-ary tuples using the $\braket{x_1, \ldots,
   x_n}$ syntax.}:
 
 \begin{align*}
@@ -3625,7 +3625,7 @@ of elements of the same type.
 Given that the equivalence of rational numbers is captured by a relation, we do
 not need to normalise our rational numbers before or after each computation,
 instead, we prove that all of our operations respect the equivalence of rational
-numbers. We hoped that this would give us better runtime efficiency, as opposed
+numbers. We hoped that this would give us better run-time efficiency, as opposed
 to more naive implementations. To make this clearer, we illustrate one possible
 naive implementation. To ensure that operations on the base type of the quotient
 type that we intend to use to represent the rational numbers respect the
@@ -3638,7 +3638,7 @@ clear that such an approach might be expensive. To normalise the base type,
 which we could imagine to be a pair of integers, we would have to divide both
 integers by their greatest common divisor (GCD). The calculation of their GCD
 could in itself be more costly than the actual operation itself. Thus, this
-unnecessary normalisation could potentially adversely affect the runtime
+unnecessary normalisation could potentially adversely affect the run-time
 efficiency of our operations on rational numbers. Hence, our definitions of
 operations on rational numbers do not rely on normalisation. However, this is
 not without its downsides as it entails heavier proof obligations as we shall
@@ -3647,7 +3647,7 @@ discuss subsequently.
 Typer has a built-in \id{Integer} type. Behind the scenes, this is based on big
 integers in OCaml, leveraging the Zarith library. Operations on Typer's
 \id{Integer} type such as addition, multiplication, etc are implemented as
-primitives. At runtime, the responsibilities of these functions are simply
+primitives. At run time, the responsibilities of these functions are simply
 delegated to their corresponding OCaml functions to carry out the necessary
 computations. So far, we are unable to reason about these operations in Typer as
 they are merely primitives that are implemented in the host language. In the
@@ -3739,7 +3739,8 @@ Integer_*DistR+ x y z =
                                (Eq_cong (|$\lambda$| e |$\rightarrow$| (x * y) + e) (Integer_*-comm z x))))
 \end{minted}
 
-Another useful theorem that we can prove states that the product of two non-zero integers is necessarily non-zero.
+Another useful theorem that we can prove states that the product of two
+non-zero integers is necessarily non-zero.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
     Integer_0-product : (x y : Integer) |$\rightarrow$| Not (x |$\equiv$| 0) |$\rightarrow$| Not (y |$\equiv$| 0)
@@ -4155,9 +4156,14 @@ Multiset_mem disc a s =
         | Quotient_eq a a' r @$\Rightarrow$@ compat a a' r
 \end{minted}
 
-Although this has not been done in this work, another operation that one may find
-useful to  count how many elements of the multiset are equal to
-a certain term of type $\fn{A}$.
+Although this has not been done in this work, another operation that one may
+find useful to count how many elements of the multiset are equal to a certain
+term of type $\fn{A}$. All in all, our implementation of \id{Multiset} is
+similar to the implementation in \Lean{}'s mathematics library,
+\textbf{mathlib}\cite{lean-mathlib}. However, their implementation features a
+much more extensive amount of operations and theorems than ours. The other
+operations and theorems should also be implementable in Typer; we leave this
+for future work.
 
 \section{Propositional Truncation}\label{sec:prop-trunc}
 
@@ -4554,10 +4560,10 @@ propositions, i.e.\ each proposition implies the other, then we can say that
 they are equal. And precisely because we are postulating a new equality
 constructor, we have to be very careful that the resulting equality proof is
 indeed proof irrelevant. In other words, we need this equality proof to not have
-any runtime relevance. This is principally because we insist that the transport
-operation be a no-op during runtime. This is the motivation behind our choice to
+any run-time relevance. This is principally because we insist that the transport
+operation be a no-op during run time. This is the motivation behind our choice to
 use the $\id{Erased}$ type to represent propositions, as it is a guarantee that
-such a type carries no useful runtime information. This implies that a transport
+such a type carries no useful run-time information. This implies that a transport
 operation from one $\id{Erased}$ type to another is necessarily simply a no-op.
 
 In a setting with univalence, propositional extensionality is simply a theorem
@@ -4597,13 +4603,13 @@ exactly one inhabitant.}. $\id{Unit1} \rightarrow \id{Unit2}$ and $\id{Unit2}
 \rightarrow \id{Unit1}$ are also inhabited. Propositional extensionality thus
 gives us a proof of $\id{Unit1} \equiv \id{Unit2}$. This implies that we should
 be able to use said proof to transport $\id{unit1}$ to $\id{unit2}$, but since
-the two terms do not have the same runtime representation, this simply cannot be
+the two terms do not have the same run-time representation, this simply cannot be
 a no-op. This is in stark contrast to the version of propositional extensional
 that we are proposing in Typer that only accepts types that are boxed in the
 $\id{Erased}$ type. We would have no qualms about having a proof of equality
 between $\Funapp{\id{Erased}}{\id{Unit1}}$ and
 $\Funapp{\id{Erased}}{\id{Unit2}}$ as terms of these two types would essentially
-have the same runtime representation. It is also for this precise reason that
+have the same run-time representation. It is also for this precise reason that
 our version of propositional extensionality is weaker, as we are constrained to
 construct an equality proof that is not computationally relevant.
 
@@ -4820,7 +4826,7 @@ to facilitate proof development.
 \section*{Benchmarks}\label{sec:quot-benchmark}
 
 In this section, we use our implementation of \id{Rational} and \id{Multiset} to
-explore the runtime cost of using quotient types in Typer. Quotient types are
+explore the run-time cost of using quotient types in Typer. Quotient types are
 nothing more than a means of using the type system to ensure that programmers
 respect a certain relation on a base type by means of proof obligations. Such
 proofs can be expected to be erased before the actual execution of a program.
@@ -4835,7 +4841,7 @@ operations on the base type $\zpair$, our benchmark simply compares the
 execution time of operations on $\zpair$ with their $\fn{Rational}$
 counterparts\footnote{The code for this may be found in the
 \href{https://gitlab.com/jamestjw/typer/-/blob/quot-types-v1.0.0/samples/rational_benchmark.typer}{\id{samples/rational\_benchmark.typer}}
-file.}. We examine the runtime cost\footnote{The tests were executed on the
+file.}. We examine the run-time cost\footnote{The tests were executed on the
 author's 2018 Macbook Pro with a quadcore 2.3GHz Intel Core i5 processor with
 8GB of RAM.} of executing the functions $\fn{Rational\_negate}$,
 $\fn{Rational\_+}$, $\fn{Rational\_-}$ and $\fn{Rational\_*}$ on 50000 pairs of
@@ -4857,7 +4863,7 @@ Addition       & 0.5268   & 0.8354   & 0.0308   & 0.0415   & 0.3086 & 58.6 \\
 Subtraction    & 0.6899   & 1.1180   & 0.0411   & 0.0286   & 0.4281 & 62.1 \\
 Multiplication & 0.4877   & 0.8000   & 0.0346   & 0.0372   & 0.3123 & 64.0 \\ \bottomrule
 \end{tabular}
-\caption{The runtime cost of operations on rational numbers with and without the
+\caption{The run-time cost of operations on rational numbers with and without the
   use of quotient types.}\label{tab:rational-benchmark}
 \end{table}
 
@@ -4978,7 +4984,7 @@ We do a similar set of experiments on our construction of \id{Multiset} with the
 Append & 1.3081 & 1.5472   & 0.0497 & 0.0516   & 0.2390 & 18.3 \\
 Member & 0.8417 & 0.8730   & 0.0278 & 0.0227   & 0.0314 & 3.7  \\ \bottomrule
 \end{tabular}
-\caption{The runtime cost of operations on multisets with and without the use of quotient types.}\label{tab:benchmark-multiset}
+\caption{The run-time cost of operations on multisets with and without the use of quotient types.}\label{tab:benchmark-multiset}
 \end{table}
 
 The \id{Multiset\_append} operation was tested by appending multisets containing
@@ -5293,7 +5299,7 @@ product is none other than the Cartesian product.
 
 \section{Coequaliser}\label{sec:coequaliser}
 We now introduce the notion of a coequaliser. We shall see later that
-$\id{Quotient}$ acts indeed as a coequaliser, or rather coequalisers are
+$\id{Quotient}$ acts indeed as a coequaliser, or rather coequalisers are a
 generalisation of quotients. For two arrows $\oftype{f, g}{A \rightarrow B}$, a
 coequaliser is an arrow $\oftype{q}{B \rightarrow Q}$ such that $qf = qg$ (we
 use juxtaposition to imply composition). The universal property of the
