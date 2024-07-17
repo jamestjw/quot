@@ -608,8 +608,9 @@ functional languages such as Haskell, ML, and Lisp should find Typer's syntax
 quite familiar.
 
 \subsection{Functions and Inductive Types}\label{subsec:intro-fn-ind-types}
-As a functional programming language, the first thing that
-deserves introduction is the notion of functions in Typer. Here is how we might
+
+As a functional programming language, the first thing that deserves
+introduction is the notion of \emph{functions} in Typer. Here is how we might
 define a function \id{Int\_clamp} that clamps an input integer to a certain
 range.
 
@@ -661,11 +662,11 @@ demonstrate in the below example.
 \end{minted}
 
 \emph{Inductive types} in Typer allow us to define new types and how their
-terms may be constructed. As a simple example, the \id{Bool} type is defined as
+terms may be constructed. As a simple example, the \id{Boolean} type is defined as
 an inductive type with 2 constructors, i.e. \id{true} and \id{false}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-  type Bool
+  type Boolean
     | true
     | false
 \end{minted}
@@ -694,9 +695,9 @@ the integers 1, 2, and 3.
   (cons 1 (cons 2 (cons 3 nil))) : List Int
 \end{minted}
 
-Next, we describe how we could use a term of an inductive type by defining a
-function that returns the head (first element) of a \id{List}, it returns a
-default element in the event that the list is empty.
+Next, we describe how we could use a term of an inductive type by defining an
+example function that returns the head (first element) of a \id{List}, it
+returns a default element in the event that the list is empty.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
   List_hd_default : (A : Type) @$\rightarrow$@ List A @$\rightarrow$@ A @$\rightarrow$@ A
@@ -709,12 +710,23 @@ Unlike the functions that we have previously seen, we observe that the first
 parameter of this function, named \id{A}, is a type. More importantly, the rest
 of the function type is allowed to refer to the type \id{A}. The remaining
 parameters of the function are a list of \id{A}s and a default value of type
-\id{A}. Unsurprisingly, the return type of the function is also \id{A}. In
-order to use the \id{list} argument, we pattern match on it by using a
-\kw{case} statement. In the case where we have a \id{nil} list, we simply
-return \id{default}, if we have a list with at least one element, we simply
-return \id{a} which corresponds to its first element. The function may be used
-like so:
+\id{A}. Unsurprisingly, the return type of the function is also \id{A}. All
+inductive types have their own \emph{elimination principles}, which is a way to
+\emph{eliminate} a term of the inductive type \id{A} to some other type \id{B}.
+As we have seen before, the elimination principle of \id{Boolean} is the
+\fn{\kw{if}...\kw{then}...\kw{else}} construct where both \kw{then} and
+\kw{else} branches should both have a term of some type \id{B}. The general way
+to eliminate a term of an inductive type is by using a \kw{case} statement to
+pattern match on it. Pattern matching needs to be exhaustive, this means that
+every constructor of the inductive type must be handled. In each branch, data
+attached to each constructor may be bound to variables that can be referenced
+in the body. In reality, the aforementioned
+\fn{\kw{if}...\kw{then}...\kw{else}} construct is simply a macro that expands
+to a \kw{case} statement. In this example, we pattern match on the \id{list}
+argument. In the case where we have a \id{nil} list, we simply return
+\id{default}. If we have a list with at least one element, we bind the first
+element to the variable \id{a} and the rest of the list to \id{as}, and simply
+return \id{a}. The function may be used like so:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     List_hd_default Int (cons 1 (cons 2 nil)) 0
@@ -725,7 +737,7 @@ like so:
 \end{minted}
 
 The fact that we need to pass the argument \id{Int} to the function seems
-suboptimal, especially since it is not required during run time. Typer supports
+redundant, especially since it is not required during run time. Typer supports
 implicit arguments, allowing such arguments to be inferred from the context and
 implicitly passed to the function. To indicate that a certain argument is
 implicit, we need to use $\Rightarrow$ instead of the typical $\rightarrow$ in
@@ -792,16 +804,14 @@ integer and returns it unchanged if it is positive, otherwise it is converted
 to a string.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-maybe_convert_to_string : (i : Int) @$\rightarrow$@ (case i > 0 | true @$\Rightarrow$@ Int | false @$\Rightarrow$@ String)
-maybe_convert_to_string i = case i > 0
-  | true @$\Rightarrow$@ i
-  | false @$\Rightarrow$@ Int->String i
+maybe_convert_to_string : (i : Int) @$\rightarrow$@ (if i > 0 then Int else String)
+maybe_convert_to_string i = if i > 0 then i else Int->String i
 \end{minted}
 
 The return type of this function varies depends on the integer argument \id{i}.
 In the case where \fn{i > 0} is true, the function returns an integer,
-otherwise it returns a string. The body of the function shares a similar
-structure with the return type, when \fn{i > 0} is true we simply return
+otherwise it returns a string. Note how the body of the function shares a similar
+structure with the return type. When \fn{i > 0} is true we simply return
 \id{i}, otherwise we convert \id{i} to a string. As we shall see in the rest of
 this work, although Typer is intended to be a general-purpose programming
 language, its support for dependent types allows its type system to be used as
@@ -1999,15 +2009,20 @@ observational type theory to date. Hence, this discussion is on the addition of
 quotients to TT$^{obs}$ on a theoretical level, readers who are not interested
 in this should feel free to skip this section. In TT$^{obs}$, every type has a
 built-in setoid structure which is preserved by all terms by construction.
-Equality is represented by the setoid equality of types themselves, each type is
-thus free to have its own notion of equality. The observational equality type is
-denoted as \fn{t $\sim_A$ u}, this type represents the equality of terms \id{t}
-and \id{u} at type \id{A}. However, this is not a typical type former of
-equality types as we have previously seen, $\sim$ in reality pattern matches on
-the type \id{A} and the two endpoints and computes to a type. We show two
-reduction rules to illustrate this point. First, we show the reduction rule for
+Equality is represented by the setoid equality of types themselves, each type
+is thus free to have its own notion of equality. The observational equality
+type is denoted as \fn{t $\sim_A$ u}, this type represents the equality of
+terms \id{t} and \id{u} at type \id{A}. However, this is not a typical type
+former of equality types as we have previously seen, $\sim$ in reality pattern
+matches on the type \id{A} and the two endpoints and computes to a type. We
+show two typing rules to illustrate this point. First, we show the rule for
 observational equality between two propositions. Note that in TT$^{obs}$,
-$\Omega_i$ is the i$^{th}$ universe of proof irrelevant propositions.
+$\Omega_i$ is the i$^{th}$ universe of proof irrelevant propositions. Readers
+who are unfamiliar with natural deduction may consult
+\autoref{section:natural-deduction} for a short introduction. Note, however,
+that in this subsection, we make use of an additional type of judgement in the
+form of $\oftype{\ctx}{t \Rightarrow{} u}{A}$. This judgement states that the
+term \id{t} reduces to \id{u} at type \id{A} in context $\ctx$.
 
 \begin{prooftree*}
   \hypo{\oftype{\ctx}{A}{\Omega_i}}
@@ -2228,21 +2243,17 @@ points in the real unit interval $[0, 1]$. We also have \id{seg} which is a
 witness of equality between \id{$i_0$} and \id{$i_1$}, or more specifically, a
 continuous path between them.
 
-All inductive types have their own \emph{elimination principles}, which is a way
-to \emph{eliminate} a term of the inductive type \id{A} to some other type
-\id{B}. For instance, the elimination principle of \id{Boolean} is the
-\fn{\kw{if}...\kw{then}...\kw{else}} construct where both \kw{then} and
-\kw{else} branches should both have a term of some type \id{B}. The elimination
-of $\bI$ is similar to that of \id{Boolean}, the only difference is that we need
+The elimination of $\bI$ is similar to that of \id{Boolean} as described in
+\autoref{subsec:intro-fn-ind-types}, the only difference is that we also need
 to prove that $\id{seg} : \eqtype{i_0}{i_1}$ is respected. We define the
 elimination principle of $\bI$ using the \fn{elim$_{\bI}^{A}$ (M, N, P, i)}
 syntax. $A$ is the \emph{motive} of the elimination, i.e.\ the type we wish to
 eliminate to. \id{M} and \id{N} are what we would like the output of the
 elimination to be when \id{i} is equal to $\ileft$ and $\iright$ respectively,
-this is analogous to what we would place in the \kw{then} and \kw{else} branches
-during \id{Boolean} elimination. \id{P} is a proof that \id{M} and \id{N} are
-equal, thus ensuring that the elimination is coherent. More formally, the typing
-rule of the elimination rule may be stated as follows:
+this is analogous to what we would place in the \kw{then} and \kw{else}
+branches during \id{Boolean} elimination. \id{P} is a proof that \id{M} and
+\id{N} are equal, thus ensuring that the elimination is coherent. More
+formally, the typing rule of the elimination rule may be stated as follows:
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{M}{A}}
@@ -2982,7 +2993,9 @@ the full coherence proof term \id{p}, yielding the following term:
 %% code, as long as the difference is there only to make the material easier
 %% to understand.
 
-Now, we present the typing rules of the primitives introduced above.
+Now, we present the typing rules of the primitives introduced above. Readers
+who are unfamiliar with natural deduction may consult
+\autoref{section:natural-deduction} for a short introduction.
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{A}}{\kw{Type}}}
@@ -5584,6 +5597,47 @@ intensional type theory.
 
 \anglais
 \appendix
+
+\chapter{Natural Deduction}\label{section:natural-deduction}
+
+In this work, we use natural deduction to describe the typing rules of the
+terms in our system. The typing judgements that we shall work with have the
+form of $\vdash \oftype{\id{a}}{\id{A}}$, implying that the term \id{a} has the
+type \id{A}. We may also include a comma-separated list of hypotheses in
+judgements; they are separated from the conclusion by the turnstile ($\vdash$).
+For instance, $\oftype{\oftype{\id{i}}{\id{Int}}}{\id{i + 1}}{\id{Int}}$ may be
+read as ``Given that we have some \id{i} of type \id{Int}, then we deduce that
+\id{i + 1} is also of type \id{Int}.''. For preciseness, we want our rules to
+be valid under arbitrary additional hypotheses. Thus, we use the symbol $\ctx$,
+known as the context, to represent an arbitrary list of hypotheses, giving us
+judgements of the form $\oftype{\ctx}{\id{a}}{\id{A}}$.
+
+When writing rules, we often want to say that a conclusion may be drawn only
+when a certain number of premises are true. We do this by stating a list of
+premises before stating the conclusion, with an inference line separating the
+two. We illustrate this by showing the introduction rule of lambda functions.
+
+\begin{prooftree*}
+   \hypo{\oftype{\ctx, \oftype{\id{a}}{\id{A}}}{\id{b}}{\id{B}}}
+   \infer1{\oftype{\ctx}{\lambda (\id{a} : \id{A}) \rightarrow \id{b}}{\id{A} \rightarrow \id{B}}}
+\end{prooftree*}
+
+The rule says that if we can deduce that $\id{b}$ has type \id{B} with the
+assumption that there is some \id{a} of type \id{A} in the context, then we can
+construct a function of type \fn{A $\rightarrow$ B} with
+$(\oftype{\id{a}}{\id{A}})$ as its argument and \id{b} as its body.
+
+We also show the corresponding elimination rule for functions.
+
+\begin{prooftree*}
+   \hypo{\oftype{\ctx}{\id{a}}{\id{B} \rightarrow \id{C}}}
+   \hypo{\oftype{\ctx}{\id{b}}{\id{B}}}
+   \infer2{\oftype{\ctx}{\Funapp{\id{a}}{\id{b}}}{\id{C}}}
+\end{prooftree*}
+
+The rule says that if we have a function \id{a} of type \fn{B $\rightarrow$ C}
+as well as a term \id{b} of type \id{B}, then we can deduce that the
+application of \id{a} to \id{b} is of type \id{C}.
 
 \chapter{Equational Reasoning}\label{section:eqreasoning}
 Equational reasoning provides us with a neat way of expressing proofs in Typer.
