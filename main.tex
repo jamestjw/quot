@@ -3644,13 +3644,18 @@ operations on rational numbers do not rely on normalisation. However, this is
 not without its downsides as it entails heavier proof obligations as we shall
 discuss subsequently.
 
-Typer has a built-in \id{Integer} type. Behind the scenes, this is based on big
-integers in OCaml, leveraging the Zarith library. Operations on Typer's
-\id{Integer} type such as addition, multiplication, etc are implemented as
-primitives. At run time, the responsibilities of these functions are simply
+Typer has a built-in \id{Integer} type. Behind the scenes, this is based on
+arbitrary-precision integers in OCaml, leveraging the Zarith
+library\cite{ocaml-zarith}. When the integers are `small', Zarith uses 31-bit
+integers from the OCaml standard library on a 32-bit platform and 63-bit
+integers on a 64-bit platform. When the integers grow too large, the
+representation of the integers switches internally to GNU Multiple Precision
+Arithmetic Library\cite{gnu-gmp} integers allocated on the heap. Operations on
+Typer's \id{Integer} type such as addition, multiplication, etc are implemented
+as primitives. At run time, the responsibilities of these functions are simply
 delegated to their corresponding OCaml functions to carry out the necessary
-computations. So far, we are unable to reason about these operations in Typer as
-they are merely primitives that are implemented in the host language. In the
+computations. So far, we are unable to reason about these operations in Typer
+as they are merely primitives that are implemented in the host language. In the
 following section, we propose the addition of several axioms that serve as
 witnesses of certain properties of the built-in \id{Integer} type, this will be
 crucial when we start reasoning about operations on rational numbers.
@@ -4845,9 +4850,12 @@ file.}. We examine the run-time cost\footnote{The tests were executed on the
 author's 2018 Macbook Pro with a quadcore 2.3GHz Intel Core i5 processor with
 8GB of RAM.} of executing the functions $\fn{Rational\_negate}$,
 $\fn{Rational\_+}$, $\fn{Rational\_-}$ and $\fn{Rational\_*}$ on 50000 pairs of
-rational numbers with 100 iterations. We then report the average execution time
-over the 100 iterations along with the standard deviation. The overhead is
-defined to be the difference in the average execution time.
+rational numbers with 100 iterations. We also ensured that we only used
+integers that fit within the 63-bit limit of the OCaml standard library's
+integer type to avoid the use of heap-allocated integers. We then report the
+average execution time over the 100 iterations along with the standard
+deviation. The overhead is defined to be the difference in the average
+execution time.
 
 %% SM: Personally I find the overhead to make more sense when expressed
 %% as a percentage.
