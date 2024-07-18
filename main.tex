@@ -757,7 +757,10 @@ within the function, it may still be used in a computationally relevant way.
 However, most functions that we define generally do not compute on type
 arguments. Typer has another class of arguments known as \emph{erasable
 arguments}. Such arguments are classified as \emph{irrelevant} and are erased
-after type checking, thus they may not be used in a non-relevant context. As a
+after type checking, thus they may not be used in a non-relevant context.
+Within the function body, such an argument may only be used in an
+\textbf{erasable} manner, for instance, it may be used in the computation of an
+expression that is passed as an erasable argument to yet another function. As a
 result, such arguments are guaranteed to be absent in the generated code after
 compilation. In the rest of this work, we will often make proof terms erasable
 as they are not required at run time. We use $\Rrightarrow$ to indicate that a
@@ -1729,8 +1732,8 @@ endpoints \fn{i0 :\@ I} and \fn{i1 :\@ I}. Unlike normal types, we are not
 allowed to observe the difference between \id{i0} and \id{i1}. This implies
 that among other things, pattern matching on an interval variable is
 disallowed. The type of homogeneous equality is represented by $\equiv$ with
-the following type\footnote{Universe polymorphism of this functions is elided
-to simplify the presentation.}:
+the following type\footnote{The universe polymorphism of Agda functions is
+omitted to simplify the presentation.}:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     _@$\equiv$@_ : {A : Set} @$\rightarrow$@ A @$\rightarrow$@ A @$\rightarrow$@ Set
@@ -2338,19 +2341,19 @@ no longer require the \fn{_$\equiv$_} type former that we assume we had in
 functions out of the interval.
 
 \subsection{Adaptation to Typer}\label{sec:eq-justification}
+
 We have established in the previous section that equality between two terms is
 equivalent to a function out of the interval. Its defining characteristic is
-that the output of such a function has to agree at both endpoints of $\bI$. This
-is enforced by the elimination principle of the $\bI$ that ensures that \id{seg}
-is respected. An alternate way of enforcing this is by using functions with
-erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a type with two distinct
-constructors that take no arguments, such as the \id{Boolean} type. An argument
-that is marked as erasable has no computational role during run time. Within the
-function body, such an argument may only be used in an \emph{erasable} manner,
-for instance, it may be used in the computation of an expression that is passed
-as an erasable argument to yet another function. In other words, we can first
-define the interval type as a normal algebraic data type. Next, we model the
-equality type as a function with an erasable argument out of the interval type.
+that the output of such a function has to agree at both endpoints of $\bI$.
+This is enforced by the elimination principle of the $\bI$ that ensures that
+\id{seg} is respected. An alternate way of enforcing this is by using functions
+with erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a type with two
+distinct constructors that take no arguments, such as the \id{Boolean} type.
+Recall that an argument that is marked as erasable has no computational role
+during run time, as explained in \autoref{sec:intro-typer}. In other words, we
+can first define the interval type as a normal algebraic data type. Next, we
+model the equality type as a function with an erasable argument out of the
+interval type.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     type I
@@ -2364,14 +2367,12 @@ More concretely, we define a function with the following type:
     h : I @$\Rrightarrow$@ A
 \end{minted}
 
-In Typer, we use $\Rrightarrow$ to denote erasable arguments in function types.
 Intuitively, since \id{h} is not allowed to use its argument in a
 computationally relevant manner, what it returns when passed $i_0$ and $i_1$
 must be the same. With that, we can postulate the following equivalence.
 
 \begin{align*}
-  & \bI \Rrightarrow A \simeq \Sigma_{\oftype{x}{A}} . \Sigma_{\oftype{y}{A}} .
-  \eqtype{x}{y}
+  & \bI \Rrightarrow A \ \ \simeq \ \ \sum\limits_{(\oftype{x}{A})} \sum\limits_{(\oftype{y}{A})} \eqtype{x}{y}\nonumber
 \end{align*}
 
 The above shall be the basis of our new definition of equality types.
@@ -5098,14 +5099,32 @@ more detailed introduction, interested readers are directed to other works such
 as Awodey's textbook\cite{awodey-cattheory}.
 
 \section{Introduction}
-Category theory is built on merely a few foundational constructs, these alone
-give rise to a lot of interesting structures and properties. First, we postulate
-the existence of categories that contain objects. Next, we say that objects can
-be related to other objects via morphisms (also known as arrows, these two terms
-shall be used interchangeably in the following discussion). Assuming that
-readers are familiar with programming and/or type theory, one could think of
+
+Category theory is a general theory of mathematical structures and their
+relations. It is built on merely a few foundational constructs, these alone
+give rise to a lot of interesting structures and properties. First, we
+postulate the existence of categories that contain objects. Next, we say that
+objects can be related to other objects via morphisms (also known as arrows,
+these two terms shall be used interchangeably in the following discussion).
+Every object has an identity arrow that relates it to itself. In mathematics,
+there are myriad categories, each representing different mathematical
+structures, such as:
+
+\begin{itemize}
+  \item{The category of \textbf{sets} whose objects are sets and whose
+    morphisms are functions between sets}
+
+  \item{The category of \textbf{groups} whose objects are groups and whose
+    morphisms are group homomorphisms}
+
+  \item{The category of \textbf{topological spaces} whose objects are
+    topological space and whose morphisms are continuous functions between
+    them}
+\end{itemize}
+
+The analogy with programming and/or type theory is that one could think of
 categories as types, objects as terms of a particular type, and morphisms as
-functions. Every object has an identity arrow that relates it to itself.
+functions.
 
 \begin{figure}
 \centering
@@ -5537,7 +5556,7 @@ We can also phrase the universal property of $\id{Quotient}$ in a type-theoretic
 way as follows:
 
 \begin{align*}
-  & (X/R \rightarrow Y) \simeq \Sigma \ (X \rightarrow Y) \ (\lambda \ f \rightarrow (x \ y : X) \rightarrow \Funapp{R}{x}{y} \rightarrow \Funapp{f}{x} \equiv \Funapp{f}{y}) \\
+  & (X/R \rightarrow Y) \ \simeq \ \sum\limits_{(\oftype{f}{X \rightarrow Y})} \ (\lambda \ (x \ y : X) \rightarrow \Funapp{R}{x}{y} \rightarrow \Funapp{f}{x} \equiv \Funapp{f}{y}) \\
 \end{align*}
 
 This property says that a map between the quotient $X / R$ to some type $Y$ is
@@ -5547,8 +5566,8 @@ itself, the proof is provided in \autoref{app:ump-quot} of the appendix.
 
 \chapter{Conclusion}
 
-The principal objective of our work is to introduce a new equality type inspired
-by cubical equality as well as quotient types to Typer. Cubical equality
+The principal objective of our work was to introduce quotient types to Typer.
+We also took the opportunity to implement cubical equality in Typer, it
 provides our system with a more powerful equality type by viewing equalities as
 paths. The extra expressivity allows us to manipulate equalities more
 conveniently and elegantly. This has also allowed us to derive functional
