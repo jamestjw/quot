@@ -2019,7 +2019,7 @@ show two typing rules to illustrate this point. First, we show the rule for
 observational equality between two propositions. Note that in TT$^{obs}$,
 $\Omega_i$ is the i$^{th}$ universe of proof irrelevant propositions. Readers
 who are unfamiliar with natural deduction may consult
-\autoref{section:natural-deduction} for a short introduction. Note, however,
+\autoref{app:natural-deduction} for a short introduction. Note, however,
 that in this subsection, we make use of an additional type of judgement in the
 form of $\oftype{\ctx}{t \Rightarrow{} u}{A}$. This judgement states that the
 term \id{t} reduces to \id{u} at type \id{A} in context $\ctx$.
@@ -2380,7 +2380,10 @@ The above shall be the basis of our new definition of equality types.
 
 We introduce a few primitive operations on the interval type whose usefulness
 will become clear after we introduce our version of the equality type that is
-based on the interval type.
+based on the interval type. When providing the reduction rules for these
+operations, we omit the congruence rules for brevity. Readers who are
+unfamiliar with the syntax of these rules are referred to
+\autoref{app:reduction-rules}.
 
 \subsubsection*{Negation}
 
@@ -2995,7 +2998,7 @@ the full coherence proof term \id{p}, yielding the following term:
 
 Now, we present the typing rules of the primitives introduced above. Readers
 who are unfamiliar with natural deduction may consult
-\autoref{section:natural-deduction} for a short introduction.
+\autoref{app:natural-deduction} for a short introduction.
 
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{A}}{\kw{Type}}}
@@ -3730,7 +3733,7 @@ as a result.
     Integer_*Lzero : (x : Integer) |$\rightarrow$| 0 * x |$\equiv$| 0
 \end{minted}
 
-\subsection*{Integer theorems}\label{subsection:int-theorems}
+\subsection*{Integer theorems}\label{subsec:int-theorems}
 As stated in the subsequent section, we only added the `left' version of some
 axioms, as their `right' counterparts may be trivially proven as theorems based
 on the commutativity property of addition and multiplication.
@@ -3789,7 +3792,7 @@ chaining equality proofs. For instance, the below example constructs a proof
 of \fn{x $\equiv$ y} by using the fact \id{x} is equal to \id{i} as witnessed by
 \id{p1} and that \id{i} is equal to \id{j} according to the proof \id{p2} etc.
 The $\qed$ symbol indicates the end of the equational reasoning. More details
-are given in Section~\ref{section:eqreasoning} of the appendix.
+are given in Section~\ref{app:eq-reasoning} of the appendix.
 
 \begin{minted}[escapeinside=||,mathescape=true]{agda}
     x ==< p1 >== i ==< p2 >== j ==< p3 >== k ... ==< pn >== y |$\qed$|
@@ -5598,7 +5601,7 @@ intensional type theory.
 \anglais
 \appendix
 
-\chapter{Natural Deduction}\label{section:natural-deduction}
+\chapter{Natural Deduction}\label{app:natural-deduction}
 
 In this work, we use natural deduction to describe the typing rules of the
 terms in our system. The typing judgements that we shall work with have the
@@ -5639,7 +5642,40 @@ The rule says that if we have a function \id{a} of type \fn{B $\rightarrow$ C}
 as well as a term \id{b} of type \id{B}, then we can deduce that the
 application of \id{a} to \id{b} is of type \id{C}.
 
-\chapter{Equational Reasoning}\label{section:eqreasoning}
+\chapter{Reduction Rules}\label{app:reduction-rules}
+
+To describe the evaluation of terms in our system, we use small-step
+operational semantics. This allows us to show how a program executes one step
+at a time. A typical reduction rule has the form of $\id{t}_1
+\rightsquigarrow{} \id{t}_2$, this may be read as ``$\id{t}_1$ reduces to
+$\id{t}_2$''. We provide a concrete example by showing a reduction rule
+for a \fn{\kw{if}...\kw{then}...\kw{else}} expression:
+
+\begin{prooftree*}
+  \infer0[\textsc{If-Then-Else-True}]{\kw{if} \ \id{true} \ \kw{then} \ \id{t}_1 \ \kw{else} \ \id{t}_2
+                     \rightsquigarrow{} \id{t}_1}
+\end{prooftree*}
+
+This rule states that when the scrutinee of an
+\fn{\kw{if}...\kw{then}...\kw{else}} expression is \id{true}, the entire
+expression reduces to the term in the \kw{then} branch. A similar rule may be
+written for the case where the scrutinee is \id{false}.
+
+If the scrutinee of the \fn{\kw{if}...\kw{then}...\kw{else}} is not a canonical
+value of the \id{Boolean} type, i.e., if it is not \id{true} or \id{false},
+then we should try to further evaluate the scrutinee. In such cases, the
+reduction rule would have a premise saying that if a certain sub-expression may
+be reduced by one step, then the entire expression may be reduced by one step
+too. We illustrate this by showing the congruence rule for
+\fn{\kw{if}...\kw{then}...\kw{else}} expressions.
+
+\begin{prooftree*}
+  \hypo{\id{t}_1 \rightsquigarrow{} \id{t}_1^{'} }
+  \infer1[\textsc{If-Then-Else-Cong}]{\kw{if} \ \id{t}_1 \ \kw{then} \ \id{t}_2 \ \kw{else} \ \id{t}_3
+  \rightsquigarrow{} \kw{if} \ \id{t}_1^{'} \ \kw{then} \ \id{t}_2 \ \kw{else} \ \id{t}_3}
+\end{prooftree*}
+
+\chapter{Equational Reasoning}\label{app:eq-reasoning}
 Equational reasoning provides us with a neat way of expressing proofs in Typer.
 With the help of some syntactic sugar, this allows us to build chains of
 equality proofs by using the transitivity property of equality as shown in
@@ -5690,7 +5726,10 @@ When we write the following
     z $\qed$
 \end{lstlisting}
 
-We require that $\id{p}$ be a proof of equality between $\id{x}$ and $\id{y}$, and this can be chained \latinphrase{ad infinitum}. The expression in its entirety is a proof of equality between $\id{x}$ and $\id{z}$. The usage of this is best illustrated via a simple example:
+We require that $\id{p}$ be a proof of equality between $\id{x}$ and $\id{y}$,
+and this can be chained \latinphrase{ad infinitum}. The expression in its
+entirety is a proof of equality between $\id{x}$ and $\id{z}$. The usage of
+this is best illustrated via a simple example:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     example : (x : ?A) @$\rightarrow$@ (y : ?A) @$\rightarrow$@ (z : ?A) @$\rightarrow$@ (w : ?A)
@@ -5702,7 +5741,9 @@ We require that $\id{p}$ be a proof of equality between $\id{x}$ and $\id{y}$, a
       w @$\qed$@
 \end{minted}
 
-For a more involved example, we rewrite the proof of \verb|Integer_*DistR+| that was shown in Section~\ref{subsection:int-theorems} by using equational reasoning.
+For a more involved example, we rewrite the proof of \verb|Integer_*DistR+|
+that was shown in Section~\ref{subsec:int-theorems} by using equational
+reasoning.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     Integer_*DistR+ : (x y z : Integer) @$\rightarrow$@ x * (y + z) @$\equiv$@ (x * y) + (x * z)
@@ -5832,10 +5873,11 @@ definitionally equal, allowing us to proof $\beta$ by reflexivity.\end{proof}
 
 \section{Closure of Mere Propositions under the $\Pi$-type}\label{app:closure-mp-pi}
 
-Consider a type \id{A} and a type family \fn{B :\@ A $\rightarrow$ Type}.
-If it is the case that \fn{$\forall$ a.\ isProp (B a)}, then it is also true that
-\fn{isProp ((a :\@ A) $\rightarrow$ B a)}. In other words, the property that \fn{B
-  a} is a mere proposition is closed under the $\Pi$ type former. We provide a proof of this in the form of Typer code.
+Consider a type \id{A} and a type family \fn{B :\@ A $\rightarrow$ Type}. If it
+is the case that \fn{$\forall$ a.\ isProp (B a)}, then it is also true that
+\fn{isProp ((a :\@ A) $\rightarrow$ B a)}. In other words, the property that
+\fn{B a} is a mere proposition is closed under the $\Pi$ type former. We
+provide a proof of this in the form of Typer code.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 isProp@$\Pi$@ : (h : (x : ?A) @$\rightarrow$@ isProp (?B x))

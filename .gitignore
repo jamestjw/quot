@@ -9,4 +9,5 @@ _minted-main
 *.pyg
 *.toc
 *.pdf
+*.lof
 
