@@ -389,7 +389,7 @@
 
 \chapter*{Résumé}
 
-Ce travail décrit l'introduction des types quotients dans
+Ce travail décrit l'ajout des types quotients dans
 Typer\cite{monnier2019typer}, un langage avec des types dépendants. Les types
 quotients permettent aux programmeurs de construire de nouveaux types à base des
 types existants en redéfinissant la notion d'égalité du type de départ.
@@ -397,7 +397,7 @@ Typiquement, cela repose sur des relations d'équivalence définies sur le type 
 base. Les termes qui sont \emph{équivalents} selon la rélation sont donc vus
 comme égaux dans le type quotient résultant. Par exemple, les nombres rationnels
 peuvent être définis comme le quotient des paires d'entiers par une rélation
-d'équivalence basée sur le produit en croix. Pour accueillir l'introduction des
+d'équivalence basée sur le produit en croix. Pour accueillir l'ajout des
 types quotients dans Typer, on a redéfini et amélioré l'égalité intégré de Typer
 en s'inspirant de la théorie des types cubique qui a introduit le type
 d'intervalle et aussi les assistants de preuve qui l'implémentent. De ce fait,
@@ -1382,7 +1382,131 @@ Supplementary material may be found in the author's Gitlab repository
 
 In this chapter, we present works that are related to ours. We show where we
 drew our inspiration from and we also take this opportunity to give readers a
-taste of what quotient types are like and what they are capable of.
+taste of what quotient types are like and what they are capable of. Before we
+begin, we would like to provide examples of the `propositions as types'
+paradigm in Typer, with the objective of further familiarising the reader with
+dependent types and Typer. Readers who are already familiar with the above may
+skip ahead to the second section of this chapter.
+
+\section{Propositions as Types in Typer}
+
+As mentioned before, the `propositions as types' paradigm says that
+propositions and types are the same. A proposition is associated with a certain
+type whose terms are proofs of the proposition. We demonstrate the counterparts
+of logical constructs in Typer.
+
+\subsection*{Logical Truth}
+
+To represent truth, i.e., something that should be vacuously true, we use the
+\id{Unit} type. In Typer, it is defined as an inductive type with a sole
+constructor, \id{unit}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+  type Unit
+    | unit
+\end{minted}
+
+Since a term of \id{Unit} may always be unconditionally constructed using the
+\id{unit} constructor, it coincides with our intuition that this proposition is
+trivially true.
+
+\subsection*{Logical Falsehood}
+
+In a logic that is coherent, one should not be able to prove false
+propositions, hence, the type that represents falsehood should be uninhabited.
+We represent this by the inductive type \id{Void} which has no constructors.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+  type Void
+\end{minted}
+
+Here, \id{Void} is the $\mathbb{0}$ type (also known as the empty type or
+bottom), the type with no inhabitants. If we find ourselves with a term of the
+\id{Void} type, it means we have encountered a contradiction. This occurs when
+we have contradictory assumptions. Pattern matching on a term of the \id{Void}
+type is a special case as there would be no constructors to handle. Such a
+\kw{case} statement gives us a term of any type \id{C} under no further
+conditions. This is due to the principle that when a contradiction is
+derivable, any proposition follows.
+
+\subsection*{Conjunction}
+
+A conjunction \fn{A $\wedge$ B} implies that we require both propositions to be
+true at the same time, we represent this using an inductive type \id{And} whose
+constructor \id{and} requires witnesses of both propositions as arguments.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+  type And (A : Type) (B : Type)
+    | and A B
+\end{minted}
+
+When eliminating a term of type \fn{And A B} by pattern matching on it, we will
+gain access to the witnesses of both \id{A} and \id{B}.
+
+\subsection*{Disjunction}
+
+A disjunction \fn{A $\vee$ B} implies that either one of \id{A} or \id{B} is
+true. We represent this using an inductive type \id{Or} which has two
+constructors, giving us two ways to construct a proof of the disjunction
+depending on whether we have a witness of \id{A} or \id{B}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+  type Or (A : Type) (B : Type)
+    | inl A
+    | inr B
+\end{minted}
+
+\subsection*{Implication}
+
+By saying that \fn{A $\supset$ B}, we are saying that we may transform a proof
+of \id{A} into a proof of \id{B}. This may be represented directly by functions
+of type \fn{A $\rightarrow$ B} that do precisely what we just described.
+
+\subsection*{Universal Quantifier}
+
+A universal quantifier allows us to say that for all elements of some domain,
+some predicate is true, i.e., $\forall \id{a} : \id{A} \ . \ \id{P}(\id{a})$ where
+\id{P} is some predicate. In Typer, we represent universal quantification using
+dependent function types, also known as pi-types ($\Pi$-types). If we were to
+rewrite the above proposition in Typer, we obtain \fn{(a :\@ A) $\rightarrow$ P
+a} where \id{P} is some dependent type indexed by \id{A}. Indeed, this
+may be seen as a generalisation of functions of type \id{A $\rightarrow$ B}.
+
+\subsection*{Existential Quantifier}\label{subsec:existential-sigma}
+
+An existential quantification claims that there exists some element of some
+domain \id{A} such that some predicate \id{B} is true. In Typer, this is
+represented by what is known as the dependent product or sigma-type
+($\Sigma$-type). We encode this as the following inductive type:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
+  | sigma (fst : A) (snd : B fst);
+\end{minted}
+
+\id{B} is some predicate indexed by \id{A}. To construct a term of the
+sigma-type, we need a provide a term of type \id{A} and a witness that the
+predicate \id{B} is valid for that term. This contrasts with classical logic,
+where it is not possible to extract the specific term that satisfies the
+predicate in an existential quantification. In this work, we use the $\Sigma$
+notation to denote the sigma-type for aesthetic purposes. We also use the
+$\braket{\_, \_}$ notation to represent the \id{sigma} constructor, for
+instance, the construction of the dependent pair $\braket{a, b}$ is done by
+invoking the constructor like so: \fn{sigma a b}.
+
+\subsection*{Logical Negation}\label{subsec:log-neg}
+
+When we negate a proposition, we are essentially saying that it is not true.
+We encode this by saying that if the proposition were to be \textbf{true}, then
+we would have a \textbf{contradiction}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+    Not : Type @$\rightarrow$@ Type
+    Not T = T @$\rightarrow$@ Void
+\end{minted}
+
+A term of type \fn{Not T} is a function that takes a term of type \id{T} as an
+argument and returns a term of the empty type by constructing a contradiction.
 
 \section{Miranda}
 
@@ -3074,26 +3198,15 @@ indexed by the quotient type itself. To construct an example of this, we first
 introduce a new definition. A type is said to be \emph{decidable} if we can
 decide whether the type is inhabited or not. In the case where it is inhabited,
 we must have a witness of such an inhabitant. In Typer, decidability can be
-represented by the following inductive type.
+represented by the following inductive type by using the `propositions as
+types' variation of logical negation, \id{Not}, as introduced in
+\autoref{subsec:log-neg}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     type Dec (A : Type)
       | yes A
       | no (Not A)
 \end{minted}
-
-\id{Not} is the propositions as type variation of logical negation. It is
-defined based on the idea that if a proposition is \underline{not} true, then a
-proof of the proposition would lead to a contradiction.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    Not : (T : Type) @$\rightarrow$@ Type
-    Not T = T @$\rightarrow$@ Void
-\end{minted}
-
-Here, \id{Void} is the $\mathbb{0}$ type (also known as the empty type or
-bottom), the type with no inhabitants.
-
 
 For this example, we reuse the definition of integers given in
 \autoref{sec:quot-syntax}. We might want to define a function that
@@ -5929,21 +6042,11 @@ This is analogous to our proof of \id{Eq\_trans} in
 fashion.
 
 \section{Properties of dependent pairs}\label{app:deppairs-properties}
-In this work, we use the $\Sigma$ notation to denote dependent pairs. This may
-be represented in Typer by the \id{Sigma} inductive type.
 
-%% TODO: Use Σ syntax instead?
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
-  | sigma (fst : A) (snd : B fst);
-\end{minted}
-
-The $\braket{\_, \_}$ notation that we have been using thus far is represented
-by the \id{sigma} constructor, for instance, the construction of the dependent
-pair $\braket{a, b}$ is done by invoking the constructor like so: \fn{sigma a
-  b}. $\eta$-equivalence does not hold definitionally for the \id{Sigma} type,
-however it may be proven propositionally:
+In this section, we prove some theorems related to the \id{Sigma} type
+introduced in \autoref{subsec:existential-sigma}. $\eta$-equivalence does not
+hold definitionally for the \id{Sigma} type, however it may be proven
+propositionally:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
 Sigma_@$\eta$@ : (p : Sigma ?A ?P) @$\rightarrow$@ p @$\equiv$@ sigma (B := ?P) p.fst p.snd
