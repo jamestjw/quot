@@ -1496,7 +1496,8 @@
         %\normalparindent
 \z@
         {6\p@\@plus2\p@}
-        {-1ex}
+        % {-1ex}
+        {0.5em}
         {\bfseries}%
 }
 \def\paragraph{%

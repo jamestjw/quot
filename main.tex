@@ -820,7 +820,7 @@ this work, although Typer is intended to be a general-purpose programming
 language, its support for dependent types allows its type system to be used as
 a logic to write proofs.
 
-\subsection{Comparison with Other Proof Assistants}
+\subsection{Comparison with Other Proof Assistants}\label{subsec:typer-comparison}
 
 Implicit arguments are a feature provided by most modern proof assistants such
 as \Coq{}, \Agda{}, \Lean{}, etc. This is unsurprising, as it greatly reduces
@@ -1165,20 +1165,19 @@ approach to represent equality proofs by modeling them as functions whose
 argument is of the \emph{interval} type, i.e.\ functions of the type \fn{I
 $\rightarrow$ A} given that \id{I} represents the interval type and \id{A} is
 an arbitrary other type. We refer to the above hereafter as functions out of
-the unit interval. The interval may be seen as a special type that is similar
-to the Boolean type with the special property that both constructors should be
-indistinguishable. For now, readers are encouraged to think of the type as
-modelled by the following inductive type where \id{$i_0$} and \id{$i_1$} are
-the two endpoints of the interval that we wish to be indistinguishable.
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    type I
-      | @$i_0$@
-      | @$i_1$@
-\end{minted}
-
-In this alternative formulation of equality proofs, equality is viewed as a
-continuous path along the unit interval that connects two equal terms.
+the unit interval. We opt not to provide a full definition of the interval type
+for now, instead, we discuss its properties and what it does to motivate its
+implementation in Typer. It may be seen as a special type with two values that
+cannot be distinguished. As opposed to the \id{Boolean} type that has the
+\fn{\kw{if}...\kw{then}...\kw{else}} construct that allows us to discriminate
+between different values, we are not allowed to directly observe the value of
+an interval term. Instead, we are provided with special built-in functions that
+manipulate interval terms without requiring us to observe the underlying values
+directly. In this alternative formulation of equality proofs, equality is
+viewed as a continuous map from the unit interval to some type A. This
+continuity reinforces our intuition as to why functions out of the interval
+should not be able to inspect their arguments and return arbitrarily different
+results for different terms of the interval type.
 %% The return value of such functions is not allowed to directly depend on the
 %% value of the interval argument. For instance, the function may not do a case
 %% analysis on the interval and return a different term of type \id{A} depending on
@@ -1187,14 +1186,17 @@ continuous path along the unit interval that connects two equal terms.
 %% the requirements of an equality proof.
 An equality type based on the interval also allows us to derive many proofs
 regarding the equality type in an alternative manner that is much cleaner and
-more elegant. It also allows us to derive new theorems regarding the equality
-type that are desirable, such as functional extensionality. This flavour of
-equality was first conceived in cubical type theories\cite{bezem2014model} to
-provide a computational interpretation of homotopy type theory
-(HoTT)\cite{HoTTbook}. To provide readers with a better intuition of the above,
-concrete examples shall be provided in \autoref{sec:cubical-agda} where we
-discuss Cubical Agda\cite{vezzosi2021cubical}, a cubical extension of the
-\Agda{} proof assistant.
+more elegant. Being able to more easily construct and manipulate equality
+proofs will be a big asset when proving theorems for quotient types. An
+interval-based equality also allows us to derive new theorems regarding the
+equality type that are desirable, such as functional extensionality. This
+flavour of equality was first conceived in cubical type
+theories\cite{bezem2014model} to provide a computational interpretation of
+homotopy type theory (HoTT)\cite{HoTTbook}. To provide readers with a better
+intuition of the above, concrete examples shall be provided in
+\autoref{sec:cubical-agda} where we discuss Cubical
+Agda\cite{vezzosi2021cubical}, a cubical extension of the \Agda{} proof
+assistant.
 
 One of the key ideas introduced by HoTT is the univalence axiom which suggests
 that equivalences may be encoded as equalities. This is much like what is done
@@ -1349,13 +1351,14 @@ We make several contributions:
     and that they fulfil the universal property of quotients
     (\hyperref[sec:coequaliser]{Section~\ref*{sec:coequaliser}}). }
 
-  \item{To facilitate the use of quotients, we develop a library of
-    convenience functions, macros, and also theorems regarding quotient types
-    (\hyperref[ch:quot-examples]{Chapter~\ref*{ch:quot-examples}}). This work
-    explores the usability and user-friendliness of quotient types in
-    programming tasks through the construction of examples of possible use cases
-    of quotients. We also investigate the run-time overhead of the utilisation of
-    quotient types
+  \item{To facilitate the use of quotients, we develop a library of convenience
+      functions, macros, and also theorems regarding quotient types
+      (\hyperref[ch:quot-examples]{Chapter~\ref*{ch:quot-examples}}). This is
+      notably facilitated by our new equality type that makes the manipulation
+      of equality proofs simpler. We explore the usability and
+      user-friendliness of quotient types in programming tasks through the
+      construction of examples of possible use cases of quotients. We also
+      investigate the run-time overhead of the utilisation of quotient types
     (\hyperref[sec:quot-benchmark]{Section~\ref*{sec:quot-benchmark}}).}
 
   \item{We also implement a proof of Hedberg's
@@ -1485,7 +1488,7 @@ type Sigma (A : Type) (B : A @$\rightarrow$@ Type)
 \end{minted}
 
 \id{B} is some predicate indexed by \id{A}. To construct a term of the
-sigma-type, we need a provide a term of type \id{A} and a witness that the
+sigma-type, we need to provide a term of type \id{A} and a witness that the
 predicate \id{B} is valid for that term. This contrasts with classical logic,
 where it is not possible to extract the specific term that satisfies the
 predicate in an existential quantification. In this work, we use the $\Sigma$
@@ -2006,11 +2009,13 @@ equal. We can easily construct a proof of this equality by using the term
 \fn{succpred$\equiv$id (Int-negate n)}. The other branch that deals with
 \fn{succpred$\equiv$id n} may be handled similarly.
 
+\subsubsection{Quotient Types as a HIT}\label{subsec:quot-as-hit}
+
 We could also define quotient types as formulated by
 Hoffman\cite{hofmann1995extensional} as a higher inductive type in \Agda{}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    data _/_ {l l'} (A : Type l) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type l') : Type (l-max l l')
+    data _/_ (A : Type) (R : A @$\rightarrow$@ A @$\rightarrow$@ Type) : Type
        where
        [_] : A @$\rightarrow$@ A / R
        eq/ : (a b : A) @$\rightarrow$@ (r : R a b) @$\rightarrow$@ [ a ] @$\equiv$@ [ b ]
@@ -2032,7 +2037,7 @@ have the form \fn{(x , y)}. The concept of unordered pairs is such that \fn{(x ,
 pairs such that permutations of the elements are equivalent.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-UPairR : @$\forall$@ {l} {A : Type l} @$\rightarrow$@ A @$\times$@ A @$\rightarrow$@ A @$\times$@ A @$\rightarrow$@ Type l
+UPairR : @$\forall$@ {l} {A : Type} @$\rightarrow$@ A @$\times$@ A @$\rightarrow$@ A @$\times$@ A @$\rightarrow$@ Type
 UPairR (x1 , y1) (x2 , y2) = ((x1 @$\equiv$@ x2) @$\times$@ (y1 @$\equiv$@ y2)) @$\uplus$@ ((x1 @$\equiv$@ y2) @$\times$@ (y1 @$\equiv$@ x2))
 \end{minted}
 
@@ -2042,7 +2047,7 @@ pair we get element-wise equality. With that, we can now define the type of
 unordered pairs.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    UnorderedPair : @$\forall$@ {l} @$\rightarrow$@ Type l @$\rightarrow$@ Type l
+    UnorderedPair : Type @$\rightarrow$@ Type
     UnorderedPair A = (A @$\times$@ A) / UPairR
 \end{minted}
 
@@ -2122,6 +2127,84 @@ and
 \url{https://proofassistants.stackexchange.com/questions/908/what-exactly-is-setoid-hell/}}.
 Although \Coq{} offers numerous tactics to facilitate the usage of setoids, it
 quickly becomes unwieldy in the case of large programs.
+
+\section{Quotients in Lean}\label{sec:intro-lean-quotients}
+
+Lean implements quotients by providing the below set of primitives in the core
+library\footnote{Like before, we omit universe polymorphism to simplify the
+presentation.}.
+
+\begin{minted}[escapeinside=@@,mathescape=true]{lean}
+    opaque Quot {A : Sort} (r : A @$\rightarrow$@ A @$\rightarrow$@ Prop) : Sort
+
+    opaque Quot.mk {A : Sort} (r : A @$\rightarrow$@ A @$\rightarrow$@ Prop) (a : A) : Quot r
+
+    opaque Quot.lift {A : Sort} {r : A @$\rightarrow$@ A @$\rightarrow$@ Prop} {B : Sort} (f : A @$\rightarrow$@ B) :
+      (@$\forall$@ a b : A, r a b @$\rightarrow$@ f a = f b) @$\rightarrow$@ Quot r @$\rightarrow$@ B
+
+    opaque Quot.ind {A : Sort} {r : A @$\rightarrow$@ A @$\rightarrow$@ Prop} {B : Quot r @$\rightarrow$@ Prop} :
+      (@$\forall$@ a : A, B (Quot.mk r a)) @$\rightarrow$@ @$\forall$@ q : Quot r, B q
+
+    axiom Quot.sound : @$\forall$@ {A : Sort} {r : A @$\rightarrow$@ A @$\rightarrow$@ Prop} {a b : A}, r a b
+      @$\rightarrow$@ Quot.mk r a = Quot.mk r b
+\end{minted}
+
+Lean has two universe of types, \kw{Prop} and \kw{Type}. \kw{Type} is analogous
+to its counterpart in Typer as explained in \autoref{subsec:typer-comparison}.
+\id{Prop}, on the other hand, is \Lean{}'s universe of proof-irrelevant
+propositions. This implies that all proofs of a proposition are definitionally
+equal. When we annotate a type to be of the universe \kw{Sort}, we are
+essentially saying that it could belong to either \kw{Prop} or
+\kw{Type}\footnote{Again, we provide a simplistic description of how things
+really are.}. \kw{opaque} definitions are not expanded during simplification or
+reduction, this may be seen as a means of abstraction to keep the internal
+structure of a definition hidden. Lean also allows us to define \kw{axiom}s,
+they may be seen as variables without a concrete definition and may only be
+used for type-checking purposes.
+
+First, they introduce the \id{Quot} type former, parametrised by some type
+\id{A} and a binary relation on \id{A}. \id{Quot.mk} is the term former that
+takes a term \fn{a :\@ A} and constructs a quotient term out of it. In contrast
+to Cubical Agda that supports the elimination of quotients through direct
+pattern-matching, \Lean{} provides two functions \id{Quot.lift} and
+\id{Quot.ind} for normal elimination and dependent elimination respectively.
+\id{Quot.lift} works in a similar way to how we did pattern matching on a
+quotient type in \autoref{subsec:quot-as-hit}. To eliminate a quotient term, we
+need to provide three things: first, a function that takes a term of type
+\id{A} to some type \id{B}; second, proof that this function maps equivalent
+terms of type \id{A} (based on the underlying relation) to equal outputs; and
+third, the quotient term that we wish to eliminate.
+
+The dependent eliminator \id{Quot.ind} is more interesting. The elimination
+motive \id{B} is a family of propositions, implying that we are not allowed to
+eliminate a quotient term to a type that lives in \kw{Type}. \id{Quot.ind}
+expects a dependent function that takes a term \id{a} of type \id{A} and maps
+it to \fn{B (Quot.mk a)}. Unlike \id{Quot.ind}, we do need to provide a proof
+that this function respects the underlying relation since we are eliminating to
+%% Suppose that we had r a b, then we can cast `f a` from `B (Quot.mk a)` to
+%% `B (Quot.mk b)`, and since this type is a subsingleton, what we obtain will
+%% necessarily be equal to `f b`.
+\kw{Prop}. The \id{Quot.sound} axiom is the essence of quotient types, it
+states that \id{Quot.mk} maps `related' terms to equal terms in the quotient.
+It is comparable with the \id{eq/} constructor described in
+\autoref{subsec:quot-as-hit}.
+
+However, Lean's quotient types have a few shortcomings. The introduction of
+axioms tends to block computation; that is, it breaks a desirable property of
+type theory known as canonicity, which states that every term in a closed
+context may be reduced to a canonical form. A term is of canonical form if it
+is built up using only the constructors of its type. Using \id{Nat} as an
+example, a closed term \fn{n :\@ Nat} must be able to be reduced to a chain of
+applications of \id{succ} to \id{zero}. Type casts using equality proofs that
+are axioms such as \id{Quot.sound} result in \emph{stuck terms}. Another
+problem arises when we take the quotient of a \kw{Prop}. Such a construction is
+not very meaningful as all proofs of a proposition are already definitionally
+equal in \Lean{}, however, it is nevertheless allowed. This has been shown to
+break subject reduction\cite{carneiro-lean-type-theory}, i.e., if we have a
+term \fn{t :\@ A}, and \id{t} reduces to \id{u}, it might be the case that
+\id{u} is not of type \id{A}, or worse, \id{u} may not even type-check.
+Our implementation of quotients shares similarities with \id{Lean}; however, we
+aim to circumvent the aforementioned problems.
 
 \section{Quotients in Observational Type Theory (TT$^{obs}$)}
 
@@ -2365,10 +2448,12 @@ the backbone of the rest of this work.
 \end{center}
 
 We postulate the existence of the interval type $\bI$, along with its endpoints
-\id{$i_0$} and \id{$i_1$}. The intuition is that elements of $\bI$ correspond to
-points in the real unit interval $[0, 1]$. We also have \id{seg} which is a
+\id{$i_0$} and \id{$i_1$}. The intuition is that elements of $\bI$ correspond
+to points in the real unit interval $[0, 1]$. We also have \id{seg} which is a
 witness of equality between \id{$i_0$} and \id{$i_1$}, or more specifically, a
-continuous path between them.
+continuous path between them. The path connecting the two endpoints represents
+the continuum of points between them, analogous to the real interval which
+consists of all real numbers between 0 and 1.
 
 The elimination of $\bI$ is similar to that of \id{Boolean} as described in
 \autoref{subsec:intro-fn-ind-types}, the only difference is that we also need
@@ -3167,7 +3252,7 @@ is a witness of the above property.
 \begin{prooftree*}
    \hypo{\oftype{\ctx}{\id{a}_1}{\fn{Quotient A R}}}
    \hypo{\oftype{\ctx}{\id{a}_2}{\fn{Quotient A R}}}
-   \infer[no rule]2{\oftype{\ctx}{p}{\id{a}_1 \equiv{} \id{a}_2} \ \ \                  \oftype{\ctx}{q}{\id{a}_1 \equiv{} \id{a}_2}}
+   \infer[no rule]2{\oftype{\ctx}{p}{\id{a}_1 \equiv{} \id{a}_2} \ \ \ \oftype{\ctx}{q}{\id{a}_1 \equiv{} \id{a}_2}}
    \infer1[\textsc{Quot-Intro-Trunc}]{
 \oftype{\ctx}{\Funapp{\id{Quotient\_trunc}}{\id{p}}{\id{q}}}
              {\id{p} \equiv{} \id{q}}}
@@ -3194,13 +3279,15 @@ between \id{p} and \id{q}.
 We would like to enable the dependent elimination of quotients, in other words,
 we would like to be able to eliminate a term of some quotient type
 $\Funapp{\id{Quotient}}{\id{A}}{\id{R}}$ to some type family $\id{P}$ that is
-indexed by the quotient type itself. To construct an example of this, we first
-introduce a new definition. A type is said to be \emph{decidable} if we can
-decide whether the type is inhabited or not. In the case where it is inhabited,
-we must have a witness of such an inhabitant. In Typer, decidability can be
-represented by the following inductive type by using the `propositions as
-types' variation of logical negation, \id{Not}, as introduced in
-\autoref{subsec:log-neg}.
+indexed by the quotient type itself. Note that unlike \Lean{}'s implementation
+(see \id{Quot.ind} in \autoref{sec:intro-lean-quotients}), the type family
+$\id{P}$ does not have to be a proposition, giving us more flexibility. To
+construct an example of this, we first introduce a new definition. A type is
+said to be \emph{decidable} if we can decide whether the type is inhabited or
+not. In the case where it is inhabited, we must have a witness of such an
+inhabitant. In Typer, decidability can be represented by the following
+inductive type by using the `propositions as types' variation of logical
+negation, \id{Not}, as introduced in \autoref{subsec:log-neg}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     type Dec (A : Type)
@@ -4877,27 +4964,28 @@ previously unprovable by using Typer's original equality type.
 We then introduced quotient types to Typer. We convinced ourselves that our
 quotient types behave as they should by proving that they fulfil the universal
 property of quotients. We note as well that our dependent elimination of
-quotients is not limited to motives that live in the universe of \type{Prop}, as
-opposed to when quotient types are added to a theory interpreted in a setoid
-model as proposed by Li\cite{li2015quotient}. A library was provided with proofs
-of many other properties fulfilled by our quotient types. We also explored the
-practical aspects of our quotient types by using them to construct several
-examples. We then observed that when the identifications that we wish to impose
-on the base type may be immediately represented as an equivalence relation, the
-resulting construction was a lot simpler as was the case with \id{Rational}.
-However, our experience constructing \id{Multiset} in \autoref{sec:multiset}
-showed that when the identifications that we require do not immediately induce
-an equivalence relation, we need to manually construct the equivalence closure
-of the resulting relation. This complicates the underlying relation of the
-quotient, leading to additional proof obligations that are often easily
-satisfied but unnecessary. This may be seen as a glaring disadvantage of our
-approach as opposed to QITs that allow the direct definition of path
-constructors on inductive types. We initially intended to encode QITs as
-quotient types with the help of a macro, however, we then realised that the
-construction of the equivalence closure of arbitrary equality constructors using
-a macro is non-trivial. Hence, we ultimately decided to abandon this idea as
-even if such a macro were to come to fruition, it would most likely be
-user-unfriendly.
+quotients is not limited to motives that live in the universe of \type{Prop},
+as opposed to when quotient types are added to a theory interpreted in a setoid
+model as proposed by Li\cite{li2015quotient} as well as the implementation in
+\Lean{} described in \label{sec:intro-lean-quotients} . A library was provided
+with proofs of many other properties fulfilled by our quotient types. We also
+explored the practical aspects of our quotient types by using them to construct
+several examples. We then observed that when the identifications that we wish
+to impose on the base type may be immediately represented as an equivalence
+relation, the resulting construction was a lot simpler as was the case with
+\id{Rational}. However, our experience constructing \id{Multiset} in
+\autoref{sec:multiset} showed that when the identifications that we require do
+not immediately induce an equivalence relation, we need to manually construct
+the equivalence closure of the resulting relation. This complicates the
+underlying relation of the quotient, leading to additional proof obligations
+that are often easily satisfied but unnecessary. This may be seen as a glaring
+disadvantage of our approach as opposed to QITs that allow the direct
+definition of path constructors on inductive types. We initially intended to
+encode QITs as quotient types with the help of a macro, however, we then
+realised that the construction of the equivalence closure of arbitrary equality
+constructors using a macro is non-trivial. Hence, we ultimately decided to
+abandon this idea as even if such a macro were to come to fruition, it would
+most likely be user-unfriendly.
 
 HITs and QITs are also strictly more expressive than the combination of ordinary
 inductive types with quotient types\cite{fiore2022quotients}. This implies that
@@ -4928,35 +5016,36 @@ types is often accompanied by a considerable amount of proof obligations. As we
 have seen, such proofs are not always trivial to construct, mainly because of
 Typer's current lack of support for the development of proofs as opposed to
 other contemporary programming languages. For instance, the Quotient Haskell
-extension\cite{hewer2023quotient} is implemented with the help of SMT solvers. This enables many proof obligations generated by
-quotient types to be satisfied automatically. In other words, most of the proofs
-that we had to write by hand in \autoref{ch:quot-examples} while constructing
-the types \id{Rational} and \id{Multiset} could have been solved automatically
-without too much hassle. The proof development experience can also be contrasted
-to interactive proof assistants that feature tactics such as \Coq{} and \Lean{}.
-Tactics generally allow us to write our proofs in a less verbose manner by
-preventing unnecessary repetition. Most of our long chains of equational
-reasoning involved the repeated application of the congruence property of
-equality. This is analogous to the usage of the \emph{rewrite} tactics of the
-aforementioned proof assistants with the difference that invocation of
-\id{Eq\_cong} requires us to manually specify the context in which the rewrite
-should occur. The more verbose proofs are more readable in certain situations by
-allowing intermediate steps of the proof to be explicitly stated, although this
-is not always the case. The added verbosity makes their development a laborious
-endeavour. During the construction of \id{Rational}, we had to do a lot of
-monotonous reasoning related to linear arithmetic to prove propositions that
-were seemingly obvious to the human eye. Such goals may typically be solved
-using tactics such as the \Coq{}'s \kw{lia} tactic and \Lean{}'s \kw{linarith}
-tactic that are essentially solvers for linear goals over $\mathbb{Z}$. For the
-moment, Typer also lacks the powerful dependent pattern-matching system of
-\Agda{}. This inconvenience is somewhat mitigated by the presence of the
-\fn{\kw{case}...\kw{return}...} construct that is
-reminiscent of \Coq{}. However, while we are in \kw{case} branches, we lack the
-specialisation of types of other variables in the context that depend on the
-scrutinee. This was an inconvenience that we had to reckon with on numerous
-occasions while working with quotient types. The above seems to be desirable
-features that we should contemplate introducing to Typer in some shape or form
-to facilitate proof development.
+extension\cite{hewer2023quotient} is implemented with the help of SMT solvers.
+This enables many proof obligations generated by quotient types to be satisfied
+automatically. In other words, most of the proofs that we had to write by hand
+in \autoref{ch:quot-examples} while constructing the types \id{Rational} and
+\id{Multiset} could have been solved automatically without too much hassle. The
+proof development experience can also be contrasted to interactive proof
+assistants that feature tactics such as \Coq{} and \Lean{}. Tactics generally
+allow us to write our proofs in a less verbose manner by preventing unnecessary
+repetition. Most of our long chains of equational reasoning involved the
+repeated application of the congruence property of equality. This is analogous
+to the usage of the \emph{rewrite} tactics of the aforementioned proof
+assistants with the difference that invocation of \id{Eq\_cong} requires us to
+manually specify the context in which the rewrite should occur. The more
+verbose proofs are more readable in certain situations by allowing intermediate
+steps of the proof to be explicitly stated, although this is not always the
+case. The added verbosity makes their development a laborious endeavour. During
+the construction of \id{Rational}, we had to do a lot of monotonous reasoning
+related to linear arithmetic to prove propositions that were seemingly obvious
+to the human eye. Such goals may typically be solved using tactics such as the
+\Coq{}'s \kw{lia} tactic and \Lean{}'s \kw{linarith} tactic that are
+essentially solvers for linear goals over $\mathbb{Z}$. For the moment, Typer
+also lacks the powerful dependent pattern-matching system of \Agda{}. This
+inconvenience is somewhat mitigated by the presence of the
+\fn{\kw{case}...\kw{return}...} construct that is reminiscent of \Coq{}.
+However, while we are in \kw{case} branches, we lack the specialisation of
+types of other variables in the context that depend on the scrutinee. This was
+an inconvenience that we had to reckon with on numerous occasions while working
+with quotient types. The above seems to be desirable features that we should
+contemplate introducing to Typer in some shape or form to facilitate proof
+development.
 
 \section*{Benchmarks}\label{sec:quot-benchmark}
 
