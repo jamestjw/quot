@@ -837,9 +837,6 @@ On the other hand, Typer only has one hierarchy of universes, i.e.
 required to manually annotate occurrences of types that are, in reality,
 propositions as erasable.
 
-%% TODO: Mention this somewhere else after explaining Eq types
-% - Lean has UIP
-
 \section{Proofs in Programs}
 
 %% TODO: I could add one more example if something good comes to mind.
@@ -1579,20 +1576,23 @@ Quotient Haskell\cite{hewer2023quotient} is an extension that introduces
 quotients to the Haskell programming language. It was built on top of Liquid
 Haskell\cite{vazou2016liquid}, an existing extension that implements a type
 checker for refinement types in Haskell. Refinement types are types equipped
-with predicates that must be respected by all elements of the refined type, this
-is also known as predicate subtyping. In Liquid Haskell, this is represented
-using the set comprehension notation. For instance, a refined type that
-represents the type of non-negative integers is \fn{\{ i :\@ Int | i >= 0 \}}.
-Such types may be used to annotate the arguments and return types of functions
-so that we can define the pre-conditions and post-conditions of functions. The
-type checker then makes use of the extra information to verify that function
-bodies and function applications respect the appropriate constraints by feeding
-them to an SMT (satisfiability modulo theories) solver. As such, the predicates
-that one may define have to be compatible with the decidable logic of SMT
-solvers which supports all logical connectives, integer and real linear
-arithmetic, etc. Since the proof obligations introduced by quotients may be
-translated to constraints solvable by SMT solvers, it is thus attractive to
-introduce quotient types to a system such as Liquid Haskell.
+with predicates that must be respected by all elements of the refined type,
+this is also known as predicate subtyping. In Liquid Haskell, this is
+represented using the set comprehension notation. For instance, a refined type
+that represents the type of non-negative integers is \fn{\{ i :\@ Int | i >= 0
+\}}. Such types may be used to annotate the arguments and return types of
+functions so that we can define the pre-conditions and post-conditions of
+functions. Instead of placing the burden on programmers to prove that these
+conditions are respected, Liquid Haskell generates and feeds the relevant
+constraints to an SMT (Satisfiability Modulo Theories) solver
+\cite[Chap~12]{biere2009handbook}, which, for our purposes, may be seen as an
+application that solves a system of constraints. As such, the predicates that
+one may define have to be compatible with the decidable logic of SMT solvers
+which supports all logical connectives, integer and real linear arithmetic,
+etc. Since the proof obligations introduced by quotients may be translated to
+constraints solvable by SMT solvers, it is attractive to introduce quotient
+types to a system such as Liquid Haskell, as quotient-related proof obligations
+could be discharged automatically.
 
 Quotient Haskell's flavour of quotients allows us to define new types on top of
 existing types by introducing arbitrary equation constructors between terms of
@@ -3034,38 +3034,6 @@ i.e. $(\lambda \id{x} \rightarrow \Funapp{\id{f}}{\id{x}}) = \id{f}$.
 %% recent proof assistants that implement cubical type theory, such as Cubical Agda
 %% as mentioned before, as well as coolTT and redTT.\@
 
-
-It is also worth mentioning that unlike the traditional approach of adding
-functional extensionality to an ITT as an axiom, canonicity\footnote{This
-property states that in a closed context, all terms reduce to a canonical form
-of its type.} is not broken by our approach since the property is derived as a
-theorem. For instance, the example given in\cite{altenkirch2007observational} is
-not a problem in our system as performing a cast on an equality proof
-constructed by functionality extensionality does not lead to a stuck term as
-shown in the following code snippet:
-
-\begin{minted}[escapeinside=@@,mathescape=true]{agda}
-    plus0 : (x : Nat) @$\rightarrow$@ zero + x @$\equiv$@ x + zero
-    plus0 x = Nat+_comm zero x
-
-    eqf = Eq_funext (f := @$\lambda$@ x @$\rightarrow$@ zero + x) (g := @$\lambda$@ x @$\rightarrow$@ x + zero) plus0
-
-    canon0 : Eq_cast (p := eqf) (f := @$\lambda$@ _ @$\rightarrow$@ Nat) zero @$\equiv$@ zero
-    canon0 = Eq_refl
-\end{minted}
-
-\id{plus0} is a proof that both ways of adding \id{zero} to an integer \id{x}
-are equal since the addition of natural numbers is commutative. This is a
-witness that the two functions that are passed to \id{Eq\_funext} are
-extensionally equal, allowing to use functional extensionality to construct an
-equality proof between them. The implementation of cast in proof assistants that
-implement ITT typically only reduces on reflexive proofs of equality. This
-implies that a term such as \fn{Eq\_cast (p := eqf) (f := $\lambda$ \_
-  $\rightarrow$ Nat) zero} would not reduce to \id{zero} despite the fact that
-this cast does not even utilise the proof constructed by \id{Eq\_funext}. Our
-implementation of cast recognises the fact that we are performing a cast between
-two definitionally equal types and thus successfully reduces.
-
 \subsubsection*{Congruence of equality}\label{subsec:congruence-eq}
 This is another typical property of equality whose proof is significantly
 simplified in a system with a cubical equality.
@@ -3277,17 +3245,18 @@ between \id{p} and \id{q}.
 \end{prooftree*}
 
 We would like to enable the dependent elimination of quotients, in other words,
-we would like to be able to eliminate a term of some quotient type
+we want to eliminate a term of some quotient type
 $\Funapp{\id{Quotient}}{\id{A}}{\id{R}}$ to some type family $\id{P}$ that is
-indexed by the quotient type itself. Note that unlike \Lean{}'s implementation
-(see \id{Quot.ind} in \autoref{sec:intro-lean-quotients}), the type family
-$\id{P}$ does not have to be a proposition, giving us more flexibility. To
-construct an example of this, we first introduce a new definition. A type is
-said to be \emph{decidable} if we can decide whether the type is inhabited or
-not. In the case where it is inhabited, we must have a witness of such an
-inhabitant. In Typer, decidability can be represented by the following
-inductive type by using the `propositions as types' variation of logical
-negation, \id{Not}, as introduced in \autoref{subsec:log-neg}.
+indexed by the quotient type itself. So far, our implementation has been rather
+similar to \Lean{}'s (see \autoref{sec:intro-lean-quotients}). However, unlike
+\Lean{}'s \id{Quot.ind}, the elimination motive $\id{P}$ does not have to be a
+proposition, giving us more flexibility. To construct an example of this, we
+first introduce a new definition. A type is said to be \emph{decidable} if we
+can decide whether the type is inhabited or not. In the case where it is
+inhabited, we must have a witness of such an inhabitant. In Typer, decidability
+can be represented by the following inductive type by using the `propositions
+as types' variation of logical negation, \id{Not}, as introduced in
+\autoref{subsec:log-neg}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     type Dec (A : Type)
@@ -4999,17 +4968,7 @@ implementation of our quotient types thus gives us the benefit of preserving the
 modularity of the existing implementation of inductive types in Typer while
 providing users with the power of quotients.
 
-The introduction of \id{Quotient\_eq} as an axiom also leads to the absence of a
-desirable computational property. Suppose that the following terms \fn{a :\@ A},
-\fn{a' :\@ A}, and \fn{r :\@ R a a'} as well as a function \fn{f :\@ A $\rightarrow$
-  B} and a proof that it respects the relation \id{R}, i.e.\ \fn{p :\@ (a a' :\@ A)
-  $\rightarrow$ R a a' $\rightarrow$ f a $\equiv$ f a'}. Unfortunately, the
-following equality does not hold definitionally \fn{Eq\_cong (Quotient\_rec f (p
-  := p)) (Quotient\_eq r) $\equiv$ p a a' r}. This would indeed be a
-definitional equality in Cubical Agda if we were to use the construction that
-was shown in \autoref{sec:cubical-agda}. However, it was not clear to us how the
-same could be done in Typer as it would involve the hard coding of this
-equivalence in an ad hoc manner.
+\section*{Proof Obligations of Quotient Types}
 
 As the examples in the previous sections would suggest, the usage of quotient
 types is often accompanied by a considerable amount of proof obligations. As we
@@ -5047,16 +5006,86 @@ with quotient types. The above seems to be desirable features that we should
 contemplate introducing to Typer in some shape or form to facilitate proof
 development.
 
+\section*{Computational Behaviour}
+
+The introduction of \id{Quotient\_eq} as an axiom also leads to the absence of a
+desirable computational property. Suppose that the following terms \fn{a :\@ A},
+\fn{a' :\@ A}, and \fn{r :\@ R a a'} as well as a function \fn{f :\@ A $\rightarrow$
+  B} and a proof that it respects the relation \id{R}, i.e.\ \fn{p :\@ (a a' :\@ A)
+  $\rightarrow$ R a a' $\rightarrow$ f a $\equiv$ f a'}. Unfortunately, the
+following equality does not hold definitionally \fn{Eq\_cong (Quotient\_rec f (p
+  := p)) (Quotient\_eq r) $\equiv$ p a a' r}. This would indeed be a
+definitional equality in Cubical Agda if we were to use the construction that
+was shown in \autoref{sec:cubical-agda}. However, it was not clear to us how the
+same could be done in Typer as it would involve the hard coding of this
+equivalence in an ad hoc manner.
+
+The traditional appropach of adding functional extensionality to an ITT as an
+axiom breaks canonicity (introduced in \autoref{sec:intro-lean-quotients}).
+This is because the transport function does not know how to compute on
+arbitrary equality proofs. Fortunately for us, our new implementation of
+equality has a transport function that computes not on the proof term itself,
+but on the two types involved in the cast. For instance, the example given
+in\cite{altenkirch2007observational} involving a cast on an equality proof
+constructed by functionality extensionality does not lead to a stuck term in
+our system as shown in the following code snippet:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+    plus0 : (x : Nat) @$\rightarrow$@ zero + x @$\equiv$@ x + zero
+    plus0 x = Nat+_comm zero x
+
+    eqf = Eq_funext (f := @$\lambda$@ x @$\rightarrow$@ zero + x) (g := @$\lambda$@ x @$\rightarrow$@ x + zero) plus0
+
+    canon0 : Eq_cast (p := eqf) (f := @$\lambda$@ _ @$\rightarrow$@ Nat) zero @$\equiv$@ zero
+    canon0 = Eq_refl
+\end{minted}
+
+\id{plus0} is a proof that both ways of adding \id{zero} to an integer \id{x}
+are equal since the addition of natural numbers is commutative. This is a
+witness that the two functions that are passed to \id{Eq\_funext} are
+extensionally equal, allowing to use functional extensionality to construct an
+equality proof between them. The implementation of cast in proof assistants
+that implement ITT typically only reduces on reflexive proofs of equality. This
+implies that a term such as \fn{Eq\_cast (p := eqf) (f := $\lambda$ \_
+$\rightarrow$ Nat) zero} would not reduce to \id{zero} despite the fact that
+this cast does not even utilise the proof constructed by \id{Eq\_funext} as the
+motive \id{f} does not use its argument. Our implementation of cast recognises
+the fact that we are performing a cast between two definitionally equal types,
+i.e., \id{Nat} and \id{Nat}, and thus successfully reduces.
+
+However, this is not without its pitfalls. Consider the below example:
+
+\begin{minted}[escapeinside=@@,mathescape=true]{agda}
+    type NatFnPred (f : Nat @$\rightarrow$@ Nat)
+      | natFnPred
+
+    np1 : NatFnPred (@$\lambda$@ x @$\rightarrow$@ zero + x)
+    np1 = natFnPred
+
+    np2 : NatFnPred (@$\lambda$@ x @$\rightarrow$@ x + zero)
+    np2 = Eq_cast (p := eqf) (f := NatPred) np1
+\end{minted}
+
+Here, the motive \id{f} does make use of its argument. Since \fn{NatFnPred
+($\lambda$ x $\rightarrow$ zero + x)} and \fn{NatFnPred ($\lambda$ x
+$\rightarrow$ x + zero)} are not definitionally equal, \id{np2} is a stuck
+term, i.e., it does not reduce to \id{natFnPred}, the only constructor of its
+type. This implies that canonicity is not preserved for all types. We could
+also construct a similar example using \id{Quotient_eq} by constructing a type
+family indexed by a quotient type. Unfortunately, we were not able to find a
+satisfactory solution to this problem; hence, we leave it for future work.
+
 \section*{Benchmarks}\label{sec:quot-benchmark}
 
-In this section, we use our implementation of \id{Rational} and \id{Multiset} to
-explore the run-time cost of using quotient types in Typer. Quotient types are
-nothing more than a means of using the type system to ensure that programmers
-respect a certain relation on a base type by means of proof obligations. Such
-proofs can be expected to be erased before the actual execution of a program.
-Our intuition thus tells us that it should be feasible to have quotient types as
-a zero-cost abstraction in our system. The tests in our benchmark were designed
-with the simple objective of verifying the above claim.
+In this section, we use our implementation of \id{Rational} and \id{Multiset}
+to explore the run-time cost of using quotient types in Typer. Quotient types
+are nothing more than a means of using the type system to ensure that
+programmers respect a certain relation on a base type through proof
+obligations. By carefully setting things up so that these proofs are always
+erasable, we can expect them to be absent in the generated code. As a result,
+we hope for quotient types to be a zero-cost abstraction at run time. The tests
+in our benchmark were designed to help us identify the overhead cost of using
+quotient types (if any) and what we need to do to mitigate it.
 
 \subsection*{Rational}
 
