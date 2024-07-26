@@ -431,7 +431,7 @@ développement de preuves en Typer.
 \chapter*{Abstract}
 
 This work describes the introduction of quotient types to
-Typer\cite{monnier2019typer}, a dependently typed programming language. Quotient
+Typer\cite{monnier2019typer}, a dependently-typed programming language. Quotient
 types allow programmers to construct new types based on existing types by
 redefining the notion of equality of the base type. This is typically based on
 equivalence relations defined on the base type. Terms that are \emph{equivalent}
@@ -603,7 +603,7 @@ short introduction to Typer for readers who are unfamiliar with it.
 \section{Primer on Typer}\label{sec:intro-typer}
 
 In this section, we seek to familiarise readers with Typer's syntax and
-showcase some of its distinctive features. Readers that are familiar with other
+showcase some of its distinctive features. Readers who are familiar with other
 functional languages such as Haskell, ML, and Lisp should find Typer's syntax
 quite familiar.
 
@@ -624,12 +624,13 @@ range.
                             i
 \end{minted}
 
-The first line is the declaration of the function where we state its type,
-\fn{Int $\rightarrow$ Int $\rightarrow$ Int $\rightarrow$ Int}, indicating that
-this is a function that takes 3 arguments of type \id{Int} and returns a
-\id{Int}. The subsequent lines is the function definition which produces a
-return value \id{res} closest to the input \id{i} such that \fn{min $\le$ res
-$\le$ max} is true.
+The first line of this code block is the declaration of the function where we
+state its type, \fn{Int $\rightarrow$ Int $\rightarrow$ Int $\rightarrow$ Int},
+indicating that this is a function that takes 3 arguments of type \id{Int} and
+returns a \id{Int}. Subsequently, we have the function definition with its
+three arguments \id{min}, \id{max} and \id{i}. The function produces a return
+value \id{res} closest to the input \id{i} such that \fn{min $\le$ res $\le$
+max} is true.
 
 In Typer, function application is performed by juxtaposition. We illustrate how
 one might call the function \id{Int\_clamp} in the below example where the
@@ -643,7 +644,7 @@ preceding expression.
 
 In reality, all multi-argument functions in Typer are single-argument functions
 that return another function that will be called with the subsequent arguments.
-This is consistent with the fact that \id{$\rightarrow$} is right associative,
+This is consistent with the fact that \id{$\rightarrow$} is right-associative,
 implying that the type of \id{Int_clamp} may be read as \id{Int $\rightarrow$
 (Int $\rightarrow$ (Int $\rightarrow$ Int))}. This is known as \emph{currying}.
 This notably makes the partial application of functions possible as we
@@ -662,11 +663,11 @@ demonstrate in the below example.
 \end{minted}
 
 \emph{Inductive types} in Typer allow us to define new types and how their
-terms may be constructed. As a simple example, the \id{Boolean} type is defined as
+terms may be constructed. As a simple example, the \id{Bool} type is defined as
 an inductive type with 2 constructors, i.e. \id{true} and \id{false}.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
-  type Boolean
+  type Bool
     | true
     | false
 \end{minted}
@@ -697,7 +698,7 @@ the integers 1, 2, and 3.
 
 Next, we describe how we could use a term of an inductive type by defining an
 example function that returns the head (first element) of a \id{List}, it
-returns a default element in the event that the list is empty.
+returns a default element if the list is empty.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
   List_hd_default : (A : Type) @$\rightarrow$@ List A @$\rightarrow$@ A @$\rightarrow$@ A
@@ -713,7 +714,7 @@ parameters of the function are a list of \id{A}s and a default value of type
 \id{A}. Unsurprisingly, the return type of the function is also \id{A}. All
 inductive types have their own \emph{elimination principles}, which is a way to
 \emph{eliminate} a term of the inductive type \id{A} to some other type \id{B}.
-As we have seen before, the elimination principle of \id{Boolean} is the
+As we have seen before, the elimination principle of \id{Bool} is the
 \fn{\kw{if}...\kw{then}...\kw{else}} construct where both \kw{then} and
 \kw{else} branches should both have a term of some type \id{B}. The general way
 to eliminate a term of an inductive type is by using a \kw{case} statement to
@@ -725,7 +726,7 @@ in the body. In reality, the aforementioned
 to a \kw{case} statement. In this example, we pattern match on the \id{list}
 argument. In the case where we have a \id{nil} list, we simply return
 \id{default}. If we have a list with at least one element, we bind the first
-element to the variable \id{a} and the rest of the list to \id{as}, and simply
+element to the variable \id{a} and the rest of the list to \id{as}, then we simply
 return \id{a}. The function may be used like so:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
@@ -800,10 +801,10 @@ necessary.
 \subsection{Dependent Types}
 
 In our linked list example, we demonstrated how types may depend on other
-types. Being a dependently typed language, Typer allows us to take this one
+types. Being a dependently-typed language, Typer allows us to take this one
 step further by allowing types to also depend on terms. We illustrate this in
 the form of a somewhat contrived example, \id{maybe_convert_to_string} takes an
-integer and returns it unchanged if it is positive, otherwise it is converted
+integer and returns it unchanged if it is positive, otherwise, it is converted
 to a string.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
@@ -811,7 +812,7 @@ maybe_convert_to_string : (i : Int) @$\rightarrow$@ (if i > 0 then Int else Stri
 maybe_convert_to_string i = if i > 0 then i else Int->String i
 \end{minted}
 
-The return type of this function varies depends on the integer argument \id{i}.
+The return type of this function varies depending on the integer argument \id{i}.
 In the case where \fn{i > 0} is true, the function returns an integer,
 otherwise it returns a string. Note how the body of the function shares a similar
 structure with the return type. When \fn{i > 0} is true we simply return
@@ -820,22 +821,24 @@ this work, although Typer is intended to be a general-purpose programming
 language, its support for dependent types allows its type system to be used as
 a logic to write proofs.
 
-\subsection{Comparison with Other Proof Assistants}\label{subsec:typer-comparison}
+\subsection{Comparison with Dependently-Typed Languages}\label{subsec:typer-comparison}
 
-Implicit arguments are a feature provided by most modern proof assistants such
-as \Coq{}, \Agda{}, \Lean{}, etc. This is unsurprising, as it greatly reduces
-clutter and improves code ergonomics. We note, however, that Agda is the only
-one of the aforementioned languages that supports the explicit tagging of
-arguments as erasable like Typer. This is because unlike Typer and
-\Agda{}\footnote{There is an experiemental extension of Agda with the Prop
+Implicit arguments are a feature provided by most dependently-typed languages
+such as \Coq{}, \Agda{}, \Lean{}, etc. This is unsurprising, as it greatly
+reduces clutter and improves code ergonomics. We note, however, that Agda is
+the only one of the aforementioned languages that supports the explicit tagging
+of arguments as erasable like Typer. This is because unlike Typer and
+\Agda{}\footnote{There is an experimental extension of Agda with the Prop
 universe based on \cite{gilbert2019definitional}.}, \Coq{} and \Lean{} have
-\textbf{Prop}, an impredicative universe of proof-irrelevant propositions. This
-means that proof terms of some proposition \fn{p :\@ Prop} are not allowed to
-have a role in computation and will be automatically erased in the output code.
-On the other hand, Typer only has one hierarchy of universes, i.e.
-\textbf{Type}, that both normal programs and proofs live in. Hence, users are
-required to manually annotate occurrences of types that are, in reality,
-propositions as erasable.
+\textbf{Prop}, a universe of proof-irrelevant propositions. This means that
+proof terms of some proposition \fn{p :\@ Prop} are not allowed to have a role
+in computation and will be automatically erased in the output code. On the
+other hand, Typer only has one hierarchy of universes, i.e. \textbf{Type}, that
+both normal programs and proofs live in. Hence, users are required to manually
+annotate occurrences of types that are, in reality, propositions as erasable.
+
+%% NOTE: Other interesting comparisons such as Lean having UIP are mentioned later
+%% when readers have more context.
 
 \section{Proofs in Programs}
 
@@ -843,7 +846,7 @@ propositions as erasable.
 %% SM: A bit of motivation for why we care about proofs in programs
 %% would be welcome.
 
-In Typer and in dependently typed languages in general, not only can we write
+In Typer and in dependently-typed languages in general, not only can we write
 mathematical proofs in the form of code, but we may also prove the properties
 of our programs to convince ourselves of their correctness. That being the only
 purpose of proofs, it is thus desirable for them not to be executed during
@@ -864,7 +867,7 @@ $\fn{arrayGet}$ may be seen as a function of three parameters.
 The first parameter is an array $\fn{a}$ of type $\fn{Array A}$, i.e.\ an array
 that contains elements of type $\fn{A}$. The reason why it is given a specific
 name $\fn{a}$ is that subsequent parameters may depend on it as Typer is a
-dependently typed language. The second parameter $\fn{i}$ is a natural number
+dependently-typed language. The second parameter $\fn{i}$ is a natural number
 --- the index of the element we wish to retrieve from the array. The last
 parameter is a proof that the index $\id{i}$ is indeed within the bounds of the
 array.
@@ -939,7 +942,7 @@ n} and \fn{n + m} are equal. To prove that the proposition is true, we would
 need to construct a term of this type. Such a term may be seen as a proof
 object that witnesses the validity of the proposition. To humans, the fact that
 \fn{m + n} and \fn{n + m} are the same is something trivial and is often taken
-for granted. In general, the type checker of a dependently typed language would
+for granted. In general, the type checker of a dependently-typed language would
 not immediately consider the above types equal without further evidence. To
 elaborate on this, consider a typical definition of the addition operation on
 natural numbers:
@@ -1155,7 +1158,7 @@ Typer and its role in the elimination of quotients.
 %% NOTE: Someone told me that the unit interval business is not very intuitive.
 %% Maybe I should shorten this section and postpone explanations to subsequent
 %% sections instead.
-\subsection*{Cubical Equality}
+\subsection*{Cubical Equality}\label{subsec:intro-cubical-equality}
 
 Recent advances in type theory inspired by topology propose a different
 approach to represent equality proofs by modeling them as functions whose
@@ -1165,16 +1168,16 @@ an arbitrary other type. We refer to the above hereafter as functions out of
 the unit interval. We opt not to provide a full definition of the interval type
 for now, instead, we discuss its properties and what it does to motivate its
 implementation in Typer. It may be seen as a special type with two values that
-cannot be distinguished. As opposed to the \id{Boolean} type that has the
+cannot be distinguished. As opposed to the \id{Bool} type that has the
 \fn{\kw{if}...\kw{then}...\kw{else}} construct that allows us to discriminate
-between different values, we are not allowed to directly observe the value of
-an interval term. Instead, we are provided with special built-in functions that
-manipulate interval terms without requiring us to observe the underlying values
-directly. In this alternative formulation of equality proofs, equality is
-viewed as a continuous map from the unit interval to some type A. This
-continuity reinforces our intuition as to why functions out of the interval
-should not be able to inspect their arguments and return arbitrarily different
-results for different terms of the interval type.
+between different boolean values, we are not allowed to directly observe the
+value of an interval term. Instead, we are provided with special built-in
+functions that manipulate interval terms without requiring or allowing us to
+observe the underlying values directly. In this alternative formulation of
+equality proofs, equality is viewed as a continuous map from the unit interval
+to some type A. This continuity reinforces our intuition as to why functions
+out of the interval should not be able to inspect their arguments and return
+arbitrarily different results for different terms of the interval type.
 %% The return value of such functions is not allowed to directly depend on the
 %% value of the interval argument. For instance, the function may not do a case
 %% analysis on the interval and return a different term of type \id{A} depending on
@@ -1384,11 +1387,11 @@ In this chapter, we present works that are related to ours. We show where we
 drew our inspiration from and we also take this opportunity to give readers a
 taste of what quotient types are like and what they are capable of. Before we
 begin, we would like to provide examples of the `propositions as types'
-paradigm in Typer, with the objective of further familiarising the reader with
+paradigm in Typer, to further familiarise the reader with
 dependent types and Typer. Readers who are already familiar with the above may
 skip ahead to the second section of this chapter.
 
-\section{Propositions as Types in Typer}
+\section{Propositions as Types in Typer}\label{sec:props-as-types-typer}
 
 As mentioned before, the `propositions as types' paradigm says that
 propositions and types are the same. A proposition is associated with a certain
@@ -1412,7 +1415,7 @@ trivially true.
 
 \subsection*{Logical Falsehood}
 
-In a logic that is coherent, one should not be able to prove false
+In a coherent logic, one should not be able to prove false
 propositions, hence, the type that represents falsehood should be uninhabited.
 We represent this by the inductive type \id{Void} which has no constructors.
 
@@ -1720,7 +1723,7 @@ This leads to the observation that the normalisation function may be further
 generalised such that it should not be restricted to producing terms of the same
 type. For instance, if we would like to construct the type of integers mod 2, it
 would be reasonable to define a normalised type with a normalisation function of
-type \fn{Integer $\rightarrow$ Boolean}. This was not implemented in Courtieu's
+type \fn{Integer $\rightarrow$ Bool}. This was not implemented in Courtieu's
 original work, but we believe that this is a perfectly reasonable extension of
 his system.
 
@@ -2149,7 +2152,7 @@ presentation.}.
       @$\rightarrow$@ Quot.mk r a = Quot.mk r b
 \end{minted}
 
-Lean has two universe of types, \kw{Prop} and \kw{Type}. \kw{Type} is analogous
+Lean has two universes of types, \kw{Prop} and \kw{Type}. \kw{Type} is analogous
 to its counterpart in Typer as explained in \autoref{subsec:typer-comparison}.
 \id{Prop}, on the other hand, is \Lean{}'s universe of proof-irrelevant
 propositions. This implies that all proofs of a proposition are definitionally
@@ -2191,20 +2194,20 @@ It is comparable with the \id{eq/} constructor described in
 
 However, Lean's quotient types have a few shortcomings. The introduction of
 axioms tends to block computation; that is, it breaks a desirable property of
-type theory known as canonicity, which states that every term in a closed
-context may be reduced to a canonical form. A term is of canonical form if it
-is built up using only the constructors of its type. Using \id{Nat} as an
-example, a closed term \fn{n :\@ Nat} must be able to be reduced to a chain of
-applications of \id{succ} to \id{zero}. Type casts using equality proofs that
-are axioms such as \id{Quot.sound} result in \emph{stuck terms}. Another
+type theory known as canonicity\cite{hofmann1995extensional}, which states that
+every term in a closed context may be reduced to a canonical form. A term is of
+canonical form if it is built up using only the constructors of its type. Using
+\id{Bool} as an example, a closed term \fn{b :\@ Bool} must be able to be
+reduced to either \id{true} or \id{false}. Type casts using equality proofs
+that are axioms such as \id{Quot.sound} result in \emph{stuck terms}. Another
 problem arises when we take the quotient of a \kw{Prop}. Such a construction is
 not very meaningful as all proofs of a proposition are already definitionally
 equal in \Lean{}, however, it is nevertheless allowed. This has been shown to
 break subject reduction\cite{carneiro-lean-type-theory}, i.e., if we have a
 term \fn{t :\@ A}, and \id{t} reduces to \id{u}, it might be the case that
-\id{u} is not of type \id{A}, or worse, \id{u} may not even type-check.
-Our implementation of quotients shares similarities with \id{Lean}; however, we
-aim to circumvent the aforementioned problems.
+\id{u} is not of type \id{A}, or worse, \id{u} may not even type-check. Our
+implementation of quotients shares similarities with \id{Lean}; however, we aim
+to circumvent the aforementioned problems.
 
 \section{Quotients in Observational Type Theory (TT$^{obs}$)}
 
@@ -2455,7 +2458,7 @@ continuous path between them. The path connecting the two endpoints represents
 the continuum of points between them, analogous to the real interval which
 consists of all real numbers between 0 and 1.
 
-The elimination of $\bI$ is similar to that of \id{Boolean} as described in
+The elimination of $\bI$ is similar to that of \id{Bool} as described in
 \autoref{subsec:intro-fn-ind-types}, the only difference is that we also need
 to prove that $\id{seg} : \eqtype{i_0}{i_1}$ is respected. We define the
 elimination principle of $\bI$ using the \fn{elim$_{\bI}^{A}$ (M, N, P, i)}
@@ -2463,7 +2466,7 @@ syntax. $A$ is the \emph{motive} of the elimination, i.e.\ the type we wish to
 eliminate to. \id{M} and \id{N} are what we would like the output of the
 elimination to be when \id{i} is equal to $\ileft$ and $\iright$ respectively,
 this is analogous to what we would place in the \kw{then} and \kw{else}
-branches during \id{Boolean} elimination. \id{P} is a proof that \id{M} and
+branches during \id{Bool} elimination. \id{P} is a proof that \id{M} and
 \id{N} are equal, thus ensuring that the elimination is coherent. More
 formally, the typing rule of the elimination rule may be stated as follows:
 
@@ -2505,8 +2508,8 @@ a propositional equality between $\kw{cong}_{\kw{elim}_{\bI}^{A}(M, N,
   P)}(\id{seg})$ and P.
 
 To provide an intuition for what $\bI$ is like, we use the eliminator to
-construct a map from $\bI$ to \id{Boolean}. For instance, two maps that we may
-construct are $\lambda \id{i} \rightarrow \kw{elim}_{\bI}^{Boolean}(\id{true},
+construct a map from $\bI$ to \id{Bool}. For instance, two maps that we may
+construct are $\lambda \id{i} \rightarrow \kw{elim}_{\bI}^{Bool}(\id{true},
 \id{true}, \kw{refl}_{true}, \id{i})$ and $\lambda \id{i} \rightarrow
 \kw{elim}_{\bI}^{A}(\id{false}, \id{false}, \kw{refl}_{\id{false}}, \id{i})$.
 The proof term that is required by the eliminator forces us to map $\ileft$ and
@@ -2518,8 +2521,8 @@ respectively as the type \fn{true $\equiv$ false} is uninhabited.
 We show that a function with an interval argument returning some type \id{A},
 i.e.\ a function with type \fn{$\bI \rightarrow A$} is equivalent to an equality
 proof between two terms of type \id{A}. To build an intuition as to why this
-might be true, consider a \id{Boolean} type where \id{true} and \id{false} are
-indistinguishable. Then a function with this \id{Boolean} type as an argument is
+might be true, consider a \id{Bool} type where \id{true} and \id{false} are
+indistinguishable. Then a function with this \id{Bool} type as an argument is
 necessarily constant on its argument. Suppose that we have such a function named
 \id{h}, we thus have a witness of the equality of \fn{h $\ileft$} and \fn{h
   $\iright$}.
@@ -2557,7 +2560,7 @@ that the output of such a function has to agree at both endpoints of $\bI$.
 This is enforced by the elimination principle of the $\bI$ that ensures that
 \id{seg} is respected. An alternate way of enforcing this is by using functions
 with erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a type with two
-distinct constructors that take no arguments, such as the \id{Boolean} type.
+distinct constructors that take no arguments, such as the \id{Bool} type.
 Recall that an argument that is marked as erasable has no computational role
 during run time, as explained in \autoref{sec:intro-typer}. In other words, we
 can first define the interval type as a normal algebraic data type. Next, we
@@ -3712,17 +3715,17 @@ we may easily define the J-rule by performing a cast from \fn{P a Eq\_refl} to
 
 Although we say that our equality type is a proposition, it is by no means
 necessarily a mere proposition (HoTT book\cite[Chap~3.3]{HoTTbook}). This
-implies that it is not a given that two proofs of the same equality are provably
-equal\cite{hofmann1998groupoid}. In other words, when we ask ourselves the
-question ``Is it the case that a = b'', we do not only care if the answer is yes
-or no, if they are indeed equal, we could interest ourselves in what ways
-exactly are they equal. This is in contrast to other systems where the
+implies that it is not a given that two proofs of the same equality are
+provably equal\cite{hofmann1998groupoid}. In other words, when we ask ourselves
+the question ``Is it the case that a = b'', we do not only care if the answer
+is yes or no, if they are indeed equal, we could interest ourselves in what
+ways exactly are they equal. This is in contrast to other systems where the
 Uniqueness of Identity Proofs principle (UIP) applies to all types. Notably,
 this is true of systems that admit axiom K\cite{streicher1993investigations}
 that states that all equality proofs are equal to the reflexivity proof, and by
-extension all proofs of the same equality are equal. In the remainder of this
-section, we show that UIP is a property that is true for a certain class of
-types in Typer.
+extension all proofs of the same equality are equal. An example of a system
+that admits UIP is \id{Lean}. In the remainder of this section, we show that
+UIP is a property that is true for a certain class of types in Typer.
 
 To set the stage, we provide a few definitions. A type is said to be
 \emph{decidable} if we can decide whether the type is inhabited or not, this was
@@ -4333,7 +4336,7 @@ isMemberDec = ...
 Multiset_mem : Discrete ?A @$\rightarrow$@ ?A @$\rightarrow$@ Multiset ?A @$\rightarrow$@ Bool
 Multiset_mem disc a s =
   let
-    Dec2Bool : Decidable ?A @$\rightarrow$@ Boolean
+    Dec2Bool : Decidable ?A @$\rightarrow$@ Bool
     Dec2Bool d = case d
       | yes @$\Rightarrow$@ true
       | no @$\Rightarrow$@ false
@@ -4795,8 +4798,8 @@ exactly one inhabitant.}. $\id{Unit1} \rightarrow \id{Unit2}$ and $\id{Unit2}
 gives us a proof of $\id{Unit1} \equiv \id{Unit2}$. This implies that we should
 be able to use said proof to transport $\id{unit1}$ to $\id{unit2}$, but since
 the two terms do not have the same run-time representation, this simply cannot be
-a no-op. This is in stark contrast to the version of propositional extensional
-that we are proposing in Typer that only accepts types that are boxed in the
+a no-op. This is in stark contrast to the version of propositional extensionality
+that we are proposing in Typer which only accepts types that are boxed in the
 $\id{Erased}$ type. We would have no qualms about having a proof of equality
 between $\Funapp{\id{Erased}}{\id{Unit1}}$ and
 $\Funapp{\id{Erased}}{\id{Unit2}}$ as terms of these two types would essentially
@@ -4805,7 +4808,7 @@ our version of propositional extensionality is weaker, as we are constrained to
 construct an equality proof that is not computationally relevant.
 
 Another worthy comparison to make is with \Lean{}, which has a $\kw{Prop}$ sort.
-Terms of this sort are not autorised to be used in a proof-relevant manner. Its
+Terms of this sort are not authorised to be used in a proof-relevant manner. Its
 version of propositional extensionality has the following form:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{lean}
@@ -5006,7 +5009,7 @@ with quotient types. The above seems to be desirable features that we should
 contemplate introducing to Typer in some shape or form to facilitate proof
 development.
 
-\section*{Computational Behaviour}
+\section*{Computational Behaviour}\label{sec:eval-computation-behaviour}
 
 The introduction of \id{Quotient\_eq} as an axiom also leads to the absence of a
 desirable computational property. Suppose that the following terms \fn{a :\@ A},
@@ -5020,7 +5023,7 @@ was shown in \autoref{sec:cubical-agda}. However, it was not clear to us how the
 same could be done in Typer as it would involve the hard coding of this
 equivalence in an ad hoc manner.
 
-The traditional appropach of adding functional extensionality to an ITT as an
+The traditional approach of adding functional extensionality to an ITT as an
 axiom breaks canonicity (introduced in \autoref{sec:intro-lean-quotients}).
 This is because the transport function does not know how to compute on
 arbitrary equality proofs. Fortunately for us, our new implementation of
@@ -5044,12 +5047,12 @@ our system as shown in the following code snippet:
 are equal since the addition of natural numbers is commutative. This is a
 witness that the two functions that are passed to \id{Eq\_funext} are
 extensionally equal, allowing to use functional extensionality to construct an
-equality proof between them. The implementation of cast in proof assistants
+equality proof between them. The implementation of \kw{cast} in proof assistants
 that implement ITT typically only reduces on reflexive proofs of equality. This
 implies that a term such as \fn{Eq\_cast (p := eqf) (f := $\lambda$ \_
 $\rightarrow$ Nat) zero} would not reduce to \id{zero} despite the fact that
 this cast does not even utilise the proof constructed by \id{Eq\_funext} as the
-motive \id{f} does not use its argument. Our implementation of cast recognises
+motive \id{f} does not use its argument. Our implementation of \kw{cast} recognises
 the fact that we are performing a cast between two definitionally equal types,
 i.e., \id{Nat} and \id{Nat}, and thus successfully reduces.
 
@@ -5063,7 +5066,7 @@ However, this is not without its pitfalls. Consider the below example:
     np1 = natFnPred
 
     np2 : NatFnPred (@$\lambda$@ x @$\rightarrow$@ x + zero)
-    np2 = Eq_cast (p := eqf) (f := NatPred) np1
+    np2 = Eq_cast (p := eqf) (f := NatFnPred) np1
 \end{minted}
 
 Here, the motive \id{f} does make use of its argument. Since \fn{NatFnPred
@@ -5263,7 +5266,7 @@ the cost incurred by \id{Rational\_+} and \id{Rational\_*} as
 observe, however, that the overhead cost of \id{Multiset\_mem} is less than
 \id{Rational\_negate}. We believe that this is because unlike
 \id{Rational\_negate}, \id{Multiset\_mem} does not construct a new quotient term
-as it returns a \id{Boolean}, hence it does not incur the cost of invoking the
+as it returns a \id{Bool}, hence it does not incur the cost of invoking the
 \id{Quotient\_in} primitive. We notice here that when the base operations
 themselves are more expensive, then the incurred overhead cost becomes close to
 negligible.
@@ -5912,7 +5915,7 @@ expression reduces to the term in the \kw{then} branch. A similar rule may be
 written for the case where the scrutinee is \id{false}.
 
 If the scrutinee of the \fn{\kw{if}...\kw{then}...\kw{else}} is not a canonical
-value of the \id{Boolean} type, i.e., if it is not \id{true} or \id{false},
+value of the \id{Bool} type, i.e., if it is not \id{true} or \id{false},
 then we should try to further evaluate the scrutinee. In such cases, the
 reduction rule would have a premise saying that if a certain sub-expression may
 be reduced by one step, then the entire expression may be reduced by one step
