@@ -2166,6 +2166,8 @@ Lean implements quotients by providing the below set of primitives in the core
 library\footnote{Like before, we omit universe polymorphism to simplify the
 presentation.}.
 
+%% SM: Curious!  So they don't have an axiom that reflects the expected
+%% reduction rule, like `Quot.lift f (Quot.mk x) = f x`?
 \begin{minted}[escapeinside=@@,mathescape=true]{lean}
     opaque Quot {A : Sort} (r : A @$\rightarrow$@ A @$\rightarrow$@ Prop) : Sort
 
@@ -2184,6 +2186,10 @@ presentation.}.
 Lean has two universes of types, \kw{Prop} and \kw{Type}. \kw{Type} is analogous
 to its counterpart in Typer as explained in \autoref{subsec:typer-comparison}.
 \id{Prop}, on the other hand, is \Lean{}'s universe of proof-irrelevant
+%% SM: Really?  My understanding was that Lean had propositional
+%% proof irrelevance via an axiom, rather than definitional
+%% proof irrelevance.  Hmm... it looks like you're right they made it
+%% definitional in Lean 4, tho I don't know the detail of how they did it.
 propositions. This implies that all proofs of a proposition are definitionally
 equal. When we annotate a type to be of the universe \kw{Sort}, we are
 essentially saying that it could belong to either \kw{Prop} or
@@ -2267,6 +2273,7 @@ who are unfamiliar with natural deduction may consult
 \autoref{app:natural-deduction} for a short introduction. Note, however,
 that in this subsection, we make use of an additional type of judgement in the
 form of $\oftype{\ctx}{t \Rightarrow{} u}{A}$. This judgement states that the
+%% SM: Don't presume the reader knows what means "t reduces to u at type A".
 term \id{t} reduces to \id{u} at type \id{A} in context $\ctx$.
 
 \begin{prooftree*}
@@ -2375,6 +2382,8 @@ the aforementioned interval type.
 
 \subsection{Typer's Equality Type}\label{sec:typer-old-eq}
 
+%% SM: "intensional Martin-Löf type theory" => "Martin-Löf intensional type
+%% theory".
 Typer's primitive equality type is similar to that defined in intensional
 Martin-Löf type theory\cite{martin1975intuitionistic} (ITT) such that the
 equality is homogeneous and that equality reflection is not supported. Its type
@@ -2626,6 +2635,8 @@ The above shall be the basis of our new definition of equality types.
 We introduce a few primitive operations on the interval type whose usefulness
 will become clear after we introduce our version of the equality type that is
 based on the interval type. When providing the reduction rules for these
+%% SM: Don't presume that the readers are familiar with those congruence rules.
+%% I think here the best is to not even mention them.
 operations, we omit the congruence rules for brevity. Readers who are
 unfamiliar with the syntax of these rules are referred to
 \autoref{app:reduction-rules}.
@@ -3756,6 +3767,8 @@ Uniqueness of Identity Proofs principle (UIP) applies to all types. Notably,
 this is true of systems that admit axiom K\cite{streicher1993investigations}
 that states that all equality proofs are equal to the reflexivity proof, and by
 extension all proofs of the same equality are equal. An example of a system
+%% SM: Does it admit UIP?  I thought it provided it via (yet) an(other) axiom.
+%% Oh, I guess it's because it's a Prop, so it's also new in Lean 4.
 that admits UIP is \id{Lean}. In the remainder of this section, we show that
 UIP is a property that is true for a certain class of types in Typer.
 
@@ -5028,12 +5041,15 @@ steps of the proof to be explicitly stated, although this is not always the
 case. The added verbosity makes their development a laborious endeavour. During
 the construction of \id{Rational}, we had to do a lot of monotonous reasoning
 related to linear arithmetic to prove propositions that were seemingly obvious
+%% SM: "the Coq's lia" => "Coq's lia".
 to the human eye. Such goals may typically be solved using tactics such as the
 \Coq{}'s \kw{lia} tactic and \Lean{}'s \kw{linarith} tactic that are
 essentially solvers for linear goals over $\mathbb{Z}$. For the moment, Typer
 also lacks the powerful dependent pattern-matching system of \Agda{}. This
 inconvenience is somewhat mitigated by the presence of the
 \fn{\kw{case}...\kw{return}...} construct that is reminiscent of \Coq{}.
+%% SM: This lack also plagues Coq's "match ... return", contrary to what
+%% your "However" suggests.
 However, while we are in \kw{case} branches, we lack the specialisation of
 types of other variables in the context that depend on the scrutinee. This was
 an inconvenience that we had to reckon with on numerous occasions while working
@@ -5078,6 +5094,7 @@ our system as shown in the following code snippet:
 \id{plus0} is a proof that both ways of adding \id{zero} to an integer \id{x}
 are equal since the addition of natural numbers is commutative. This is a
 witness that the two functions that are passed to \id{Eq\_funext} are
+%% SM: "allowing *us* to use".
 extensionally equal, allowing to use functional extensionality to construct an
 equality proof between them. The implementation of \kw{cast} in proof assistants
 that implement ITT typically only reduces on reflexive proofs of equality. This
@@ -5086,6 +5103,7 @@ $\rightarrow$ Nat) zero} would not reduce to \id{zero} despite the fact that
 this cast does not even utilise the proof constructed by \id{Eq\_funext} as the
 motive \id{f} does not use its argument. Our implementation of \kw{cast} recognises
 the fact that we are performing a cast between two definitionally equal types,
+%% SM: "... reduces" ... to what?
 i.e., \id{Nat} and \id{Nat}, and thus successfully reduces.
 
 However, this is not without its pitfalls. Consider the below example:
@@ -5384,7 +5402,7 @@ structures, such as:
     morphisms are group homomorphisms}
 
   \item{The category of \textbf{topological spaces} whose objects are
-    topological space and whose morphisms are continuous functions between
+    topological spaces and whose morphisms are continuous functions between
     them}
 \end{itemize}
 
@@ -5895,6 +5913,7 @@ type \id{A}. We may also include a comma-separated list of hypotheses in
 judgements; they are separated from the conclusion by the turnstile ($\vdash$).
 For instance, $\oftype{\oftype{\id{i}}{\id{Int}}}{\id{i + 1}}{\id{Int}}$ may be
 read as ``Given that we have some \id{i} of type \id{Int}, then we deduce that
+%% SM: "preciseness" => "precision"?
 \id{i + 1} is also of type \id{Int}.''. For preciseness, we want our rules to
 be valid under arbitrary additional hypotheses. Thus, we use the symbol $\ctx$,
 known as the context, to represent an arbitrary list of hypotheses, giving us
@@ -5932,6 +5951,7 @@ application of \id{a} to \id{b} is of type \id{C}.
 To describe the evaluation of terms in our system, we use small-step
 operational semantics. This allows us to show how a program executes one step
 at a time. A typical reduction rule has the form of $\id{t}_1
+%% SM: IIUC \rightsquigarrow is a more verbose name for \leadsto.
 \rightsquigarrow{} \id{t}_2$, this may be read as ``$\id{t}_1$ reduces to
 $\id{t}_2$''. We provide a concrete example by showing a reduction rule
 for a \fn{\kw{if}...\kw{then}...\kw{else}} expression:
@@ -5951,6 +5971,8 @@ value of the \id{Bool} type, i.e., if it is not \id{true} or \id{false},
 then we should try to further evaluate the scrutinee. In such cases, the
 reduction rule would have a premise saying that if a certain sub-expression may
 be reduced by one step, then the entire expression may be reduced by one step
+%% SM: "the congruence rule" suggests you assume the reader already knows
+%% about those congruence rules.
 too. We illustrate this by showing the congruence rule for
 \fn{\kw{if}...\kw{then}...\kw{else}} expressions.
 
