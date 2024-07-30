@@ -607,7 +607,11 @@ showcase some of its distinctive features. Readers who are familiar with other
 functional languages such as Haskell, ML, and Lisp should find Typer's syntax
 quite familiar.
 
+%% SM: You use "Inductive types" before defining it.
 \subsection{Functions and Inductive Types}\label{subsec:intro-fn-ind-types}
+
+%% This subsection on functions explains I think a bit more than necessary,
+%% but: better more than less, so it's probably OK.
 
 As a functional programming language, the first thing that deserves
 introduction is the notion of \emph{functions} in Typer. Here is how we might
@@ -642,6 +646,8 @@ preceding expression.
       @$\rightsquigarrow{}$@ 0
 \end{minted}
 
+%% SM: AFAICT you don't mention (or even use?) currying in the rest of this
+%% document, so it's not very important to explain it here.
 In reality, all multi-argument functions in Typer are single-argument functions
 that return another function that will be called with the subsequent arguments.
 This is consistent with the fact that \id{$\rightarrow$} is right-associative,
@@ -662,6 +668,8 @@ demonstrate in the below example.
       @$\rightsquigarrow{}$@ 1
 \end{minted}
 
+%% SM: Make this into its own subsection.  You can help many readers
+%% by explaining that it's almost the same as algebraic data types.
 \emph{Inductive types} in Typer allow us to define new types and how their
 terms may be constructed. As a simple example, the \id{Bool} type is defined as
 an inductive type with 2 constructors, i.e. \id{true} and \id{false}.
@@ -673,6 +681,8 @@ an inductive type with 2 constructors, i.e. \id{true} and \id{false}.
 \end{minted}
 
 Instead of merely acting as elements of an enumerated type, the constructors
+%% SM: This sentence about a type passed to the inductive type will
+%% get many readers confused.  Better start with the example I think.
 may also carry data. The data may be of a type that is passed to the inductive
 type as a parameter, it may also have a recursive reference to the inductive
 type itself. All of this comes together in the typical definition of linked
@@ -684,6 +694,7 @@ lists.
     | cons A (List A)
 \end{minted}
 
+%% SM: I think this is a good time to point out the use of the "metatype" Type.
 The linked list type is parametrised by the type \id{A}, signifying the type of
 the elements in a list. Note how the type \id{List A} depends on the type
 \id{A}, this is how (parametric) polymorphism is achieved in Typer. We say that
@@ -713,7 +724,13 @@ of the function type is allowed to refer to the type \id{A}. The remaining
 parameters of the function are a list of \id{A}s and a default value of type
 \id{A}. Unsurprisingly, the return type of the function is also \id{A}. All
 inductive types have their own \emph{elimination principles}, which is a way to
+%% SM: This explanation is circular.  Use another verb than "eliminate".
+%% Personally, I'd say something like "compute a result of type B from
+%% an argument of type A" and then maybe explain that we sometimes call this
+%% "eliminating A", tho this makes more sense from a proof point of view.
 \emph{eliminate} a term of the inductive type \id{A} to some other type \id{B}.
+%% SM: Actually, many readers will not have not seen that if/then/else
+%% is the elimination principle of Bool.  Don't make them feel inferior.
 As we have seen before, the elimination principle of \id{Bool} is the
 \fn{\kw{if}...\kw{then}...\kw{else}} construct where both \kw{then} and
 \kw{else} branches should both have a term of some type \id{B}. The general way
@@ -823,6 +840,9 @@ a logic to write proofs.
 
 \subsection{Comparison with Dependently-Typed Languages}\label{subsec:typer-comparison}
 
+%% SM: I'm not sure we want to have this discussion in the introduction.
+%% Any chance we can move it to a later chapter?
+
 Implicit arguments are a feature provided by most dependently-typed languages
 such as \Coq{}, \Agda{}, \Lean{}, etc. This is unsurprising, as it greatly
 reduces clutter and improves code ergonomics. We note, however, that Agda is
@@ -853,6 +873,7 @@ purpose of proofs, it is thus desirable for them not to be executed during
 run time, i.e.\ we only want them to be verified at compile time, or more
 precisely, during type-checking. This allows us to prove that our programs have
 the right behaviour without incurring an additional run-time cost. In Typer,
+%% SM: "making" => "marking"?
 this is mainly achieved by making proofs as erasable as described in the primer
 to Typer.
 
@@ -1162,6 +1183,9 @@ Typer and its role in the elimination of quotients.
 
 Recent advances in type theory inspired by topology propose a different
 approach to represent equality proofs by modeling them as functions whose
+%% SM: "the interval type" makes it sound like you presume the user is
+%% already familiar with it.  I'd say something like "is of a type I, called
+%% the interval type ...".
 argument is of the \emph{interval} type, i.e.\ functions of the type \fn{I
 $\rightarrow$ A} given that \id{I} represents the interval type and \id{A} is
 an arbitrary other type. We refer to the above hereafter as functions out of
@@ -1174,6 +1198,8 @@ between different boolean values, we are not allowed to directly observe the
 value of an interval term. Instead, we are provided with special built-in
 functions that manipulate interval terms without requiring or allowing us to
 observe the underlying values directly. In this alternative formulation of
+%% SM: "the unit interval" makes it sound like you presume the user is
+%% already familiar with it.
 equality proofs, equality is viewed as a continuous map from the unit interval
 to some type A. This continuity reinforces our intuition as to why functions
 out of the interval should not be able to inspect their arguments and return
@@ -1188,6 +1214,8 @@ An equality type based on the interval also allows us to derive many proofs
 regarding the equality type in an alternative manner that is much cleaner and
 more elegant. Being able to more easily construct and manipulate equality
 proofs will be a big asset when proving theorems for quotient types. An
+%% SM: I don't know of very many other such theorems, tho (other
+%% than various others that can also be derived from funext).
 interval-based equality also allows us to derive new theorems regarding the
 equality type that are desirable, such as functional extensionality. This
 flavour of equality was first conceived in cubical type
@@ -1424,6 +1452,7 @@ We represent this by the inductive type \id{Void} which has no constructors.
 \end{minted}
 
 Here, \id{Void} is the $\mathbb{0}$ type (also known as the empty type or
+%% SM: "the type" => "a type": there are an infinity of such types.
 bottom), the type with no inhabitants. If we find ourselves with a term of the
 \id{Void} type, it means we have encountered a contradiction. This occurs when
 we have contradictory assumptions. Pattern matching on a term of the \id{Void}
@@ -2162,6 +2191,9 @@ essentially saying that it could belong to either \kw{Prop} or
 really are.}. \kw{opaque} definitions are not expanded during simplification or
 reduction, this may be seen as a means of abstraction to keep the internal
 structure of a definition hidden. Lean also allows us to define \kw{axiom}s,
+%% SM: Check all your uses of "only" which tend to be on the ambiguous
+%% side.  Instead of "may only be used for" you should say "may be used only
+%% for".  Yes, it's a very common (and hence minor) misuse.
 they may be seen as variables without a concrete definition and may only be
 used for type-checking purposes.
 
