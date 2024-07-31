@@ -648,6 +648,9 @@ preceding expression.
 
 %% SM: AFAICT you don't mention (or even use?) currying in the rest of this
 %% document, so it's not very important to explain it here.
+
+%% Note: I do in fact use it in several places IIRC, though I do not explicitly
+%% mention it
 In reality, all multi-argument functions in Typer are single-argument functions
 that return another function that will be called with the subsequent arguments.
 This is consistent with the fact that \id{$\rightarrow$} is right-associative,
@@ -668,11 +671,15 @@ demonstrate in the below example.
       @$\rightsquigarrow{}$@ 1
 \end{minted}
 
+\subsection{Inductive Types}\label{subsec:intro-ind-types}
+
 %% SM: Make this into its own subsection.  You can help many readers
 %% by explaining that it's almost the same as algebraic data types.
-\emph{Inductive types} in Typer allow us to define new types and how their
-terms may be constructed. As a simple example, the \id{Bool} type is defined as
-an inductive type with 2 constructors, i.e. \id{true} and \id{false}.
+
+\emph{Inductive types} in Typer are similar to algebraic data types (ADTs). An
+ADT may have several different \emph{variants}. As a simple example, the
+\id{Bool} type is defined as an ADT with two variants, each having its own
+\emph{constructor}, i.e., \id{true} and \id{false} respectively.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
   type Bool
@@ -682,8 +689,11 @@ an inductive type with 2 constructors, i.e. \id{true} and \id{false}.
 
 Instead of merely acting as elements of an enumerated type, the constructors
 %% SM: This sentence about a type passed to the inductive type will
-%% get many readers confused.  Better start with the example I think.
-may also carry data. The data may be of a type that is passed to the inductive
+%% get many readers confused. Better start with the example I think.
+may also carry data. We show this by explaining the typical definition of 
+singly linked lists.
+
+The data may be of a type that is passed to the inductive
 type as a parameter, it may also have a recursive reference to the inductive
 type itself. All of this comes together in the typical definition of linked
 lists.
@@ -695,13 +705,20 @@ lists.
 \end{minted}
 
 %% SM: I think this is a good time to point out the use of the "metatype" Type.
-The linked list type is parametrised by the type \id{A}, signifying the type of
-the elements in a list. Note how the type \id{List A} depends on the type
-\id{A}, this is how (parametric) polymorphism is achieved in Typer. We say that
-a linked list is either empty (\id{nil}), in which case it carries no data, or
-it is the concatenation (\id{cons}) of a term of type \id{A} with the rest of
-the list. To illustrate this, we show how one would construct a list containing
-the integers 1, 2, and 3.
+Here, we see that the definition of the type \id{List} has a parameter \id{A}.
+%% TODO: Mention omission of universe hierarchy 
+Moreover, \id{A} is of the type \id{Type}, the universe of types. Every term in
+Typer has a type, this is also the case for types. Thus, we may regard
+\id{Type} as the type of types. For instance, familiar types such as \id{Int}
+and \id{Bool} are of the type \id{Type}. In the \id{List} data type, the type
+\id{A} signifies the type of the elements in a list.  Note how the type
+\id{List A} depends on the type \id{A}, this is how (parametric) polymorphism
+is achieved in Typer. As we shall see soon, the parameter \id{A} may be used in
+the body of the definition of \id{List}. We say that a linked list is either
+empty (\id{nil}), in which case it carries no data, or it is the concatenation
+(\id{cons}) of a term of type \id{A} with another \fn{List A}, conceptually
+this represents the rest of the list. To illustrate this, we show how one would
+construct a list containing the integers 1, 2, and 3.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
   (cons 1 (cons 2 (cons 3 nil))) : List Int
@@ -4984,7 +5001,7 @@ property of quotients. We note as well that our dependent elimination of
 quotients is not limited to motives that live in the universe of \type{Prop},
 as opposed to when quotient types are added to a theory interpreted in a setoid
 model as proposed by Li\cite{li2015quotient} as well as the implementation in
-\Lean{} described in \label{sec:intro-lean-quotients} . A library was provided
+\Lean{} described in \autoref{sec:intro-lean-quotients} . A library was provided
 with proofs of many other properties fulfilled by our quotient types. We also
 explored the practical aspects of our quotient types by using them to construct
 several examples. We then observed that when the identifications that we wish
@@ -5105,6 +5122,8 @@ motive \id{f} does not use its argument. Our implementation of \kw{cast} recogni
 the fact that we are performing a cast between two definitionally equal types,
 %% SM: "... reduces" ... to what?
 i.e., \id{Nat} and \id{Nat}, and thus successfully reduces.
+i.e., \id{Nat} and \id{Nat}, and thus successfully reduces. This is another one
+of the benefits of our interval-based equality type.
 
 However, this is not without its pitfalls. Consider the below example:
 
