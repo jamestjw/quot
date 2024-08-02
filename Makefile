@@ -15,4 +15,4 @@ view: report
 	open $(DOCNAME).pdf
 
 clean:
-	rm *.blg *.bbl *.aux *.log
+	@rm -f *.blg *.bbl *.aux *.log

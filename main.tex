@@ -643,7 +643,7 @@ preceding expression.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     Int_clamp 0 10 -5
-      @$\rightsquigarrow{}$@ 0
+      @$\leadsto{}$@ 0
 \end{minted}
 
 %% SM: AFAICT you don't mention (or even use?) currying in the rest of this
@@ -664,11 +664,11 @@ demonstrate in the below example.
     unit_clamp = Int_clamp -1 1
 
     unit_clamp -10
-      @$\rightsquigarrow{}$@ -1
+      @$\leadsto{}$@ -1
     unit_clamp -0
-      @$\rightsquigarrow{}$@ 0
+      @$\leadsto{}$@ 0
     unit_clamp 5
-      @$\rightsquigarrow{}$@ 1
+      @$\leadsto{}$@ 1
 \end{minted}
 
 \subsection{Inductive Types}\label{subsec:intro-ind-types}
@@ -706,18 +706,18 @@ lists.
 
 %% SM: I think this is a good time to point out the use of the "metatype" Type.
 Here, we see that the definition of the type \id{List} has a parameter \id{A}.
-%% TODO: Mention omission of universe hierarchy 
-Moreover, \id{A} is of the type \id{Type}, the universe of types. Every term in
-Typer has a type, this is also the case for types. Thus, we may regard
-\id{Type} as the type of types. For instance, familiar types such as \id{Int}
-and \id{Bool} are of the type \id{Type}. In the \id{List} data type, the type
-\id{A} signifies the type of the elements in a list.  Note how the type
-\id{List A} depends on the type \id{A}, this is how (parametric) polymorphism
-is achieved in Typer. As we shall see soon, the parameter \id{A} may be used in
-the body of the definition of \id{List}. We say that a linked list is either
-empty (\id{nil}), in which case it carries no data, or it is the concatenation
-(\id{cons}) of a term of type \id{A} with another \fn{List A}, conceptually
-this represents the rest of the list. To illustrate this, we show how one would
+Moreover, \id{A} is of the type \id{Type}, the universe of types\footnote{Typer
+has a hierarchy of universes where \id{Type} is a synonym for \id{Type 0} and
+\fn{Type 0 :\@ Type 1 :\@ Type 2 :\@ ...}.}. Every term in Typer has a type,
+this is also the case for types. Thus, we may regard \id{Type} as the type of
+types. For instance, familiar types such as \id{Int} and \id{Bool} are of the
+type \id{Type}. In the \id{List} data type, the type \id{A} signifies the type
+of the elements in a list.  Note how \id{List A} depends on the type \id{A},
+this is how (parametric) polymorphism is achieved in Typer. As we shall see
+soon, the parameter \id{A} may be used in the body of the definition of
+\id{List}. We say that a linked list is either empty (\id{nil}), in which case
+it carries no data, or it is the concatenation (\id{cons}) of a term of type
+\id{A} with another \fn{List A}. To illustrate this, we show how one would
 construct a list containing the integers 1, 2, and 3.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
@@ -732,7 +732,7 @@ returns a default element if the list is empty.
   List_hd_default : (A : Type) @$\rightarrow$@ List A @$\rightarrow$@ A @$\rightarrow$@ A
   List_hd_default A list default = case list
     | nil @$\Rightarrow$@ default
-    | cons a as @$\Rightarrow$@ a
+    | cons hd rest @$\Rightarrow$@ hd
 \end{minted}
 
 Unlike the functions that we have previously seen, we observe that the first
@@ -745,13 +745,14 @@ inductive types have their own \emph{elimination principles}, which is a way to
 %% Personally, I'd say something like "compute a result of type B from
 %% an argument of type A" and then maybe explain that we sometimes call this
 %% "eliminating A", tho this makes more sense from a proof point of view.
-\emph{eliminate} a term of the inductive type \id{A} to some other type \id{B}.
+compute a result of type \id{B} from some term of type \id{A}. We also refer to
+this as \emph{eliminating} a term of type \id{A} to some type \id{B}.
 %% SM: Actually, many readers will not have not seen that if/then/else
 %% is the elimination principle of Bool.  Don't make them feel inferior.
-As we have seen before, the elimination principle of \id{Bool} is the
+The elimination principle of \id{Bool} is the
 \fn{\kw{if}...\kw{then}...\kw{else}} construct where both \kw{then} and
-\kw{else} branches should both have a term of some type \id{B}. The general way
-to eliminate a term of an inductive type is by using a \kw{case} statement to
+\kw{else} branches should return a term of some type \id{B}. The general way to
+eliminate a term of an inductive type is by using a \kw{case} statement to
 pattern match on it. Pattern matching needs to be exhaustive, this means that
 every constructor of the inductive type must be handled. In each branch, data
 attached to each constructor may be bound to variables that can be referenced
@@ -760,15 +761,15 @@ in the body. In reality, the aforementioned
 to a \kw{case} statement. In this example, we pattern match on the \id{list}
 argument. In the case where we have a \id{nil} list, we simply return
 \id{default}. If we have a list with at least one element, we bind the first
-element to the variable \id{a} and the rest of the list to \id{as}, then we simply
-return \id{a}. The function may be used like so:
+element to the variable \id{hd} and the rest of the list to \id{rest}, then we
+simply return \id{hd}. The function may be used like so:
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     List_hd_default Int (cons 1 (cons 2 nil)) 0
-      @$\rightsquigarrow{}$@ 1
+      @$\leadsto{}$@ 1
 
     List_hd_default Int nil 0
-      @$\rightsquigarrow{}$@ 0
+      @$\leadsto{}$@ 0
 \end{minted}
 
 The fact that we need to pass the argument \id{Int} to the function seems
@@ -782,7 +783,7 @@ a function declaration like so:
     List_hd_default : (A : Type) @$\Rightarrow$@ List A @$\rightarrow$@ A @$\rightarrow$@ A
 
     List_hd_default nil 0
-      @$\rightsquigarrow{}$@ 0
+      @$\leadsto{}$@ 0
 \end{minted}
 
 Indeed, by inspecting the type of the list and the default value, the type
@@ -793,8 +794,8 @@ However, most functions that we define generally do not compute on type
 arguments. Typer has another class of arguments known as \emph{erasable
 arguments}. Such arguments are classified as \emph{irrelevant} and are erased
 after type checking, thus they may not be used in a non-relevant context.
-Within the function body, such an argument may only be used in an
-\textbf{erasable} manner, for instance, it may be used in the computation of an
+Within the function body, such an argument may be used only in an
+\textbf{erasable} manner. For instance, it may be used in the computation of an
 expression that is passed as an erasable argument to yet another function. As a
 result, such arguments are guaranteed to be absent in the generated code after
 compilation. In the rest of this work, we will often make proof terms erasable
@@ -816,7 +817,7 @@ demonstrate this by explicitly passing the type \id{Int} to
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     List_hd_default (A := Int) nil 0
-      @$\rightsquigarrow{}$@ 0
+      @$\leadsto{}$@ 0
 \end{minted}
 
 Since we often want to make type arguments erasable, Typer allows us to tag the
@@ -855,24 +856,24 @@ this work, although Typer is intended to be a general-purpose programming
 language, its support for dependent types allows its type system to be used as
 a logic to write proofs.
 
-\subsection{Comparison with Dependently-Typed Languages}\label{subsec:typer-comparison}
-
-%% SM: I'm not sure we want to have this discussion in the introduction.
-%% Any chance we can move it to a later chapter?
-
-Implicit arguments are a feature provided by most dependently-typed languages
-such as \Coq{}, \Agda{}, \Lean{}, etc. This is unsurprising, as it greatly
-reduces clutter and improves code ergonomics. We note, however, that Agda is
-the only one of the aforementioned languages that supports the explicit tagging
-of arguments as erasable like Typer. This is because unlike Typer and
-\Agda{}\footnote{There is an experimental extension of Agda with the Prop
-universe based on \cite{gilbert2019definitional}.}, \Coq{} and \Lean{} have
-\textbf{Prop}, a universe of proof-irrelevant propositions. This means that
-proof terms of some proposition \fn{p :\@ Prop} are not allowed to have a role
-in computation and will be automatically erased in the output code. On the
-other hand, Typer only has one hierarchy of universes, i.e. \textbf{Type}, that
-both normal programs and proofs live in. Hence, users are required to manually
-annotate occurrences of types that are, in reality, propositions as erasable.
+% \subsection{Comparison with Dependently-Typed Languages}\label{subsec:typer-comparison}
+% 
+% %% SM: I'm not sure we want to have this discussion in the introduction.
+% %% Any chance we can move it to a later chapter?
+% 
+% Implicit arguments are a feature provided by most dependently-typed languages
+% such as \Coq{}, \Agda{}, \Lean{}, etc. This is unsurprising, as it greatly
+% reduces clutter and improves code ergonomics. We note, however, that Agda is
+% the only one of the aforementioned languages that supports the explicit tagging
+% of arguments as erasable like Typer. This is because unlike Typer and
+% \Agda{}\footnote{There is an experimental extension of Agda with the Prop
+% universe based on \cite{gilbert2019definitional}.}, \Coq{} and \Lean{} have
+% \textbf{Prop}, a universe of proof-irrelevant propositions. This means that
+% proof terms of some proposition \fn{p :\@ Prop} are not allowed to have a role
+% in computation and will be automatically erased in the output code. On the
+% other hand, Typer only has one hierarchy of universes, i.e. \textbf{Type}, that
+% both normal programs and proofs live in. Hence, users are required to manually
+% annotate occurrences of types that are, in reality, propositions as erasable.
 
 %% NOTE: Other interesting comparisons such as Lean having UIP are mentioned later
 %% when readers have more context.
@@ -886,13 +887,12 @@ annotate occurrences of types that are, in reality, propositions as erasable.
 In Typer and in dependently-typed languages in general, not only can we write
 mathematical proofs in the form of code, but we may also prove the properties
 of our programs to convince ourselves of their correctness. That being the only
-purpose of proofs, it is thus desirable for them not to be executed during
-run time, i.e.\ we only want them to be verified at compile time, or more
+purpose of proofs, it is thus desirable for them not to be executed during run
+time, i.e.\ we only want them to be verified at compile time, or more
 precisely, during type-checking. This allows us to prove that our programs have
 the right behaviour without incurring an additional run-time cost. In Typer,
-%% SM: "making" => "marking"?
-this is mainly achieved by making proofs as erasable as described in the primer
-to Typer.
+this is mainly achieved by marking proofs as erasable as described in the
+primer to Typer.
 
 Consider a function that accesses the i$^{th}$ element of an array with the
 below type:
@@ -1200,27 +1200,22 @@ Typer and its role in the elimination of quotients.
 
 Recent advances in type theory inspired by topology propose a different
 approach to represent equality proofs by modeling them as functions whose
-%% SM: "the interval type" makes it sound like you presume the user is
-%% already familiar with it.  I'd say something like "is of a type I, called
-%% the interval type ...".
-argument is of the \emph{interval} type, i.e.\ functions of the type \fn{I
-$\rightarrow$ A} given that \id{I} represents the interval type and \id{A} is
-an arbitrary other type. We refer to the above hereafter as functions out of
-the unit interval. We opt not to provide a full definition of the interval type
-for now, instead, we discuss its properties and what it does to motivate its
-implementation in Typer. It may be seen as a special type with two values that
-cannot be distinguished. As opposed to the \id{Bool} type that has the
-\fn{\kw{if}...\kw{then}...\kw{else}} construct that allows us to discriminate
-between different boolean values, we are not allowed to directly observe the
-value of an interval term. Instead, we are provided with special built-in
-functions that manipulate interval terms without requiring or allowing us to
-observe the underlying values directly. In this alternative formulation of
-%% SM: "the unit interval" makes it sound like you presume the user is
-%% already familiar with it.
-equality proofs, equality is viewed as a continuous map from the unit interval
-to some type A. This continuity reinforces our intuition as to why functions
-out of the interval should not be able to inspect their arguments and return
-arbitrarily different results for different terms of the interval type.
+argument is of a type \id{I}, called the interval type, i.e.\ functions of the
+type \fn{I $\rightarrow$ A} given that \id{A} is an arbitrary other type. We
+refer to the above hereafter as functions out of the unit interval. We opt not
+to provide a full definition of the interval type for now, instead, we discuss
+its properties and what it does to motivate its implementation in Typer. It may
+be seen as a special type with two values that cannot be distinguished. As
+opposed to the \id{Bool} type that has the \fn{\kw{if}...\kw{then}...\kw{else}}
+construct that allows us to discriminate between different boolean values, we
+are not allowed to directly observe the value of an interval term. Instead, we
+are provided with special built-in functions that manipulate interval terms
+without requiring or allowing us to observe the underlying values directly. In
+this alternative formulation of equality proofs, equality is viewed as a
+continuous map from \id{A} to some type A. This continuity reinforces our
+intuition as to why functions out of the interval should not be able to inspect
+their arguments and return arbitrarily different results for different terms of
+the interval type.
 %% The return value of such functions is not allowed to directly depend on the
 %% value of the interval argument. For instance, the function may not do a case
 %% analysis on the interval and return a different term of type \id{A} depending on
@@ -1233,15 +1228,14 @@ more elegant. Being able to more easily construct and manipulate equality
 proofs will be a big asset when proving theorems for quotient types. An
 %% SM: I don't know of very many other such theorems, tho (other
 %% than various others that can also be derived from funext).
-interval-based equality also allows us to derive new theorems regarding the
-equality type that are desirable, such as functional extensionality. This
-flavour of equality was first conceived in cubical type
-theories\cite{bezem2014model} to provide a computational interpretation of
-homotopy type theory (HoTT)\cite{HoTTbook}. To provide readers with a better
-intuition of the above, concrete examples shall be provided in
-\autoref{sec:cubical-agda} where we discuss Cubical
-Agda\cite{vezzosi2021cubical}, a cubical extension of the \Agda{} proof
-assistant.
+interval-based equality also allows us to derive a theorem regarding the
+equality type that is desirable, i.e., functional extensionality. This flavour
+of equality was first conceived in cubical type theories\cite{bezem2014model}
+to provide a computational interpretation of homotopy type theory
+(HoTT)\cite{HoTTbook}. To provide readers with a better intuition of the above,
+concrete examples shall be provided in \autoref{sec:cubical-agda} where we
+discuss Cubical Agda\cite{vezzosi2021cubical}, a cubical extension of the
+\Agda{} proof assistant.
 
 One of the key ideas introduced by HoTT is the univalence axiom which suggests
 that equivalences may be encoded as equalities. This is much like what is done
@@ -1460,17 +1454,16 @@ trivially true.
 
 \subsection*{Logical Falsehood}
 
-In a coherent logic, one should not be able to prove false
-propositions, hence, the type that represents falsehood should be uninhabited.
-We represent this by the inductive type \id{Void} which has no constructors.
+In a coherent logic, one should not be able to prove false propositions, hence,
+the type that represents falsehood should be uninhabited. We represent this by
+the inductive type \id{Void} which has no constructors.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
   type Void
 \end{minted}
 
 Here, \id{Void} is the $\mathbb{0}$ type (also known as the empty type or
-%% SM: "the type" => "a type": there are an infinity of such types.
-bottom), the type with no inhabitants. If we find ourselves with a term of the
+bottom), a type with no inhabitants. If we find ourselves with a term of the
 \id{Void} type, it means we have encountered a contradiction. This occurs when
 we have contradictory assumptions. Pattern matching on a term of the \id{Void}
 type is a special case as there would be no constructors to handle. Such a
@@ -1761,7 +1754,7 @@ To eliminate a term \id{u} of type \fn{\kw{Norm}(A, nf)}, we use the
 \kw{ElimNorm} primitive. By using a function \fn{f :\@ A $\rightarrow$ B},
 we can write the term \fn{\kw{ElimNorm}(A, nf, f, u) :\@ B}. The eliminator
 has the expected computation rule \fn{\kw{ElimNorm}(A, nf, f, \kw{Class}(A, nf,
-  t)) $\rightsquigarrow{}$ f (nf t)}.
+  t)) $\leadsto{}$ f (nf t)}.
 
 The idempotence of the normalisation function is not required, and thus the
 system takes care to apply it only once to the underlying term of the base type.
@@ -2213,12 +2206,12 @@ essentially saying that it could belong to either \kw{Prop} or
 \kw{Type}\footnote{Again, we provide a simplistic description of how things
 really are.}. \kw{opaque} definitions are not expanded during simplification or
 reduction, this may be seen as a means of abstraction to keep the internal
-structure of a definition hidden. Lean also allows us to define \kw{axiom}s,
+structure of a definition hidden. Lean also allows us to define \kw{axiom}s;
 %% SM: Check all your uses of "only" which tend to be on the ambiguous
 %% side.  Instead of "may only be used for" you should say "may be used only
 %% for".  Yes, it's a very common (and hence minor) misuse.
-they may be seen as variables without a concrete definition and may only be
-used for type-checking purposes.
+they may be seen as variables without a concrete definition and may be
+used only for for type-checking purposes.
 
 First, they introduce the \id{Quot} type former, parametrised by some type
 \id{A} and a binary relation on \id{A}. \id{Quot.mk} is the term former that
@@ -2287,11 +2280,13 @@ show two typing rules to illustrate this point. First, we show the rule for
 observational equality between two propositions. Note that in TT$^{obs}$,
 $\Omega_i$ is the i$^{th}$ universe of proof irrelevant propositions. Readers
 who are unfamiliar with natural deduction may consult
-\autoref{app:natural-deduction} for a short introduction. Note, however,
-that in this subsection, we make use of an additional type of judgement in the
-form of $\oftype{\ctx}{t \Rightarrow{} u}{A}$. This judgement states that the
+\autoref{app:natural-deduction} for a short introduction. Note, however, that
+in this subsection, we make use of an additional type of judgement in the form
+of $\oftype{\ctx}{t \Rightarrow{} u}{A}$. This judgement states that the
 %% SM: Don't presume the reader knows what means "t reduces to u at type A".
-term \id{t} reduces to \id{u} at type \id{A} in context $\ctx$.
+term \id{t} reduces to \id{u} at type \id{A} in context $\ctx$, in other words,
+term \id{t} of type \id{A} reduces to some other term \id{u} of the same type
+in the given context.
 
 \begin{prooftree*}
   \hypo{\oftype{\ctx}{A}{\Omega_i}}
@@ -2399,10 +2394,8 @@ the aforementioned interval type.
 
 \subsection{Typer's Equality Type}\label{sec:typer-old-eq}
 
-%% SM: "intensional Martin-Löf type theory" => "Martin-Löf intensional type
-%% theory".
-Typer's primitive equality type is similar to that defined in intensional
-Martin-Löf type theory\cite{martin1975intuitionistic} (ITT) such that the
+Typer's primitive equality type is similar to that defined in Martin-Löf
+intensional type theory\cite{martin1975intuitionistic} (ITT) such that the
 equality is homogeneous and that equality reflection is not supported. Its type
 former takes on the following form:
 
@@ -2440,7 +2433,7 @@ It has the following reduction rule:
 
 \begin{prooftree*}
   \hypo{\id{p} \simeq{} \id{Eq\_refl}}
-  \infer1{\Funapp{\id{Eq\_cast}}{\id{x}}{\id{y}}{\id{p}}{\id{f}}{\id{fx}} \rightsquigarrow{} \id{fx}}
+  \infer1{\Funapp{\id{Eq\_cast}}{\id{x}}{\id{y}}{\id{p}}{\id{f}}{\id{fx}} \leadsto{} \id{fx}}
 \end{prooftree*}
 
 \id{Eq\_cast} only reduces when the equality proof passed to it is the
@@ -2538,9 +2531,9 @@ formally, the typing rule of the elimination rule may be stated as follows:
 It has the below computation rules:
 
 \begin{align*}
-  & \kw{elim}_{\bI}^{A}(M, N, P, \ileft) \rightsquigarrow{} M \\
-  & \kw{elim}_{\bI}^{A}(M, N, P, \iright) \rightsquigarrow{} N \\
-  & \kw{cong}_{\kw{elim}_{\bI}^{A}(M, N, P)}(\id{seg}) \rightsquigarrow{} P
+  & \kw{elim}_{\bI}^{A}(M, N, P, \ileft) \leadsto{} M \\
+  & \kw{elim}_{\bI}^{A}(M, N, P, \iright) \leadsto{} N \\
+  & \kw{cong}_{\kw{elim}_{\bI}^{A}(M, N, P)}(\id{seg}) \leadsto{} P
 \end{align*}
 
 We can expect the first two rules to hold definitionally. Definitional equality
@@ -2621,7 +2614,7 @@ with erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a type with two
 distinct constructors that take no arguments, such as the \id{Bool} type.
 Recall that an argument that is marked as erasable has no computational role
 during run time, as explained in \autoref{sec:intro-typer}. In other words, we
-can first define the interval type as a normal algebraic data type. Next, we
+can first define the interval type as a normal inductive data type. Next, we
 model the equality type as a function with an erasable argument out of the
 interval type.
 
@@ -2652,8 +2645,6 @@ The above shall be the basis of our new definition of equality types.
 We introduce a few primitive operations on the interval type whose usefulness
 will become clear after we introduce our version of the equality type that is
 based on the interval type. When providing the reduction rules for these
-%% SM: Don't presume that the readers are familiar with those congruence rules.
-%% I think here the best is to not even mention them.
 operations, we omit the congruence rules for brevity. Readers who are
 unfamiliar with the syntax of these rules are referred to
 \autoref{app:reduction-rules}.
@@ -2672,18 +2663,18 @@ The negation operator computes as follows:
 \begin{mdframed}[nobreak=true]
   \begin{center}
     \begin{prooftree}
-        \infer0[\textsc{I-Not$_1$}]{\Funapp{\fn{I\_not}}{i_0} \rightsquigarrow{} i_1}
+        \infer0[\textsc{I-Not$_1$}]{\Funapp{\fn{I\_not}}{i_0} \leadsto{} i_1}
     \end{prooftree}
     \qquad
     \begin{prooftree}
-        \infer0[\textsc{I-Not$_2$}]{\Funapp{\fn{I\_not}}{i_1} \rightsquigarrow{} i_0}
+        \infer0[\textsc{I-Not$_2$}]{\Funapp{\fn{I\_not}}{i_1} \leadsto{} i_0}
     \end{prooftree}
 
     \hfill \break
 
     \begin{prooftree}
         \infer0[\textsc{I-Not-Not}]{\Funapp{\fn{I\_not}}{(\Funapp{\fn{I\_not}}{i})}
-            \rightsquigarrow{} i}
+            \leadsto{} i}
     \end{prooftree}
   \end{center}
 \end{mdframed}
@@ -2710,31 +2701,31 @@ It has the following reduction rules:
     \begin{center}
         \begin{prooftree}
             \infer0[\textsc{I-Meet$_1$}]{\Funapp{\fn{I\_meet}}{i_0}{i}
-                \rightsquigarrow{} i_0}
+                \leadsto{} i_0}
         \end{prooftree}
         \qquad
         \begin{prooftree}
             \infer0[\textsc{I-Meet$_2$}]{\Funapp{\fn{I\_meet}}{i_1}{i}
-                \rightsquigarrow{} i}
+                \leadsto{} i}
         \end{prooftree}
 
         \hfill \break
 
         \begin{prooftree}
             \infer0[\textsc{I-Meet$_3$}]{\Funapp{\fn{I\_meet}}{i}{i_0}
-                \rightsquigarrow{} i_0}
+                \leadsto{} i_0}
         \end{prooftree}
         \qquad
         \begin{prooftree}
             \infer0[\textsc{I-Meet$_4$}]{\Funapp{\fn{I\_meet}}{i}{i_1}
-                \rightsquigarrow{} i}
+                \leadsto{} i}
         \end{prooftree}
 
         \hfill \break
 
         \begin{prooftree}
             \infer0[\textsc{I-Meet$_5$}]{\Funapp{\fn{I\_meet}}{i}{i}
-                \rightsquigarrow{} i}
+                \leadsto{} i}
         \end{prooftree}
     \end{center}
 \end{mdframed}
@@ -2746,7 +2737,7 @@ equal to $i_1$. Since the operator is commutative, \textsc{I-Meet$_3$} and
 \textsc{I-Meet$_2$}. The minimum of $\id{i}$ and $\id{i}$ is $\id{i}$ itself,
 justifying the \textsc{I-Meet$_5$} rule. Note that since the Interval type does
 not behave like a Boolean algebra, it is not the case that
-$\Funapp{\fn{I\_meet}}{i}{(\Funapp{\fn{I\_not}}{i})} \rightsquigarrow{} i_0$
+$\Funapp{\fn{I\_meet}}{i}{(\Funapp{\fn{I\_not}}{i})} \leadsto{} i_0$
 holds definitionally, however, the two terms may be proven to be propositionally
 equal.
 
@@ -2767,31 +2758,31 @@ reduction rules from the other primitives.
     \begin{center}
         \begin{prooftree}
             \infer0[\textsc{I-Join$_1$}]{\Funapp{\fn{I\_join}}{i_0}{i}
-                \rightsquigarrow{} i}
+                \leadsto{} i}
         \end{prooftree}
         \qquad
         \begin{prooftree}
             \infer0[\textsc{I-Join$_2$}]{\Funapp{\fn{I\_join}}{i_1}{i}
-                \rightsquigarrow{} i_1}
+                \leadsto{} i_1}
         \end{prooftree}
 
         \hfill \break
 
         \begin{prooftree}
             \infer0[\textsc{I-Join$_3$}]{\Funapp{\fn{I\_join}}{i}{i_0}
-                \rightsquigarrow{} i}
+                \leadsto{} i}
         \end{prooftree}
         \qquad
         \begin{prooftree}
             \infer0[\textsc{I-Join$_4$}]{\Funapp{\fn{I\_join}}{i}{i_1}
-                \rightsquigarrow{} i_1}
+                \leadsto{} i_1}
         \end{prooftree}
 
         \hfill \break
 
         \begin{prooftree}
             \infer0[\textsc{I-Join$_5$}]{\Funapp{\fn{I\_join}}{i}{i}
-                \rightsquigarrow{} i}
+                \leadsto{} i}
         \end{prooftree}
     \end{center}
 \end{mdframed}
@@ -2827,12 +2818,12 @@ typing rule:
 And the following reduction rules:
 
 \begin{prooftree*}
-  \infer0{\Funapp{\id{I\_transp}}{\id{A}}{\ileft}{\id{a}} \rightsquigarrow \id{a}}
+  \infer0{\Funapp{\id{I\_transp}}{\id{A}}{\ileft}{\id{a}} \leadsto \id{a}}
 \end{prooftree*}
 
 \begin{prooftree*}
   \hypo{\Funapp{\id{A}}{(\earg{\ileft})} \simeq{} \Funapp{\id{A}}{(\earg{\iright})}}
-  \infer1{\Funapp{\id{I\_transp}}{\id{A}}{\iright}{\id{a}} \rightsquigarrow \id{a}}
+  \infer1{\Funapp{\id{I\_transp}}{\id{A}}{\iright}{\id{a}} \leadsto \id{a}}
 \end{prooftree*}
 
 We claim that this is a generalised version of the cast operation as the
@@ -2921,19 +2912,19 @@ function, which gives us the $\eta$-equivalence for some \fn{p :\@ Heq x y}.
 
 \begin{align*}
   & \Funapp{\id{Heq\_eq}}{(\earg{\id{f}}{\lambda \id{i} \Rrightarrow
-      \Funapp{\id{Heq\_uneq}}{(\earg{\id{p}}{\id{p}})}{(\earg{\id{i}}{\id{i}})}})} \rightsquigarrow{} \id{p}
+      \Funapp{\id{Heq\_uneq}}{(\earg{\id{p}}{\id{p}})}{(\earg{\id{i}}{\id{i}})}})} \leadsto{} \id{p}
 \end{align*}
 
 \paragraph{Reduction rules}
 
 \begin{prooftree*}
    \infer0[\textsc{Uneq-Left}]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\ileft}
-                     \rightsquigarrow{} \id{x}}
+                     \leadsto{} \id{x}}
 \end{prooftree*}
 
 \begin{prooftree*}
    \infer0[\textsc{Uneq-Right}]{\Funapp{\id{Heq\_uneq}}{\id{x}}{\id{y}}{\id{p}}{\iright}
-                       \rightsquigarrow{} \id{y}}
+                       \leadsto{} \id{y}}
 \end{prooftree*}
 
 When $\fn{Heq\_uneq}$ is called with canonical values of $\bI$, it reduces to
@@ -3347,7 +3338,7 @@ We present the computation rule for the elimination of quotients.
 
 \begin{prooftree*}
    \infer0{\id{Quotient\_elim} \ \ \id{f} \ \ \id{p}
-     \ \ (\id{Quotient\_in} \ \ \id{R} \ \ \id{a}) \rightsquigarrow
+     \ \ (\id{Quotient\_in} \ \ \id{R} \ \ \id{a}) \leadsto
      \Funapp{\id{f}}{\id{a}}}
 \end{prooftree*}
 
@@ -3363,7 +3354,7 @@ which ones would actually be useful. One instance of it that we could possibly
 define is the following:
 
 \begin{align*}
-  & \id{Quotient\_in} \ \ (\Funapp{\fn{Quotient\_elim}}{\id{f}}{\id{h}}{\id{q}}) \rightsquigarrow{} \id{q} \\
+  & \id{Quotient\_in} \ \ (\Funapp{\fn{Quotient\_elim}}{\id{f}}{\id{h}}{\id{q}}) \leadsto{} \id{q} \\
 \end{align*}
 
 This requires the condition that \id{f} be some function of type \fn{A
@@ -3375,7 +3366,7 @@ useful to have. Another similar $\eta$-rule that is more easily enforced is the
 following:
 
 \begin{align*}
-  & \fn{Quotient\_elim} \ \  \id{Quotient\_in} \ \ (\lambda \ \id{a} \ \id{a'} \ \id{r} \rightarrow \Funapp{\id{Quotient\_eq}}{\id{r}}) \ \id{q} \rightsquigarrow{} \id{q} \\
+  & \fn{Quotient\_elim} \ \  \id{Quotient\_in} \ \ (\lambda \ \id{a} \ \id{a'} \ \id{r} \rightarrow \Funapp{\id{Quotient\_eq}}{\id{r}}) \ \id{q} \leadsto{} \id{q} \\
 \end{align*}
 
 This rule says that if the elimination of a quotiented term \id{q} simply
@@ -3834,9 +3825,11 @@ construct integers by quotienting pairs of natural numbers, we are unable to
 prove that the resulting quotient type has decidable equality. This is the
 reason why it was necessary to add the \id{Quotient\_trunc} axiom. In the
 absence of this axiom, we are unable to prove certain properties of quotient
-types. For example, we would not be able to prove that the quotient of \id{Unit}
-by the total relation is equivalent to \id{Unit}
-itself\cite{vezzosi2021cubical}.
+types. For example, we would not be able to prove that the quotient of
+\id{Unit} by the total relation is equivalent to \id{Unit}
+itself\cite{vezzosi2021cubical}. Such an axiom was not required in the setting
+of \Lean{}(\autoref{sec:intro-lean-quotients}) as all equality proofs are
+definitionally equal in \Lean{}.
 
 \chapter{Quotient Examples}\label{ch:quot-examples}
 The addition of quotient types to Typer allows us to define certain constructs
@@ -5001,7 +4994,7 @@ property of quotients. We note as well that our dependent elimination of
 quotients is not limited to motives that live in the universe of \type{Prop},
 as opposed to when quotient types are added to a theory interpreted in a setoid
 model as proposed by Li\cite{li2015quotient} as well as the implementation in
-\Lean{} described in \autoref{sec:intro-lean-quotients} . A library was provided
+\Lean{} described in \autoref{sec:intro-lean-quotients}. A library was provided
 with proofs of many other properties fulfilled by our quotient types. We also
 explored the practical aspects of our quotient types by using them to construct
 several examples. We then observed that when the identifications that we wish
@@ -5058,21 +5051,18 @@ steps of the proof to be explicitly stated, although this is not always the
 case. The added verbosity makes their development a laborious endeavour. During
 the construction of \id{Rational}, we had to do a lot of monotonous reasoning
 related to linear arithmetic to prove propositions that were seemingly obvious
-%% SM: "the Coq's lia" => "Coq's lia".
-to the human eye. Such goals may typically be solved using tactics such as the
+to the human eye. Such goals may typically be solved using tactics such as
 \Coq{}'s \kw{lia} tactic and \Lean{}'s \kw{linarith} tactic that are
 essentially solvers for linear goals over $\mathbb{Z}$. For the moment, Typer
 also lacks the powerful dependent pattern-matching system of \Agda{}. This
 inconvenience is somewhat mitigated by the presence of the
 \fn{\kw{case}...\kw{return}...} construct that is reminiscent of \Coq{}.
-%% SM: This lack also plagues Coq's "match ... return", contrary to what
-%% your "However" suggests.
-However, while we are in \kw{case} branches, we lack the specialisation of
-types of other variables in the context that depend on the scrutinee. This was
-an inconvenience that we had to reckon with on numerous occasions while working
-with quotient types. The above seems to be desirable features that we should
-contemplate introducing to Typer in some shape or form to facilitate proof
-development.
+However, just like \Coq{}, while we are in \kw{case} branches, we still lack
+the specialisation of types of other variables in the context that depend on
+the scrutinee. This was an inconvenience that we had to reckon with on numerous
+occasions while working with quotient types. The above seems to be desirable
+features that we should contemplate introducing to Typer in some shape or form
+to facilitate proof development.
 
 \section*{Computational Behaviour}\label{sec:eval-computation-behaviour}
 
@@ -5111,19 +5101,21 @@ our system as shown in the following code snippet:
 \id{plus0} is a proof that both ways of adding \id{zero} to an integer \id{x}
 are equal since the addition of natural numbers is commutative. This is a
 witness that the two functions that are passed to \id{Eq\_funext} are
-%% SM: "allowing *us* to use".
-extensionally equal, allowing to use functional extensionality to construct an
-equality proof between them. The implementation of \kw{cast} in proof assistants
-that implement ITT typically only reduces on reflexive proofs of equality. This
-implies that a term such as \fn{Eq\_cast (p := eqf) (f := $\lambda$ \_
-$\rightarrow$ Nat) zero} would not reduce to \id{zero} despite the fact that
-this cast does not even utilise the proof constructed by \id{Eq\_funext} as the
-motive \id{f} does not use its argument. Our implementation of \kw{cast} recognises
-the fact that we are performing a cast between two definitionally equal types,
-%% SM: "... reduces" ... to what?
-i.e., \id{Nat} and \id{Nat}, and thus successfully reduces.
-i.e., \id{Nat} and \id{Nat}, and thus successfully reduces. This is another one
-of the benefits of our interval-based equality type.
+extensionally equal, allowing us to use functional extensionality to construct
+an equality proof between them. The implementation of \kw{cast} in proof
+assistants that implement ITT typically only reduces on reflexive proofs of
+equality. This implies that a term such as \fn{Eq\_cast (p := eqf) (f :=
+$\lambda$ \_ $\rightarrow$ Nat) zero} would not reduce to \id{zero} despite the
+fact that this cast does not even utilise the proof constructed by
+\id{Eq\_funext} as the motive \id{f} does not use its argument. For instance,
+this problem would occur in \Lean{}, regardless of whether we define functional
+extensionality as an axiom or if we derive it as a theorem from quotient types
+as we did in \autoref{sec:quot-implies-funext}. Our implementation of \kw{cast}
+recognises the fact that we are performing a cast between two definitionally
+equal types, i.e., \id{Nat} and \id{Nat}, and thus successfully reduces. i.e.,
+\id{Nat} and \id{Nat}, and thus successfully reduces \fn{Eq_cast (p := eqf) (f
+:= $\lambda$ _ $\rightarrow$ Nat) zero} to \id{zero}. This is another one of
+the benefits of our interval-based equality type.
 
 However, this is not without its pitfalls. Consider the below example:
 
@@ -5223,33 +5215,33 @@ expression is equivalent to $\zpairplus$.
       (Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
                      a b)))
 
-        @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
+        @$\leadsto$@ @$\eta$@-reduction of lambdas
 
     Quotient_rec2 (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
 
-        @$\rightsquigarrow$@ Inlining of Quotient_rec2
+        @$\leadsto$@ Inlining of Quotient_rec2
 
     Quotient_rec (@$\lambda$@ (a) @$\rightarrow$@
         Quotient_rec ((@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))) a))
 
-        @$\rightsquigarrow$@ Inlining of Quotient_rec
+        @$\leadsto$@ Inlining of Quotient_rec
 
     (@$\lambda$@ (a) @$\rightarrow$@
         Quotient_rec ((@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))) a))
 
-        @$\rightsquigarrow$@ Inlining of Quotient_rec
+        @$\leadsto$@ Inlining of Quotient_rec
 
     (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y))) a)
 
-        @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
+        @$\leadsto$@ @$\eta$@-reduction of lambdas
 
     (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ Quotient_in (@$\zpairplus$@ x y)))
 
-        @$\rightsquigarrow$@ Inlining of Quotient_in
+        @$\leadsto$@ Inlining of Quotient_in
 
     (@$\lambda$@ (x) @$\rightarrow$@ (@$\lambda$@ (y) @$\rightarrow$@ @$\zpairplus$@ x y))
 
-        @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
+        @$\leadsto$@ @$\eta$@-reduction of lambdas
 
     @$\zpairplus$@
 \end{minted}
@@ -5261,18 +5253,18 @@ A desirable optimisation is the inlining of \id{Quotient\_in}, \id{Quotient\_rec
 \id{Quotient\_rec2} as follows:
 
 \begin{itemize}
-  \item{\fn{Quotient\_in e} $\rightsquigarrow$ \id{e}}
+  \item{\fn{Quotient\_in e} $\leadsto$ \id{e}}
 
-  \item{\fn{Quotient\_rec f} $\rightsquigarrow$ \id{f}}
+  \item{\fn{Quotient\_rec f} $\leadsto$ \id{f}}
 
-  \item{\fn{Quotient\_rec2 f} $\rightsquigarrow$ \fn{Quotient\_rec ($\lambda$ a $\rightarrow$ Quotient\_rec (f a))}}
+  \item{\fn{Quotient\_rec2 f} $\leadsto$ \fn{Quotient\_rec ($\lambda$ a $\rightarrow$ Quotient\_rec (f a))}}
 \end{itemize}
 
 We also would require a multi-argument version of the $\eta$-reduction rule for
 lambda functions like so:
 
 \begin{itemize}
-  \item{\fn{($\lambda$ (e$_1$) ($\lambda$ (e$_2$) ... ($\lambda$ (e$_n$) f e$_1$ e$_2$ ... e$_n$))) $\rightsquigarrow$ f}}
+  \item{\fn{($\lambda$ (e$_1$) ($\lambda$ (e$_2$) ... ($\lambda$ (e$_n$) f e$_1$ e$_2$ ... e$_n$))) $\leadsto$ f}}
 \end{itemize}
 
 With that, we show a possible series of reductions and optimisations that
@@ -5370,12 +5362,12 @@ Instead, we show a series of rewrites and reductions to simplify
     (@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (s) @$\rightarrow$@
       Quotient_rec (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l)) s)))
 
-        @$\rightsquigarrow$@ Inlining of Quotient_rec
+        @$\leadsto$@ Inlining of Quotient_rec
 
     (@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (s) @$\rightarrow$@
       (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l)) s)))
 
-        @$\rightsquigarrow$@ @$\eta$@-reduction of lambdas
+        @$\leadsto$@ @$\eta$@-reduction of lambdas
 
     (@$\lambda$@ (disc) @$\rightarrow$@ (@$\lambda$@ (a) @$\rightarrow$@ (@$\lambda$@ (l) @$\rightarrow$@ Dec2Bool (isMemberDec disc a l))))
 \end{minted}
@@ -5932,8 +5924,7 @@ type \id{A}. We may also include a comma-separated list of hypotheses in
 judgements; they are separated from the conclusion by the turnstile ($\vdash$).
 For instance, $\oftype{\oftype{\id{i}}{\id{Int}}}{\id{i + 1}}{\id{Int}}$ may be
 read as ``Given that we have some \id{i} of type \id{Int}, then we deduce that
-%% SM: "preciseness" => "precision"?
-\id{i + 1} is also of type \id{Int}.''. For preciseness, we want our rules to
+\id{i + 1} is also of type \id{Int}.''. For precision, we want our rules to
 be valid under arbitrary additional hypotheses. Thus, we use the symbol $\ctx$,
 known as the context, to represent an arbitrary list of hypotheses, giving us
 judgements of the form $\oftype{\ctx}{\id{a}}{\id{A}}$.
@@ -5969,15 +5960,14 @@ application of \id{a} to \id{b} is of type \id{C}.
 
 To describe the evaluation of terms in our system, we use small-step
 operational semantics. This allows us to show how a program executes one step
-at a time. A typical reduction rule has the form of $\id{t}_1
-%% SM: IIUC \rightsquigarrow is a more verbose name for \leadsto.
-\rightsquigarrow{} \id{t}_2$, this may be read as ``$\id{t}_1$ reduces to
-$\id{t}_2$''. We provide a concrete example by showing a reduction rule
-for a \fn{\kw{if}...\kw{then}...\kw{else}} expression:
+at a time. A typical reduction rule has the form of $\id{t}_1 \leadsto{}
+\id{t}_2$, this may be read as ``$\id{t}_1$ reduces to $\id{t}_2$''. We provide
+a concrete example by showing a reduction rule for a
+\fn{\kw{if}...\kw{then}...\kw{else}} expression:
 
 \begin{prooftree*}
   \infer0[\textsc{If-Then-Else-True}]{\kw{if} \ \id{true} \ \kw{then} \ \id{t}_1 \ \kw{else} \ \id{t}_2
-                     \rightsquigarrow{} \id{t}_1}
+                     \leadsto{} \id{t}_1}
 \end{prooftree*}
 
 This rule states that when the scrutinee of an
@@ -5986,20 +5976,22 @@ expression reduces to the term in the \kw{then} branch. A similar rule may be
 written for the case where the scrutinee is \id{false}.
 
 If the scrutinee of the \fn{\kw{if}...\kw{then}...\kw{else}} is not a canonical
-value of the \id{Bool} type, i.e., if it is not \id{true} or \id{false},
-then we should try to further evaluate the scrutinee. In such cases, the
-reduction rule would have a premise saying that if a certain sub-expression may
-be reduced by one step, then the entire expression may be reduced by one step
-%% SM: "the congruence rule" suggests you assume the reader already knows
-%% about those congruence rules.
-too. We illustrate this by showing the congruence rule for
-\fn{\kw{if}...\kw{then}...\kw{else}} expressions.
+value of the \id{Bool} type, i.e., if it is not \id{true} or \id{false}, then
+we would not be able to apply the above rule. This is where {congruence rules}
+come into the picture, they allow us to perform a step of reduction on a
+sub-expression of a larger expression. We illustrate this by showing the
+congruence rule for \fn{\kw{if}...\kw{then}...\kw{else}} expressions.
 
 \begin{prooftree*}
-  \hypo{\id{t}_1 \rightsquigarrow{} \id{t}_1^{'} }
+  \hypo{\id{t}_1 \leadsto{} \id{t}_1^{'} }
   \infer1[\textsc{If-Then-Else-Cong}]{\kw{if} \ \id{t}_1 \ \kw{then} \ \id{t}_2 \ \kw{else} \ \id{t}_3
-  \rightsquigarrow{} \kw{if} \ \id{t}_1^{'} \ \kw{then} \ \id{t}_2 \ \kw{else} \ \id{t}_3}
+  \leadsto{} \kw{if} \ \id{t}_1^{'} \ \kw{then} \ \id{t}_2 \ \kw{else} \ \id{t}_3}
 \end{prooftree*}
+
+This rule has a premise stating that if the scrutinee, $\id{t}_1$, of an
+\fn{\kw{if}...\kw{then}...\kw{else}} expression can be reduced by one step to
+$\id{t}_1^{'}$ , then the entire expression can be reduced by one step to the same
+expression with $\id{t}_1$  replaced by $\id{t}_1^{'}$.
 
 \chapter{Equational Reasoning}\label{app:eq-reasoning}
 Equational reasoning provides us with a neat way of expressing proofs in Typer.
@@ -6150,9 +6142,9 @@ follows:
 with the following computation rules:
 
 \begin{align*}
-  & \kw{elimd}_{\bI}^{C}(M, N, P, \ileft) \rightsquigarrow{} M \\
-  & \kw{elimd}_{\bI}^{C}(M, N, P, \iright) \rightsquigarrow{} N \\
-  & \kw{congd}_{\kw{elimd}_{\bI}^{C}(M, N, P)}(seg) \rightsquigarrow{} P
+  & \kw{elimd}_{\bI}^{C}(M, N, P, \ileft) \leadsto{} M \\
+  & \kw{elimd}_{\bI}^{C}(M, N, P, \iright) \leadsto{} N \\
+  & \kw{congd}_{\kw{elimd}_{\bI}^{C}(M, N, P)}(seg) \leadsto{} P
 \end{align*}
 
 
@@ -6185,10 +6177,10 @@ now show how the expression $f \ (g \ (e))$ gets reduced.
 
 \begin{align*}
   & f \ (g \ \braket{x, \braket{y, p}})  \\
-  & \rightsquigarrow f \ (\lambda i . \ \kw{elim}_{\bI}^{A}(x, y, p, i)) \\
-  & \rightsquigarrow \braket{x, \braket{y, \kw{cong}_{\lambda i . \ \kw{elim}_{\bI}^{A}(x, y, p, i)}(seg)}} \\
-  & \rightsquigarrow \braket{x, \braket{y, \kw{cong}_{\kw{elim}_{\bI}^{A}(x, y, p)}(seg)}} \\
-  & \rightsquigarrow \braket{x, \braket{y, p}} \\
+  & \leadsto f \ (\lambda i . \ \kw{elim}_{\bI}^{A}(x, y, p, i)) \\
+  & \leadsto \braket{x, \braket{y, \kw{cong}_{\lambda i . \ \kw{elim}_{\bI}^{A}(x, y, p, i)}(seg)}} \\
+  & \leadsto \braket{x, \braket{y, \kw{cong}_{\kw{elim}_{\bI}^{A}(x, y, p)}(seg)}} \\
+  & \leadsto \braket{x, \braket{y, p}} \\
 \end{align*}
 
 The third reduction uses the $\eta$-equivalence of functions. As for the final
@@ -6580,9 +6572,9 @@ path on $\fn{a}$ by using the reduction rules of $\fn{I\_meet}$ defined in
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     @$\lambda$@ j @$\Rrightarrow$@ p (I_meet @$i_0$@ j)
-    @$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p @$i_0$@
-    @$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ a
-    @$\rightsquigarrow$@ Eq_refl (_ := a)
+    @$\leadsto$@ @$\lambda$@ j @$\Rrightarrow$@ p @$i_0$@
+    @$\leadsto$@ @$\lambda$@ j @$\Rrightarrow$@ a
+    @$\leadsto$@ Eq_refl (_ := a)
 \end{minted}
 
 For the bottom side, we fix $\fn{j}$ to be $i_0$ to obtain the below expression,
@@ -6590,8 +6582,8 @@ which is once again a constant path on $\fn{a}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     @$\lambda$@ i @$\Rrightarrow$@ p (I_meet i @$i_0$@)
-    @$\rightsquigarrow$@ @$\lambda$@ i @$\Rrightarrow$@ p @$i_0$@
-    @$\rightsquigarrow$@ Eq_refl (_ := a)
+    @$\leadsto$@ @$\lambda$@ i @$\Rrightarrow$@ p @$i_0$@
+    @$\leadsto$@ Eq_refl (_ := a)
 \end{minted}
 
 The right side requires us to fix $\fn{i}$ to be $i_1$, giving us the below
@@ -6599,16 +6591,16 @@ expression which simply reduces to $\fn{p}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     @$\lambda$@ j @$\Rrightarrow$@ p (I_meet @$i_1$@ j)
-    @$\rightsquigarrow$@ @$\lambda$@ j @$\Rrightarrow$@ p j
-    @$\rightsquigarrow$@ p
+    @$\leadsto$@ @$\lambda$@ j @$\Rrightarrow$@ p j
+    @$\leadsto$@ p
 \end{minted}
 
 By fixing $\fn{j}$ to be $i_1$, we get the expression that corresponds to the top side, which also reduces to $\fn{p}$.
 
 \begin{minted}[escapeinside=@@,mathescape=true]{agda}
     @$\lambda$@ i @$\Rrightarrow$@ p (I_meet i @$i_1$@)
-    @$\rightsquigarrow$@ @$\lambda$@ i @$\Rrightarrow$@ p i
-    @$\rightsquigarrow$@ p
+    @$\leadsto$@ @$\lambda$@ i @$\Rrightarrow$@ p i
+    @$\leadsto$@ p
 \end{minted}
 
 With that, we may complete the definition of \id{eqUnique} mentioned in
