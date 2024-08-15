@@ -2194,7 +2194,7 @@ presentation.}.
 \end{minted}
 
 Lean has two universes of types, \kw{Prop} and \kw{Type}. \kw{Type} is analogous
-to its counterpart in Typer as explained in \autoref{subsec:typer-comparison}.
+to its counterpart in Typer as explained in \autoref{subsec:intro-ind-types}.
 \id{Prop}, on the other hand, is \Lean{}'s universe of proof-irrelevant
 %% SM: Really?  My understanding was that Lean had propositional
 %% proof irrelevance via an axiom, rather than definitional
@@ -2610,7 +2610,7 @@ equivalent to a function out of the interval. Its defining characteristic is
 that the output of such a function has to agree at both endpoints of $\bI$.
 This is enforced by the elimination principle of the $\bI$ that ensures that
 \id{seg} is respected. An alternate way of enforcing this is by using functions
-with erasable arguments out of a $\mathbbm{2}$-type, i.e.\ a type with two
+with erasable arguments out of a $\mathbb{2}$-type, i.e.\ a type with two
 distinct constructors that take no arguments, such as the \id{Bool} type.
 Recall that an argument that is marked as erasable has no computational role
 during run time, as explained in \autoref{sec:intro-typer}. In other words, we
